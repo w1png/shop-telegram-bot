@@ -4,15 +4,12 @@ c = conn.cursor()
 
 
 def does_user_exist(user_id):
-    c.execute(f"SELECT * FROM users WHERE user_id={user_id}")
-    if len(list(c)) == 0:
-        return False
-    else:
-        return True
+    c.execute(f"SELECT * FROM users WHERE user_id=\"{user_id}\"")
+    return len(list(c)) != 0
 
 
 def get_user_orders(user_id):
-    c.execute(f"SELECT * FROM orders WHERE user_id={user_id}")
+    c.execute(f"SELECT * FROM orders WHERE user_id=\"{user_id}\"")
     return list(c)
 
 
@@ -33,28 +30,31 @@ class User:
         c.execute(f"SELECT * FROM users WHERE user_id={self.user_id}")
         for user in c:
             pass
-        if user[2] == 1:
-            return True
-        else:
-            return False
+        return user[2] == 1
+
+    def set_admin(self, value):
+        c.execute(f"UPDATE users SET is_admin={value} WHERE user_id={self.get_id()}")
+        conn.commit()
 
     def is_supplier(self):
         c.execute(f"SELECT * FROM users WHERE user_id={self.user_id}")
         for user in c:
             pass
-        if user[3] == 1:
-            return True
-        else:
-            return False
+        return user[3] == 1
+
+    def set_supplier(self, value):
+        c.execute(f"UPDATE users SET is_supplier={value} WHERE user_id={self.get_id()}")
+        conn.commit()
 
     def is_support(self):
         c.execute(f"SELECT * FROM users WHERE user_id={self.user_id}")
         for user in c:
             pass
-        if user[4] == 1:
-            return True
-        else:
-            return False
+        return user[4] == 1
+
+    def set_support(self, value):
+        c.execute(f"UPDATE users SET is_support={value} WHERE user_id={self.get_id()}")
+        conn.commit()
 
     def get_register_date(self):
         c.execute(f"SELECT * FROM users WHERE user_id={self.user_id}")
@@ -66,10 +66,7 @@ class User:
         c.execute(f"SELECT * FROM users WHERE user_id={self.user_id}")
         for user in c:
             pass
-        if user[5] == 1:
-            return True
-        else:
-            return False
+        return user[5] == 1
 
     def enable_notif(self):
         c.execute(f"UPDATE users SET notification=1 WHERE user_id={self.user_id}")
@@ -106,3 +103,9 @@ def get_user_orders(userid):
 
 def get_user_login(message):
     return message.from_user.username
+
+
+def get_user_list():
+    c.execute("SELECT * FROM users")
+    return list(c)
+

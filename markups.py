@@ -1,4 +1,5 @@
 from aiogram import types
+from aiogram.types.callback_query import CallbackQuery
 import user as usr
 from configparser import ConfigParser
 
@@ -33,7 +34,6 @@ def get_cancel_states_clients():
     markup = types.InlineKeyboardMarkup()
     markup.add(btnCancelStateClients)
     return markup
-
 
 
 def get_cancel_states_btc_settings():
@@ -77,13 +77,11 @@ def get_markup_main():
 # Админ-панель
 markupAdmin = types.InlineKeyboardMarkup()
 
-btnRolesManagement = types.InlineKeyboardButton(text='👨‍💻Управление ролями', callback_data='rolesManagement')
-markupAdmin.add(btnRolesManagement)
 btnItemManagement = types.InlineKeyboardButton(text='📦Управление товаром', callback_data='itemManagement')
 markupAdmin.add(btnItemManagement)
 btnClientManagement = types.InlineKeyboardButton(text='🧍Управление пользователями', callback_data='clientManagement')
 markupAdmin.add(btnClientManagement)
-btnStats = types.InlineKeyboardButton(text='📈Статистика магазина', callback_data='shopStats')
+btnStats = types.InlineKeyboardButton(text='📈Статистика магазина (BETA)', callback_data='shopStats')
 markupAdmin.add(btnStats)
 btnBotSettings = types.InlineKeyboardButton(text='⚙Настройки бота', callback_data='botSettings')
 markupAdmin.add(btnBotSettings)
@@ -91,6 +89,11 @@ markupAdmin.add(btnBotSettings)
 
 def get_admin_markup():
     return markupAdmin
+
+
+# товар
+markupItems = types.InlineKeyboardMarkup()
+btnAddCat = types.InlineKeyboardButton(text="Добавить категорию")
 
 
 # статистика
@@ -203,20 +206,63 @@ def get_markup_profile(user_id):
     return markupProfile
 
 
-# Управление пользователей
+# Управление пользователями
 clientManagementMarkup = types.InlineKeyboardMarkup()
-btnSeeUserPurchases = types.InlineKeyboardButton(text='🛒Покупки пользователя', callback_data='seeUserPurchases')
-btnAddBalance = types.InlineKeyboardButton(text='💎Изменить баланс', callback_data='addBal')
-btnSeeOrder = types.InlineKeyboardButton(text='📂Посмотреть заказ', callback_data='seeOrder')
+btnSeeUserProfile = types.InlineKeyboardButton(text="📁Профиль пользователя", callback_data='seeUserProfile')
 btnNotifyAllUsers = types.InlineKeyboardButton(text='🔔Оповещение всем пользователям', callback_data='notifyAll')
-clientManagementMarkup.add(btnSeeUserPurchases, btnAddBalance)
-clientManagementMarkup.add(btnSeeOrder)
+clientManagementMarkup.add(btnSeeUserProfile)
 clientManagementMarkup.add(btnNotifyAllUsers)
 clientManagementMarkup.add(btnAdminBack)
 
 
 def get_client_management_markup():
     return clientManagementMarkup
+
+
+def get_seeUserProfile_markup(userid):
+    user = usr.User(userid)
+    seeUserProfileMarkup = types.InlineKeyboardMarkup()
+    btnSeeUserOrders = types.InlineKeyboardButton(text="📁Заказы", callback_data=f"seeUserOrders{userid}")
+    btnChangeUserBalance = types.InlineKeyboardButton(text="💎Изменить баланс", callback_data=f"changeUserBalance{userid}")
+    seeUserProfileMarkup.add(btnSeeUserOrders, btnChangeUserBalance)
+
+    btnUserRemoveAdmin = types.InlineKeyboardButton(text="🔴Убрать роль администратора", callback_data=f"removeUserAdmin{userid}")
+    btnUserMakeAdmin = types.InlineKeyboardButton(text="🔴Сделать администратором", callback_data=f"makeUserAdmin{userid}")
+    seeUserProfileMarkup.add(btnUserRemoveAdmin) if user.is_admin() else seeUserProfileMarkup.add(btnUserMakeAdmin)
+    
+    btnUserRemoveSupplier = types.InlineKeyboardButton(text="🚚Убрать роль поставщика", callback_data=f"removeUserSupplier{userid}")
+    btnUserMakeSupplier = types.InlineKeyboardButton(text="🚚Сделать поставщиком", callback_data=f"makeUserSupplier{userid}")
+    seeUserProfileMarkup.add(btnUserRemoveSupplier) if user.is_supplier() else seeUserProfileMarkup.add(btnUserMakeSupplier)
+    
+    btnUserRemoveSupport = types.InlineKeyboardButton(text="☎️Убрать роль оператора тех. поддержки", callback_data=f"removeUserSupport{userid}")
+    btnUserMakeSupport = types.InlineKeyboardButton(text="☎️Сделать оператором тех. поддержки", callback_data=f"makeUserSupport{userid}")
+    seeUserProfileMarkup.add(btnUserRemoveSupport) if user.is_support() else seeUserProfileMarkup.add(btnUserMakeSupport)
+    
+    seeUserProfileMarkup.add(btnClientsBack)
+    return seeUserProfileMarkup
+
+
+def get_cancel_states_user(userid):
+    markup = types.InlineKeyboardMarkup()
+    btnCancelStateUser = types.InlineKeyboardButton(text='🔙Назад', callback_data=f'cancelStateUser{userid}')
+    markup.add(btnCancelStateUser)
+    return markup
+
+
+def get_back_user_btn(userid):
+    return types.InlineKeyboardButton(text="🔙Назад", callback_data=f"userBack{userid}")
+
+
+def get_back_user_markup(userid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(get_back_user_btn(userid))
+    return markup
+
+
+def get_back_user_orders_markup(userid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"seeUserOrders{userid}"))
+    return markup
 
 
 

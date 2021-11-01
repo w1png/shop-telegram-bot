@@ -5,6 +5,9 @@ import datetime
 from random import choice, randint
 from aiogram.dispatcher import FSMContext
 from string import ascii_letters, digits
+from os import path
+from sys import exit
+from aiogram.types import message, message_id, user
 import stats
 from configparser import ConfigParser
 import markups
@@ -12,9 +15,36 @@ import state_handler
 from user import User
 import user as usr
 
+if not path.isfile("data.db"):
+    print("Создаем базу данных...")
+
 conn = sqlite3.connect('data.db')
 c = conn.cursor()
 
+c.execute('CREATE TABLE IF NOT EXISTS "cats" ("id" INTEGER, "name" TEXT NOT NULL, PRIMARY KEY("id"))')
+c.execute('CREATE TABLE IF NOT EXISTS item_stock (id INTEGER PRIMARY KEY, item_id INTEGER, login TEXT, password TEXT)')
+c.execute('CREATE TABLE IF NOT EXISTS "items" ("id" INTEGER, "name" TEXT NOT NULL, "price" FLOAT NOT NULL,"cat_id" INTEGER NOT NULL, "desc" TEXT, PRIMARY KEY("id"))')
+c.execute('CREATE TABLE IF NOT EXISTS "orders" ("order_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "item_id" INTEGER NOT NULL, "details" TEXT NOT NULL, "date" TEXT NOT NULL)')
+c.execute('CREATE TABLE IF NOT EXISTS "payments" ("payment_id" TEXT, "user_id" INTEGER, "summ" FLOAT, "done" INTEGER, "date" TEXT)')
+c.execute('CREATE TABLE IF NOT EXISTS "support" ("id" INTEGER, "order_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "email" TEXT NOT NULL, "problem" TEXT NOT NULL, "item_name" TEXT NOT NULL, "item_details" INTEGER NOT NULL, "is_resolved" INTEGER NOT NULL, PRIMARY KEY("id"))')
+c.execute('CREATE TABLE IF NOT EXISTS "users" ("user_id" INTEGER NOT NULL, "balance" FLOAT NOT NULL, "is_admin" INTEGER, "is_supplier" INTEGER, "is_support" INTEGER, "notification" INTEGER, "date_created" TEXT)')
+
+if not path.isfile("config.ini"):
+    with open("config.ini", 'w') as config:
+        config.write("[main]\ntoken = Токен\nmain_admin_id = ID главного администратора\n\n[shop_settings]\nshop_name = Название магазина\nrefund_policy = Политика возврата\nshop_contacts = Контакты\n\n[payment_settings]\nqiwi_number = Номер киви кошелька\nqiwi_token = Токен киви кошелька\nqiwi_isactive = 0\nmain_btc_adress = Адрес btc кошелька\nbtc_isactive = 0\n")
+    conf = ConfigParser()
+    conf.read("config.ini", encoding="utf-8")
+    conf.set("main", "token", input("Для начала работы введите токен бота: "))
+    
+    while True:
+        main_admin_id = input("Введите ваш ID. (Его можно узнать в @userinfobot): ")
+        if main_admin_id.isnumeric(): break
+
+    conf.set("main", "main_admin_id", str(main_admin_id))
+    print("Остальные настройки можно изменить в 🔴Админ панель -> ⚙Настройки бота")
+    
+    with open("config.ini", 'w') as configfile:
+        conf.write(configfile)
 
 conf = ConfigParser()
 conf.read('config.ini', encoding='utf8')
@@ -54,8 +84,6 @@ async def welcome(message: types.Message):
     else:
         if user.is_admin():
             markupMain.row(adminPanel)
-        # if user_is_supplier(message.chat.id):
-        #     markupMain.row(addAccount)
         if user.is_admin():
             btnSupport = types.KeyboardButton(text='☎Меню тех. поддержки')
             markupMain.row(btnSupport)
@@ -72,13 +100,16 @@ async def welcome(message: types.Message):
 @dp.message_handler()
 async def handle_text(message):
     user = User(message.chat.id)
-
+    
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
 
     if message.text == '🔴Админ панель':
         if user.is_admin():
             await bot.send_message(message.chat.id, '🔴Админ панель', reply_markup=markups.get_admin_markup())
+        # if user.get_id() == conf['main']['main_admin_id']:
+        #     await bot.send_message(message.chat.id, '🔴Админ панель', reply_markup=markups.get_admin_markup())
+
     elif message.text == 'ℹ️FAQ':
         markupFAQ = markups.get_faq_markup()
         await bot.send_message(message.chat.id, f'➖➖➖➖➖➖➖➖➖➖\nℹ️FAQ магазина {conf["shop_settings"]["shop_name"]}'
@@ -87,7 +118,6 @@ async def handle_text(message):
         markupProfile = markups.get_markup_profile(user_id=message.chat.id)
         await bot.send_message(message.chat.id,
                                f"➖➖➖➖➖➖➖➖➖➖\n"
-                               f"🧍Имя: {usr.get_user_login(message)}\n"
                                f"📝id: {message.chat.id}\n"
                                f"📈Кол-во заказов: {len(usr.get_user_orders(message.chat.id))}\n"
                                f"💸Баланс: {user.get_balance()}руб.\n"
@@ -127,12 +157,17 @@ async def process_callback(callback_query: types.CallbackQuery):
             amount = get_item_count(item[0])
             text = f'{item[1]} - {amount}шт. - {item[2]}руб.'
             btnCat = types.InlineKeyboardButton(text=text, callback_data=f"item{item[0]}")
-            catMarkup.add(btnCat)
+            if item[5] == 1:
+                catMarkup.add(btnCat)
         catMarkup.add(markups.get_cat_back())
         await bot.edit_message_text(text=f'➖➖➖➖➖➖➖➖➖\n{cat[1]}\n➖➖➖➖➖➖➖➖➖',
                                     chat_id=callback_query.message.chat.id,
                                     message_id=callback_query.message.message_id,
                                     reply_markup=catMarkup)
+    
+    elif callText == "itemManagement":
+        pass
+        
     elif callText[:4] == 'item':
         c.execute(f"SELECT * FROM items WHERE id={callText[4:]}")
         for item in c:
@@ -154,7 +189,138 @@ async def process_callback(callback_query: types.CallbackQuery):
             message_id=callback_query.message.message_id,
             reply_markup=markups.get_confirm_buy_markup(callText[7:])
         )
+     
+    elif callText[:17] == "changeUserBalance":
+        await bot.edit_message_text(
+            text=f"Введите новый баланс пользователя с ID {callText[17:]} или нажмите на кнопку \"Назад\".",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cancel_states_user(callText[17:])
+        )
+        await state_handler.changeUserBalance.bal.set()
+        state = Dispatcher.get_current().current_state()
+        await state.update_data(userid=callText[17:])
 
+    elif callText[:15] == "removeUserAdmin":
+        userid = callText[15:]
+        profuser = usr.User(userid)
+        profuser.set_admin(0)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_seeUserProfile_markup(userid)
+        )
+        
+    elif callText[:13] == "makeUserAdmin":
+        userid = callText[13:]
+        profuser = usr.User(userid)
+        profuser.set_admin(1)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_seeUserProfile_markup(userid)
+        )
+    
+    elif callText[:18] == "removeUserSupplier":
+        userid = callText[18:]
+        profuser = usr.User(userid)
+        profuser.set_supplier(0)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_seeUserProfile_markup(userid)
+        )
+    
+    elif callText[:16] == "makeUserSupplier":
+        userid = callText[16:]
+        profuser = usr.User(userid)
+        profuser.set_supplier(1)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_seeUserProfile_markup(userid)
+        )
+    
+    elif callText[:17] == "removeUserSupport":
+        userid = callText[17:]
+        profuser = usr.User(userid)
+        profuser.set_support(0)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_seeUserProfile_markup(userid)
+        )
+    
+    elif callText[:15] == "makeUserSupport":
+        userid = callText[15:]
+        profuser = usr.User(userid)
+        profuser.set_support(1)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_seeUserProfile_markup(userid)
+        )
+        
+    elif callText[:13] == "seeUserOrders":
+        userid = callText[13:]
+        markup = types.InlineKeyboardMarkup()
+        if not usr.get_user_orders(userid):
+            text = f"У пользователя с ID {userid} нет заказов."
+        else:
+            text = f"Заказы пользователя с ID {userid}."
+            for order in usr.get_user_orders(userid):
+                try:
+                    c.execute(f"SELECT * FROM items WHERE id={order[2]}")
+                    itemname = list(c)[0][1]
+                except:
+                    itemname = "Товар был удалён или произошла ошибка."
+                markup.add(types.InlineKeyboardButton(text=f"[{itemname}] - {order[0]}", callback_data=f"seeOrderUser{order[0]}"))
+        markup.add(markups.get_back_user_btn(userid))
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markup
+        )
+        
+    elif callText[:12] == "seeOrderUser":
+        orderid = callText[12:]
+        c.execute(f"SELECT * FROM orders WHERE order_id={orderid}")
+        order = list(c)[0]
+        c.execute(f"SELECT * FROM items WHERE id={order[2]}")
+        item = list(c)[0]
+        text = f"➖➖➖➖➖➖➖➖➖\nЗаказ номер {orderid}\n➖➖➖➖➖➖➖➖➖\nТовар: {item[1]}\nЛогин: {order[3].split(':')[0]}\nПароль: {order[3].split(':')[1]}\nДата заказа: {order[4]}"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_back_user_orders_markup(order[1])
+        )
+    
+    elif callText[:8] == "userBack":
+        userid = callText[8:]
+        profuser = usr.User(userid)
+        profuser.set_support(1)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+        await bot.edit_message_text(
+            text=text,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_seeUserProfile_markup(userid)
+        )
+        
     elif callText[:3] == 'buy':
         itemid = callText[3:]
         c.execute(f"SELECT * FROM items WHERE id={itemid}")
@@ -221,6 +387,17 @@ async def process_callback(callback_query: types.CallbackQuery):
             chat_id=chatid,
             reply_markup=contactsMarkup,
         )
+        
+    elif callText == "notifyAll":
+        msg = "Введите сообщение, которое вы хотите отправить всем пользователям, или нажмите на кнопку \"Назад\"."
+        await bot.edit_message_text(
+            text=msg,
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cancel_states_clients()
+        )
+        await state_handler.notifyAll.message.set()
+                
     elif callText == 'refund':
         refundMarkup = types.InlineKeyboardMarkup()
         refundMarkup.add(markups.get_faq_back())
@@ -273,6 +450,15 @@ async def process_callback(callback_query: types.CallbackQuery):
             chat_id=chatid,
             reply_markup=markups.get_qiwi_settings()
         )
+
+    elif callText == "seeUserProfile":
+        await bot.edit_message_text(
+            text="Введите ID пользователя или нажмите на кнопку \"Назад\"",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cancel_states_clients()
+        )
+        await state_handler.seeUserProfile.userid.set()
 
     elif callText == 'qiwiOn':
         conf.set('payment_settings', 'qiwi_isactive', '1')
@@ -356,36 +542,54 @@ async def process_callback(callback_query: types.CallbackQuery):
             chat_id=chatid,
             message_id=callback_query.message.message_id
         )
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Регистрации за всё время',
-            photo=stats.get_chart(alltime=True),
-            reply_markup=markups.get_user_stats_back(),
-        )
+        try:
+            await bot.send_photo(
+                chat_id=chatid,
+                caption='Регистрации за всё время',
+                photo=stats.get_chart(alltime=True),
+                reply_markup=markups.get_user_stats_back(),
+            )
+        except:
+            await bot.send_message(
+                chat_id=chatid,
+                text="За всё время никто не зарегистрировался или произошла ошибка!"
+            )
 
     elif callText == 'userStatsMonth':
         await bot.delete_message(
             chat_id=chatid,
             message_id=callback_query.message.message_id
         )
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Регистрации за месяц',
-            photo=stats.get_chart(month=True),
-            reply_markup=markups.get_user_stats_back(),
-        )
+        try:
+            await bot.send_photo(
+                chat_id=chatid,
+                caption='Регистрации за месяц',
+                photo=stats.get_chart(month=True),
+                reply_markup=markups.get_user_stats_back(),
+            )
+        except:
+            await bot.send_message(
+                chat_id=chatid,
+                text="За месяц никто не зарегистрировался или произошла ошибка!"
+            )
 
     elif callText == 'userStatsWeek':
         await bot.delete_message(
             chat_id=chatid,
             message_id=callback_query.message.message_id
         )
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Регистрации за неделю',
-            photo=stats.get_chart(week=True),
-            reply_markup=markups.get_user_stats_back(),
-        )
+        try:
+            await bot.send_photo(
+                chat_id=chatid,
+                caption='Регистрации за неделю',
+                photo=stats.get_chart(week=True),
+                reply_markup=markups.get_user_stats_back(),
+            )
+        except:
+            await bot.send_message(
+                chat_id=chatid,
+                text="За неделю никто не зарегистрировался или произошла ошибка!"
+            )
 
     elif callText == 'userStatsDay':
         await bot.delete_message(
@@ -404,11 +608,17 @@ async def process_callback(callback_query: types.CallbackQuery):
             chat_id=chatid,
             message_id=callback_query.message.message_id
         )
-        await bot.send_message(
-            text='📈Статистика магазина',
-            chat_id=chatid,
-            reply_markup=markups.get_user_stats_markup()
-        )
+        try:
+            await bot.send_message(
+                text='📈Статистика магазина',
+                chat_id=chatid,
+                reply_markup=markups.get_user_stats_markup()
+            )
+        except:
+            await bot.send_message(
+                chat_id=chatid,
+                text="За день никто не зарегистрировался или произошла ошибка!"
+            )
 
     elif callText == 'statsOrder':
         markup = markups.get_stats_order_markup()
@@ -635,7 +845,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             message_id=callback_query.message.message_id,
             reply_markup=markupProfile,
             text=f"➖➖➖➖➖➖➖➖➖➖\n"
-                 f"🧍Имя: {usr.get_user_login(callback_query.message)}\n"
                  f"📝id: {chatid}\n"
                  f"📈Кол-во заказов: {len(usr.get_user_orders(chatid))}\n"
                  f"💸Баланс: {user.get_balance()}руб.\n"
@@ -651,7 +860,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             message_id=callback_query.message.message_id,
             reply_markup=markupProfile,
             text=f"➖➖➖➖➖➖➖➖➖➖\n"
-                 f"🧍Имя: {usr.get_user_login(callback_query.message)}\n"
                  f"📝id: {chatid}\n"
                  f"📈Кол-во заказов: {len(usr.get_user_orders(chatid))}\n"
                  f"💸Баланс: {user.get_balance()}руб.\n"
@@ -667,7 +875,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             message_id=callback_query.message.message_id,
             reply_markup=markupProfile,
             text=f"➖➖➖➖➖➖➖➖➖➖\n"
-                 f"🧍Имя: {usr.get_user_login(callback_query.message)}\n"
                  f"📝id: {chatid}\n"
                  f"📈Кол-во заказов: {len(usr.get_user_orders(chatid))}\n"
                  f"💸Баланс: {user.get_balance()}руб.\n"
@@ -768,55 +975,52 @@ async def process_callback(callback_query: types.CallbackQuery):
             reply_markup=markups.get_client_management_markup(),
         )
 
-    elif callText == 'seeUserPurchases':
-        await bot.edit_message_text(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            text='Введите ID пользователя или нажмите на кнопку \"Назад\"',
-            reply_markup=markups.get_cancel_states_clients()
-        )
-        await state_handler.seeUserOrders.userid.set()
 
-    elif callText == 'addBal':
-        await bot.edit_message_text(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            text='Введите ID пользователя и баланс в формате \"id - баланс\" или нажмите на кнопку \"Назад\"',
-            reply_markup=markups.get_cancel_states_clients()
-        )
-        await state_handler.changeUserBalance.useridAndBal.set()
-
-
-@dp.message_handler(state=state_handler.changeUserBalance.useridAndBal)
-async def changeUserBalance(message: types.Message, state: FSMContext):
-    try:
-        userid = message.text.split(' - ')[0]
-        balance = message.text.split(' - ')[1]
-        c.execute(f"UPDATE users SET balance={balance} WHERE user_id={userid}")
-        conn.commit()
+@dp.message_handler(state=state_handler.seeUserProfile.userid)
+async def seeUserProfile(message: types.Message, state: FSMContext):
+    userid = message.text
+    if usr.does_user_exist(userid):
+        profuser = usr.User(userid)
+        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
         await bot.send_message(
+            text=text,
             chat_id=message.chat.id,
-            text='🧍Управление пользователями',
-            reply_markup=markups.get_client_management_markup(),
+            reply_markup=markups.get_seeUserProfile_markup(userid)
         )
+    else:
         await bot.send_message(
-            chat_id=message.chat.id,
-            text=f'Баланс пользователя с ID {userid} был обновлен до {balance} руб.'
-        )
-    except:
-        await bot.send_message(
-            chat_id=message.chat.id,
-            text='🧍Управление пользователями',
-            reply_markup=markups.get_client_management_markup(),
-        )
-        await bot.send_message(
-            chat_id=message.chat.id,
-            text=f'Ошибка'
+            text=f"Пользователя с ID {userid} не существует!",
+            chat_id=message.chat.id
         )
     await state.finish()
 
 
-@dp.message_handler(state=state_handler.seeUserOrders.userid)
+@dp.message_handler(state=state_handler.changeUserBalance.bal)
+async def changeUserBalance(message: types.Message, state: FSMContext):
+    userid = await state.get_data()
+    userid = userid['userid']
+    profuser = usr.User(userid)
+    try:
+        usr.set_user_balance(userid, int(message.text), set_value=True)
+        
+        text2=f"Баланс пользователя {userid} был обновлен до {message.text} руб."
+    except:
+        text2="Ошибка"
+        
+    text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+    await bot.send_message(
+        text=text,
+        chat_id=message.chat.id,
+        reply_markup=markups.get_seeUserProfile_markup(userid)
+    )
+    await bot.send_message(
+        text=text2,
+        chat_id=message.chat.id
+    )
+    await state.finish()
+
+
+@dp.message_handler(state=state_handler.seeUserProfile.userid)
 async def seeUserOrders(message: types.Message, state: FSMContext):
     orders = usr.get_user_orders(message.text)
     if not orders:
@@ -863,6 +1067,23 @@ async def changeQiwiToken(message: types.Message, state: FSMContext):
     )
     await state.finish()
 
+@dp.message_handler(state=state_handler.notifyAll.message)
+async def notifyAll(message: types.Message, state: FSMContext):
+    c.execute("SELECT * FROM users")
+    successful = len(usr.get_user_list())
+    try:
+        for user in usr.get_user_list():
+            await bot.send_message(
+                text=message.text,
+                chat_id=user[0]
+            )
+    except:
+        successful -= 1
+    await bot.send_message(
+        text=f"Сообщение \"{message.text}\" было отправлено {successful} пользователям.",
+        chat_id=message.chat.id
+    )
+    await state.finish()
 
 @dp.message_handler(state=state_handler.changeQiwiToken.token)
 async def changeQiwiToken(message: types.Message, state: FSMContext):
@@ -876,7 +1097,7 @@ async def changeQiwiToken(message: types.Message, state: FSMContext):
     )
     await bot.send_message(
         chat_id=message.chat.id,
-        text=f"Токен QIWI был изменен на \"{message.text}\"",
+        text=f"Токен QIWI был изменен на \"{message.text}\""
     )
     await state.finish()
 
@@ -962,6 +1183,19 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 chat_id=chatid,
                 reply_markup=markups.get_main_settings_markup()
             )
+            
+    elif call[:15] == "cancelStateUser":
+        if user.is_admin():
+            userid = call[15:]
+            profuser = usr.User(userid)
+            text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+
+            await bot.edit_message_text(
+                text=text,
+                message_id=callback_query.message.message_id,
+                chat_id=chatid,
+                reply_markup=markups.get_seeUserProfile_markup(userid)
+            )
 
     elif call == 'cancelStateQiwiSettings':
         if user.is_admin():
@@ -979,6 +1213,15 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 message_id=callback_query.message.message_id,
                 chat_id=chatid,
                 reply_markup=markups.get_btc_settings_markup()
+            )
+            
+    elif call == "cancelStateNotifyAll":
+        if user.is_admin():
+            await bot.edit_message_text(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id,
+                text="🧍Управление пользователями",
+                reply_markup=markups.get_client_management_markup()
             )
 
     elif call == 'cancelStateClients':

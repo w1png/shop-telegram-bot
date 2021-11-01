@@ -1,4 +1,8 @@
 /images
 /__pycache__
 data.db
+start.sh
 AnimatedSticker.tgs
+seedb.sh
+config.ini
+test.py
