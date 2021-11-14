@@ -1,124 +1,132 @@
-import sqlite3
 import datetime
 import matplotlib.pyplot as plt
-import matplotlib
+import sqlite3
+from random import randint
+from configparser import ConfigParser
 
-conn = sqlite3.connect('data.db')
-c = conn.cursor()
+class RegistrationCharts:
+    def __init__(self):
+        self.conn = sqlite3.connect("data.db")
+        self.c = self.conn.cursor()
 
+    def clist(self):
+        self.c.execute("SELECT * FROM users")
+        return list(self.c)
 
-# Пользователи
-def get_chart(alltime=False, month=False, week=False, day=False):
-    c.execute(f"SELECT * FROM users")
-    x = list()
-
-    if alltime:
-        for user in c:
-            x.append(datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date())
-        formatter = matplotlib.dates.DateFormatter('%d.%m.%Y')
-        filename = 'user_all_time'
-
-    elif month:
-        diff = 30 * 24
-        date_diff = datetime.datetime.now() - datetime.timedelta(hours=diff)
-        formatter = matplotlib.dates.DateFormatter('%d')
-        for user in c:
-            combined = datetime.datetime.combine(datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date(), datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").time())
-            if combined > date_diff:
-                x.append(combined)
-        filename = 'user_month'
-
-    elif day:
-        diff = 24
-        date_diff = datetime.datetime.now() - datetime.timedelta(hours=diff)
-        formatter = matplotlib.dates.DateFormatter('%H:%M:%S')
-        for user in c:
-            combined = datetime.datetime.combine(datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date(),
-                                                 datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").time())
-            if combined > date_diff:
-                x.append(combined)
-        filename = 'user_day'
-
-    elif week:
-        diff = 24 * 7
-        date_diff = datetime.datetime.now() - datetime.timedelta(hours=diff)
-        formatter = matplotlib.dates.DateFormatter('%d %a')
-        for user in c:
-            combined = datetime.datetime.combine(datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date(),
-                                                 datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").time())
-            if combined > date_diff:
-                x.append(combined)
-        filename = 'user_week'
-
-    if x:
-        x = matplotlib.dates.date2num(x)
-
-        figure = plt.figure()
-        axes = figure.add_subplot(1, 1, 1)
-        axes.xaxis.set_major_formatter(formatter)
-
-        plt.hist(x)
+    def saveplot(self, data, filename, title):
+        plt.autoscale()
+        plt.figure(figsize=(10, 10))
+        plt.title(title)
+        plt.xlabel("Дата")
+        plt.ylabel("Кол-во регистраций")
+        plt.bar(range(len(data)), list(data.values()))
+        plt.xticks(range(len(data)), list(data.keys()), rotation=90)
         plt.savefig(f'images/{filename}.png')
         return open(f'images/{filename}.png', 'rb')
 
+    # TODO: maybe remake
+    def all_time(self):
+        registrations = {datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date(): 0 for user in self.clist()}
+        for user in self.clist():
+            registrations[datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date()] += 1
+        registrations = {f"{date.day:02}.{date.month:02}.{date.year}": registrations[date] for date in list(registrations.keys())} # reverse for better visuals
+        return self.saveplot(registrations, "registrations_all_time", "Регистрации за все время")
 
-# Товар
-def get_chart_item(item_id=None, alltime=False, month=False, week=False, day=False):
+    def monthly(self):
+        registrations = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(30)}
+        for user in self.clist():
+            date = datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date()
+            if date in registrations:
+                registrations[date] += 1
+        registrations = {f"{date.day:02}.{date.month:02}": registrations[date] for date in list(registrations.keys())[::-1]}
+        return self.saveplot(registrations, "registrations_monthly", "Регистрации за последние 30 дней")
 
-    x = list()
+    def weekly(self):
+        registrations = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(7)}
+        for user in self.clist():
+            date = datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date()
+            if date in registrations:
+                registrations[date] += 1
+        registrations = {f"{date.day:02}.{date.month:02}": registrations[date] for date in list(registrations.keys())[::-1]}
+        return self.saveplot(registrations, "registrations_weekly", "Регистрации за последние 7 дней")
+    
+    def daily(self):
+        registrations = {hour: 0 for hour in range(datetime.datetime.now().hour + 1)}
+        for user in self.clist():
+            if datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").date() == datetime.date.today():
+                registrations[datetime.datetime.strptime(user[-1], "%Y-%m-%d %H:%M:%S").hour] += 1
+        registrations = {f"{hour:02}:00": registrations[hour] for hour in list(registrations.keys())}
+        return self.saveplot(registrations, "registrations_daily", "Регистрации за сегодня")
 
-    if item_id != None:
-        c.execute(f"SELECT * FROM orders WHERE item_id={item_id}")
-        for item in c:
-            x.append(datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").date())
-        formatter = matplotlib.dates.DateFormatter('%d.%m.%Y')
-        filename = 'single_item_all_time'
-    else:
-        c.execute(f"SELECT * FROM orders")
-        if alltime:
-            for item in c:
-                x.append(datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").date())
-            formatter = matplotlib.dates.DateFormatter('%d.%m.%Y')
-            filename = 'item_all_time'
 
-        elif month:
-            diff = 30 * 24
-            date_diff = datetime.datetime.now() - datetime.timedelta(hours=diff)
-            formatter = matplotlib.dates.DateFormatter('%d')
-            for item in c:
-                combined = datetime.datetime.combine(datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").date(), datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").time())
-                if combined > date_diff:
-                    x.append(combined)
-            filename = 'item_month'
+class OrderCharts:
+    def __init__(self):
+        self.conn = sqlite3.connect("data.db")
+        self.c = self.conn.cursor()
 
-        elif day:
-            diff = 24
-            date_diff = datetime.datetime.now() - datetime.timedelta(hours=diff)
-            formatter = matplotlib.dates.DateFormatter('%H:%M:%S')
-            for item in c:
-                combined = datetime.datetime.combine(datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").date(),
-                                                     datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").time())
-                if combined > date_diff:
-                    x.append(combined)
-            filename = 'item_day'
+    def clist(self):
+        self.c.execute("SELECT * FROM orders")
+        return list(self.c)
 
-        elif week:
-            diff = 24 * 7
-            date_diff = datetime.datetime.now() - datetime.timedelta(hours=diff)
-            formatter = matplotlib.dates.DateFormatter('%d %a')
-            for item in c:
-                combined = datetime.datetime.combine(datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").date(),
-                                                     datetime.datetime.strptime(item[-1], "%Y-%m-%d %H:%M:%S").time())
-                if combined > date_diff:
-                    x.append(combined)
-            filename = 'item_week'
+    def saveplot(self, data, filename, title):
+        plt.autoscale()
+        plt.figure(figsize=(10, 10))
+        plt.title(title)
+        plt.xlabel("Дата")
+        plt.ylabel("Кол-во регистраций")
+        plt.bar(range(len(data)), list(data.values()))
+        plt.xticks(range(len(data)), list(data.keys()), rotation=90)
+        plt.savefig(f'images/{filename}.png')
+        return open(f'images/{filename}.png', 'rb')
 
-    x = matplotlib.dates.date2num(x)
+    # TODO: maybe remake
+    def all_time(self):
+        orders = {datetime.datetime.strptime(order[-1], "%Y-%m-%d %H:%M:%S").date(): 0 for order in self.clist()}
+        for order in self.clist():
+            orders[datetime.datetime.strptime(order[-1], "%Y-%m-%d %H:%M:%S").date()] += 1
+        orders = {f"{date.day:02}.{date.month:02}.{date.year}": orders[date] for date in list(orders.keys())}
+        return self.saveplot(orders, "orders_all_time", "Заказы за все время")
 
-    figure = plt.figure()
-    axes = figure.add_subplot(1, 1, 1)
-    axes.xaxis.set_major_formatter(formatter)
+    def monthly(self):
+        orders = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(30)}
+        for order in self.clist():
+            date = datetime.datetime.strptime(order[-1], "%Y-%m-%d %H:%M:%S").date()
+            if date in orders:
+                orders[date] += 1
+        orders = {f"{date.day:02}.{date.month:02}": orders[date] for date in list(orders.keys())[::-1]}
+        return self.saveplot(orders, "orders_monthly", "Заказы за последние 30 дней")
 
-    plt.hist(x)
-    plt.savefig(f'images/{filename}.png')
-    return open(f'images/{filename}.png', 'rb')
+    def weekly(self):
+        orders = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(7)}
+        for order in self.clist():
+            date = datetime.datetime.strptime(order[-1], "%Y-%m-%d %H:%M:%S").date()
+            if date in orders:
+                orders[date] += 1
+        orders = {f"{date.day:02}.{date.month:02}": orders[date] for date in list(orders.keys())[::-1]}
+        return self.saveplot(orders, "orders_weekly", "Заказы за последние 7 дней")
+    
+    def daily(self):
+        orders = {hour: 0 for hour in range(datetime.datetime.now().hour + 1)}
+        for order in self.clist():
+            if datetime.datetime.strptime(order[-1], "%Y-%m-%d %H:%M:%S").date() == datetime.date.today():
+                orders[datetime.datetime.strptime(order[-1], "%Y-%m-%d %H:%M:%S").hour] += 1
+        orders = {f"{hour:02}:00": orders[hour] for hour in list(orders.keys())}
+        return self.saveplot(orders, "orders_daily", "Заказы за сегодня")
+
+
+def get_random_graph():
+    conf = ConfigParser()
+    conf.read("config.ini", encoding="utf-8")
+
+    plt.autoscale()
+    plt.figure(figsize=(10, 10))
+    plt.title("Название", fontsize=conf["stats_settings"]["titlefontsize"])
+    plt.xlabel("Ось Х", fontsize=conf["stats_settings"]["axisfontsize"])
+    plt.ylabel("Ось У", fontsize=conf["stats_settings"]["axisfontsize"])
+    data = {randint(5, 100): randint(5, 100) for _ in range(randint(2, 30))}
+    plt.bar(range(len(data)), list(data.values()), color="#" + conf["stats_settings"]["barcolor"], edgecolor="black", linewidth=conf["stats_settings"]["linewidth"])
+    plt.xticks(range(len(data)), list(data.keys()), rotation=90)
+    plt.tick_params(labelsize=conf["stats_settings"]["ticksfontsize"]) 
+    plt.savefig(f'images/random_graph.png')
+    return open(f'images/random_graph.png', 'rb')
+

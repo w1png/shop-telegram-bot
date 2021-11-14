@@ -8,12 +8,12 @@ from string import ascii_letters, digits
 from os import path
 from sys import exit
 from aiogram.types import message, message_id, user
-import stats
 from configparser import ConfigParser
 import markups
 import state_handler
 from user import User
 import user as usr
+import stats
 
 if not path.isfile("data.db"):
     print("Создаем базу данных...")
@@ -107,8 +107,6 @@ async def handle_text(message):
     if message.text == '🔴Админ панель':
         if user.is_admin():
             await bot.send_message(message.chat.id, '🔴Админ панель', reply_markup=markups.get_admin_markup())
-        # if user.get_id() == conf['main']['main_admin_id']:
-        #     await bot.send_message(message.chat.id, '🔴Админ панель', reply_markup=markups.get_admin_markup())
 
     elif message.text == 'ℹ️FAQ':
         markupFAQ = markups.get_faq_markup()
@@ -128,10 +126,11 @@ async def handle_text(message):
     elif message.text == '🛒Каталог':
         catMarkup = types.InlineKeyboardMarkup()
         c.execute('SELECT * FROM cats')
-        for category in c:
+        cats = list(c)
+        for category in cats:
             btnCat = types.InlineKeyboardButton(text=category[1], callback_data=f"cat{category[0]}")
             catMarkup.add(btnCat)
-        await bot.send_message(message.chat.id, '➖➖➖➖➖➖➖➖➖➖\n🔴Категории\n➖➖➖➖➖➖➖➖➖➖',
+        await bot.send_message(message.chat.id, '➖➖➖➖➖➖➖➖➖➖\n🛍️Категории\n➖➖➖➖➖➖➖➖➖➖',
                                reply_markup=catMarkup)
 
     else:
@@ -148,24 +147,121 @@ async def process_callback(callback_query: types.CallbackQuery):
 
     if callText[:3] == 'cat':
         catMarkup = types.InlineKeyboardMarkup()
-        c.execute(f"SELECT * FROM items WHERE cat_id={callText[3:]}")
-        items = list(c)
         c.execute(f"SELECT * FROM cats WHERE id={callText[3:]}")
-        for cat in c:
-            pass
-        for item in items:
-            amount = get_item_count(item[0])
-            text = f'{item[1]} - {amount}шт. - {item[2]}руб.'
-            btnCat = types.InlineKeyboardButton(text=text, callback_data=f"item{item[0]}")
-            if item[5] == 1:
-                catMarkup.add(btnCat)
-        catMarkup.add(markups.get_cat_back())
-        await bot.edit_message_text(text=f'➖➖➖➖➖➖➖➖➖\n{cat[1]}\n➖➖➖➖➖➖➖➖➖',
-                                    chat_id=callback_query.message.chat.id,
-                                    message_id=callback_query.message.message_id,
-                                    reply_markup=catMarkup)
+        try:
+            cat = list(c)[0]
+            
+            c.execute(f"SELECT * FROM items WHERE cat_id={callText[3:]}")
+            items = list(c)
+            for item in items:
+                amount = get_item_count(item[0])
+                text = f'{item[1]} - {amount}шт. - {item[2]}руб.'
+                btnCat = types.InlineKeyboardButton(text=text, callback_data=f"item{item[0]}")
+                if item[5] == 1:
+                    catMarkup.add(btnCat)
+            catMarkup.add(markups.get_cat_back())
+            await bot.edit_message_text(text=f'➖➖➖➖➖➖➖➖➖\n{cat[1]}\n➖➖➖➖➖➖➖➖➖',
+                                        chat_id=callback_query.message.chat.id,
+                                        message_id=callback_query.message.message_id,
+                                        reply_markup=catMarkup)
+        except:
+            markup = types.InlineKeyboardMarkup()
+            markup.add(markups.get_cat_back())
+            await bot.edit_message_text(
+                text="Категории не существует или произошла ошибка!",
+                message_id=callback_query.message.message_id,
+                chat_id=chatid,
+                reply_markup=markup
+            )
     
     elif callText == "itemManagement":
+        await bot.edit_message_text(
+            text="📦Управление товаром",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_item_management_markup()
+        )
+        
+    elif callText == "addCat":
+        await bot.edit_message_text(
+            text="Введите название новой категории или нажмите на кнопку \"Назад\".",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cancel_states_items()
+        )
+        await state_handler.addCat.catname.set()
+        
+    elif callText == "editCats":
+        c.execute("SELECT * FROM cats")
+        cats = list(c)
+        if cats:
+            markup = types.InlineKeyboardMarkup()
+            for cat in cats:
+                markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"editCat{cat[0]}"))
+            markup.add(markups.goBackItems)
+            
+            await bot.edit_message_text(
+                text="Выберите категорию, которую хотите изменить.",
+                message_id=callback_query.message.message_id,
+                chat_id=chatid,
+                reply_markup=markup
+            )
+        else:
+            await bot.edit_message_text(
+                text="Вы пока не добавили ни одной категории.",
+                message_id=callback_query.message.message_id,
+                chat_id=chatid,
+                reply_markup=markups.markups.get_items_back()
+            )
+    
+    elif callText[:7] == "editCat":
+        c.execute(F"SELECT * FROM cats WHERE id={callText[7:]}")
+        cat = list(c)[0]
+        
+        await bot.edit_message_text(
+            text=cat[1],
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cat_edit_markup(cat[0])
+        )
+        
+    elif callText[:9] == "deleteCat":
+        catid = callText[9:]
+        c.execute(f"SELECT * FROM cats WHERE id={catid}")
+        cat = list(c)[0]
+        c.execute(f"DELETE FROM cats WHERE id={catid}")
+        conn.commit()
+        await bot.edit_message_text(
+            text=f"Категория \"{cat[1]}\" с ID {cat[0]} была удалена!",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_back_cats_edit()
+        )
+    
+    elif callText[:11] == "editNameCat":
+        await bot.edit_message_text(
+            text="Введите новое название категории или нажмите на кнопку \"Назад\".",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cancel_states_cats(callText[11:])
+        )
+        await state_handler.changeCatName.catname.set()
+        state = Dispatcher.get_current().current_state()
+        await state.update_data(catid=callText[11:])
+        
+    elif callText[:7] == "addItem":
+        await bot.edit_message_text(
+            text="Введите название нового товара или нажмите на кнопку \"Назад\"",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cancel_states_additem()
+        )
+        await state_handler.addItem.itemname.set()
+    
+    elif callText[:8] == "editItem":
+        pass
+    
+    elif callText[:8] == "addStock":
         pass
         
     elif callText[:4] == 'item':
@@ -203,15 +299,16 @@ async def process_callback(callback_query: types.CallbackQuery):
 
     elif callText[:15] == "removeUserAdmin":
         userid = callText[15:]
-        profuser = usr.User(userid)
-        profuser.set_admin(0)
-        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
-        await bot.edit_message_text(
-            text=text,
-            message_id=callback_query.message.message_id,
-            chat_id=chatid,
-            reply_markup=markups.get_seeUserProfile_markup(userid)
-        )
+        if str(userid) != str(chatid):
+            profuser = usr.User(userid)
+            profuser.set_admin(0)
+            text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
+            await bot.edit_message_text(
+                text=text,
+                message_id=callback_query.message.message_id,
+                chat_id=chatid,
+                reply_markup=markups.get_seeUserProfile_markup(userid)
+            )
         
     elif callText[:13] == "makeUserAdmin":
         userid = callText[13:]
@@ -425,6 +522,18 @@ async def process_callback(callback_query: types.CallbackQuery):
             chat_id=chatid,
             reply_markup=ordersMarkup
         )
+        
+    elif callText == "close":
+        try:
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chatid
+            )
+        except:
+            await bot.send_message(
+                text="Сообщение не может быть удалено!",
+                chat_id=chatid
+            )
 
     elif callText == 'backAdmin':
         if user.is_admin():
@@ -521,277 +630,413 @@ async def process_callback(callback_query: types.CallbackQuery):
             reply_markup=markups.get_balance_markup()
         )
 
-    elif callText == 'shopStats':
+    elif callText == "shopStats":
         await bot.edit_message_text(
-            text='📈Статистика магазина',
+            text=f"📈Статистика магазина (BETA)",
             chat_id=chatid,
             message_id=callback_query.message.message_id,
             reply_markup=markups.get_stats_markup()
         )
 
-    elif callText == 'userStats':
-        await bot.edit_message_text(
-            text='👥Статистика пользователей',
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            reply_markup=markups.get_user_stats_markup()
-        )
+    elif callText[:10] == "orderStats":
+        callText = callback_query.data
+        chatid = callback_query.message.chat.id
+        charts = stats.OrderCharts()
 
-    elif callText == 'userStatsAllTime':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        try:
-            await bot.send_photo(
+        if callText == "orderStats":
+            await bot.edit_message_text(
+                text=f"📦Статистика заказов",
                 chat_id=chatid,
-                caption='Регистрации за всё время',
-                photo=stats.get_chart(alltime=True),
-                reply_markup=markups.get_user_stats_back(),
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_order_stats_markup()
             )
-        except:
+
+        elif callText == "orderStatsAllTime":
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    caption="Заказы за всё время",
+                    chat_id=chatid,
+                    photo=charts.all_time(),
+                    reply_markup=markups.get_order_stats_back()
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
+
+        elif callText == "orderStatsMonthly":
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    caption="Заказы за последние 30 дней",
+                    chat_id=chatid,
+                    photo=charts.monthly(),
+                    reply_markup=markups.get_order_stats_back()
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
+        
+        elif callText == "orderStatsWeekly":
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    caption="Заказы за последние 7 дней",
+                    chat_id=chatid,
+                    photo=charts.weekly(),
+                    reply_markup=markups.get_order_stats_back()
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
+        
+        elif callText == "orderStatsDaily":
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    caption="Заказы за сегодня",
+                    chat_id=chatid,
+                    photo=charts.daily(),
+                    reply_markup=markups.get_order_stats_back()
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
+
+        elif callText == "orderStatsBack":
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
             await bot.send_message(
+                text=f"📦Статистика заказов",
                 chat_id=chatid,
-                text="За всё время никто не зарегистрировался или произошла ошибка!"
+                reply_markup=markups.get_order_stats_markup()
             )
+    
+    elif callText[:9] == "userStats":
+        callText = callback_query.data
+        chatid = callback_query.message.chat.id
+        charts = stats.RegistrationCharts()
+        
 
-    elif callText == 'userStatsMonth':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        try:
-            await bot.send_photo(
+        if callText == 'userStats':
+            await bot.edit_message_text(
+                text='👥Статистика регистраций',
                 chat_id=chatid,
-                caption='Регистрации за месяц',
-                photo=stats.get_chart(month=True),
-                reply_markup=markups.get_user_stats_back(),
-            )
-        except:
-            await bot.send_message(
-                chat_id=chatid,
-                text="За месяц никто не зарегистрировался или произошла ошибка!"
-            )
-
-    elif callText == 'userStatsWeek':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        try:
-            await bot.send_photo(
-                chat_id=chatid,
-                caption='Регистрации за неделю',
-                photo=stats.get_chart(week=True),
-                reply_markup=markups.get_user_stats_back(),
-            )
-        except:
-            await bot.send_message(
-                chat_id=chatid,
-                text="За неделю никто не зарегистрировался или произошла ошибка!"
-            )
-
-    elif callText == 'userStatsDay':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Регистрации за день',
-            photo=stats.get_chart(day=True),
-            reply_markup=markups.get_user_stats_back(),
-        )
-
-    elif callText == 'userStatsBack':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        try:
-            await bot.send_message(
-                text='📈Статистика магазина',
-                chat_id=chatid,
+                message_id=callback_query.message.message_id,
                 reply_markup=markups.get_user_stats_markup()
             )
-        except:
-            await bot.send_message(
-                chat_id=chatid,
-                text="За день никто не зарегистрировался или произошла ошибка!"
-            )
 
-    elif callText == 'statsOrder':
-        markup = markups.get_stats_order_markup()
-        c.execute(f"SELECT * FROM cats")
-        for cat in c:
-            markup.add(types.InlineKeyboardButton(text=cat[1], callback_data=f"getStatsCat{cat[0]}"))
-        markup.add(markups.goBackStats)
-        await bot.edit_message_text(
-            text='📦Статистика заказов',
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            reply_markup=markup
-        )
+        elif callText == 'userStatsAllTime':
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    chat_id=chatid,
+                    caption='Регистрации за всё время',
+                    photo=charts.all_time(),
+                    reply_markup=markups.get_user_stats_back(),
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
 
-    elif callText[:11] == 'getStatsCat':
-        markup = types.InlineKeyboardMarkup()
-        catid = callText[11:]
-        c.execute(f"SELECT * FROM cats WHERE id={catid}")
-        for cat in c:
-            pass
-        c.execute(f"SELECT * FROM items WHERE cat_id={catid}")
-        for item in c:
-            btnItem = types.InlineKeyboardButton(text=item[1], callback_data=f'getStatsItem{item[0]}')
-            markup.add(btnItem)
-        markup.add(markups.goBackStats)
-        await bot.edit_message_text(
-            text=f'➖➖➖➖➖➖➖➖➖➖\n{cat[1]}\n➖➖➖➖➖➖➖➖➖➖',
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            reply_markup=markup
-        )
+        elif callText == 'userStatsMonth':
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    chat_id=chatid,
+                    caption='Регистрации за последние 30 дней',
+                    photo=charts.monthly(),
+                    reply_markup=markups.get_user_stats_back(),
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
 
-    elif callText[:12] == 'getStatsItem':
-        itemid = callText[12:]
-        c.execute(f"SELECT * FROM items WHERE id={itemid}")
-        for item in c:
-            pass
+        elif callText == 'userStatsWeek':
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    chat_id=chatid,
+                    caption='Регистрации за последние 7 дней',
+                    photo=charts.weekly(),
+                    reply_markup=markups.get_user_stats_back(),
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
+
+        elif callText == 'userStatsDay':
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_photo(
+                    chat_id=chatid,
+                    caption='Регистрации за сегодня',
+                    photo=charts.daily(),
+                    reply_markup=markups.get_user_stats_back(),
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
+
+        elif callText == 'userStatsBack':
+            try:
+                await bot.delete_message(
+                    chat_id=chatid,
+                    message_id=callback_query.message.message_id
+                )
+            
+                await bot.send_message(
+                    text='👥Статистика регистраций',
+                    chat_id=chatid,
+                    reply_markup=markups.get_user_stats_markup()
+                )
+            except:
+                await bot.send_message(
+                    chat_id=chatid,
+                    text="Произошла ошибка!"
+                )
+
+    elif callText == "statsSettings":
         await bot.delete_message(
             chat_id=chatid,
             message_id=callback_query.message.message_id
         )
-        markup = types.InlineKeyboardMarkup()
-        markup.add(markups.goBackFromItem)
-        if stats.get_chart_item(itemid):
-            await bot.send_photo(
+        await bot.send_photo(
+            caption=f"📈Настройки статистики",
+            chat_id=chatid,
+            photo=stats.get_random_graph(),
+            reply_markup=markups.get_stats_settings_markup()
+        )
+
+    elif callText == "statsSettingsBack":
+        await bot.delete_message(
+            chat_id=chatid,
+            message_id=callback_query.message.message_id
+        )
+        await bot.send_photo(
+            caption=f"📈Настройки статистики",
+            chat_id=chatid,
+            photo=stats.get_random_graph(),
+            reply_markup=markups.get_stats_settings_markup()
+        )
+
+    elif callText[:10] == "statsColor":
+        if callText == "statsColor":
+            await bot.delete_message(
                 chat_id=chatid,
-                caption=f'Заказы на {item[1]} за всё время.',
-                photo=stats.get_chart_item(itemid),
-                reply_markup=markup,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"🌈Цвет графика",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_color_markup()
+            )
+        
+        else:
+            match callText[10:]:
+                case "Black":
+                    color = "000000"
+                case "White":
+                    color = "ffffff"
+                case "Red":
+                    color = "cc0000"
+                case "Yellow":
+                    color = "ffff00"
+                case "Purple":
+                    color = "a957e3"
+                case "Blue":
+                    color = "3299ff"
+                case "Orange":
+                    color = "ffa500"
+                case "Green":
+                    color = "4ca64c"
+                case "Brown":
+                    color = "4c3100"
+            conf.set("stats_settings", "barcolor", color)
+            with open('config.ini', 'w') as config:
+                conf.write(config)
+
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"🌈Цвет графика",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_color_markup()
+            )
+
+    elif callText[:16] == "statsBorderWidth":
+        if callText == "statsBorderWidth":
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"🔲Ширина обводки",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_border_width_markup()
             )
         else:
-            await bot.send_message(
+            match callText[16:]:
+                case "Add":
+                    conf.set("stats_settings", "linewidth", str(int(conf["stats_settings"]["linewidth"]) + 1))
+                case "Reduce":
+                    conf.set("stats_settings", "linewidth", str(int(conf["stats_settings"]["linewidth"]) - 1))
+            with open('config.ini', 'w') as config:
+                conf.write(config)
+
+            await bot.delete_message(
                 chat_id=chatid,
-                text=f'Заказов на {item[1]} нет.',
-                reply_markup=markup,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"🔲Ширина обводки",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_border_width_markup()
             )
 
-    elif callText == 'backFromitem':
-        markup = markups.get_stats_order_markup()
-        c.execute(f"SELECT * FROM cats")
-        for cat in c:
-            markup.add(types.InlineKeyboardButton(text=cat[1], callback_data=f"getStatsCat{cat[0]}"))
-        markup.add(markups.goBackStats)
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        await bot.send_message(
-            text='📦Статистика заказов',
-            chat_id=chatid,
-            reply_markup=markup
-        )
+    elif callText[:18] == "statsTitleFontSize":
+        if callText == "statsTitleFontSize":
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"ℹ️Размер названия графика",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_font_markup("titlefontsize", "statsTitleFontSize")
+            )
+        else:
+            match callText[18:]:
+                case "Add":
+                    conf.set("stats_settings", "titlefontsize", str(int(conf["stats_settings"]["titlefontsize"]) + 2))
+                case "Reduce":
+                    conf.set("stats_settings", "titlefontsize", str(int(conf["stats_settings"]["titlefontsize"]) - 2))
+            with open('config.ini', 'w') as config:
+                conf.write(config)
 
-    elif callText == 'StatsItem':
-        await bot.edit_message_text(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            text='💡Статистика по товару',
-            reply_markup=markups.get_stats_item_markup()
-        )
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"ℹ️Размер названия графика",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_font_markup("titlefontsize", "statsTitleFontSize")
+            )
 
-    elif callText == 'StatsAllTimeItem':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        markup = types.InlineKeyboardMarkup()
-        markup.add(markups.goBackOrderStatsItem)
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Заказы за всё время',
-            photo=stats.get_chart_item(alltime=True),
-            reply_markup=markup,
-        )
+    elif callText[:17] == "statsAxisFontSize":
+        if callText == "statsAxisFontSize":
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"↔️Размер текста для осей",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_font_markup("axisfontsize", "statsAxisFontSize")
+            )
+        else:
+            match callText[17:]:
+                case "Add":
+                    conf.set("stats_settings", "axisfontsize", str(int(conf["stats_settings"]["axisfontsize"]) + 2))
+                case "Reduce":
+                    conf.set("stats_settings", "axisfontsize", str(int(conf["stats_settings"]["axisfontsize"]) - 2))
+            with open('config.ini', 'w') as config:
+                conf.write(config)
 
-    elif callText == 'StatsMonthItem':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        markup = types.InlineKeyboardMarkup()
-        markup.add(markups.goBackOrderStatsItem)
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Заказы за месяц',
-            photo=stats.get_chart_item(month=True),
-            reply_markup=markup,
-        )
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"↔️Размер текста для осей",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_font_markup("axisfontsize", "statsAxisFontSize")
+            )
+    
+    elif callText[:18] == "statsTicksFontSize":
+        if callText == "statsAxisFontSize":
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"↔️Размер текста для осей",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_font_markup("ticksfontsize", "statsTicksFontSize")
+            )
+        else:
+            match callText[18:]:
+                case "Add":
+                    conf.set("stats_settings", "ticksfontsize", str(int(conf["stats_settings"]["ticksfontsize"]) + 2))
+                case "Reduce":
+                    conf.set("stats_settings", "ticksfontsize", str(int(conf["stats_settings"]["ticksfontsize"]) - 2))
+            with open('config.ini', 'w') as config:
+                conf.write(config)
 
-    elif callText == 'StatsWeekItem':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        markup = types.InlineKeyboardMarkup()
-        markup.add(markups.goBackOrderStatsItem)
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Заказы за неделю',
-            photo=stats.get_chart_item(week=True),
-            reply_markup=markup,
-        )
-
-    elif callText == 'StatsDayItem':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        markup = types.InlineKeyboardMarkup()
-        markup.add(markups.goBackOrderStatsItem)
-        await bot.send_photo(
-            chat_id=chatid,
-            caption='Заказы за день',
-            photo=stats.get_chart_item(day=True),
-            reply_markup=markup,
-        )
-
-    elif callText == 'goBackOrderStatsItem':
-        await bot.delete_message(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id
-        )
-        await bot.send_message(
-            chat_id=chatid,
-            text='💡Статистика по товару',
-            reply_markup=markups.get_stats_item_markup()
-        )
-
-    elif callText[:9] == 'userOrder':
-        orderMarkup = types.InlineKeyboardMarkup()
-        order_id = callText[9:]
-        orderMarkup.add(markups.get_clients_back_button())
-        c.execute(f"SELECT * FROM orders WHERE order_id={order_id}")
-        for order in c:
-            pass
-        c.execute(f"SELECT * FROM items WHERE id={order[2]}")
-        for item in c:
-            pass
-        itemName = item[1]
-        login = order[3].split(':')[0]
-        password = order[3].split(':')[1]
-        date = order[4]
-        text = f'➖➖➖➖➖➖➖➖➖\nЗаказ номер {order_id}\n➖➖➖➖➖➖➖➖➖\n' \
-               f'Товар: {itemName}\n' \
-               f'Логин: {login}\n' \
-               f'Пароль: {password}\n' \
-               f'Дата заказа: {date}'
-        await bot.edit_message_text(
-            text=text,
-            message_id=callback_query.message.message_id,
-            chat_id=chatid,
-            reply_markup=orderMarkup
-        )
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"↔️Размер текста для осей",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_font_markup("ticksfontsize", "statsTicksFontSize")
+            )
 
     elif callText[:5] == 'order':
         orderMarkup = types.InlineKeyboardMarkup()
@@ -828,13 +1073,22 @@ async def process_callback(callback_query: types.CallbackQuery):
         pass  # TODO: сделать вывод тиктов
 
     elif callText == 'botSettings':
-        settingsMarkup = markups.get_settings_markup()
-        text = '⚙Настройки бота'
         await bot.edit_message_text(
-            text=text,
+            text="⚙Настройки бота",
             message_id=callback_query.message.message_id,
             chat_id=chatid,
-            reply_markup=settingsMarkup
+            reply_markup=markups.get_settings_markup()
+        )
+
+    elif callText == "botSettingsDel":
+        await bot.delete_message(
+            chat_id=chatid,
+            message_id=callback_query.message.message_id
+        )
+        await bot.send_message(
+            text=f"⚙Настройки бота",
+            chat_id=callback_query.message.chat.id,
+            reply_markup=markups.get_settings_markup()
         )
 
     elif callText == 'disableNotif':
@@ -901,7 +1155,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             btnCat = types.InlineKeyboardButton(text=category[1], callback_data=f"cat{category[0]}")
             catMarkup.add(btnCat)
         await bot.edit_message_text(
-            text='➖➖➖➖➖➖➖➖➖➖\n🔴Категории\n➖➖➖➖➖➖➖➖➖➖',
+            text='➖➖➖➖➖➖➖➖➖➖\n🛍️Категории\n➖➖➖➖➖➖➖➖➖➖',
             chat_id=chatid,
             message_id=callback_query.message.message_id,
             reply_markup=catMarkup
@@ -976,6 +1230,156 @@ async def process_callback(callback_query: types.CallbackQuery):
         )
 
 
+@dp.message_handler(state=state_handler.addCat.catname)
+async def addCat(message: types.Message, state: FSMContext):
+    catname = message.text
+    c.execute(f"SELECT * FROM cats WHERE name=\"{catname}\"")
+    if not list(c):
+        c.execute(f"INSERT INTO cats (name) VALUES(\"{catname}\")")
+        conn.commit()
+        await bot.send_message(
+            text=f"Категория с названием {catname} была создана.",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_items_back()
+        )
+    else:
+        await bot.send_message(
+            text=f"Категория с названием {catname} уже существует!",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_items_back()
+        )
+    await state.finish()
+    
+
+@dp.message_handler(state=state_handler.changeCatName.catname)
+async def changeCatName(message: types.Message, state: FSMContext):
+    catid = await state.get_data()
+    catid = catid['catid']
+    c.execute(f"SELECT * FROM cats WHERE id={catid}")
+    oldcat = list(c)[0]
+    try:
+        c.execute(f"UPDATE cats SET name=\"{message.text}\" WHERE id={catid}")
+        c.execute(f"SELECT * FROM cats WHERE id={catid}")
+        newcat = list(c)[0]
+        await bot.send_message(
+            text=f"Название категории \"{oldcat[1]}\" с ID {catid} было обновлено на \"{newcat[1]}\".",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_cat_edit(catid)
+        )
+    except:
+        await bot.send_message(
+            text="Ошибка.",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_cat_edit(catid)
+        )
+    await state.finish()
+    
+
+@dp.message_handler(state=state_handler.addItem.itemname)
+async def addItemName(message: types.Message, state: FSMContext):
+    itemname = message.text
+    await state.update_data(itemname=itemname)
+    markup = types.InlineKeyboardMarkup()
+    c.execute(f"SELECT * FROM cats")
+    for cat in list(c):
+        markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"addItemCat{cat[0]}"))
+    markup.add(markups.btnCancelStateItems)
+    await bot.send_message(
+        text=f"Ввыберите категорию для \"{itemname}\" или нажмите на кнопку \"Назад\".",
+        chat_id=message.chat.id,
+        reply_markup=markup
+    )
+    await state_handler.addItem.cat.set()
+    
+    
+@dp.callback_query_handler(state=state_handler.addItem.cat)
+async def addItemCat(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data[:10] == "addItemCat":
+        await state.update_data(cat=callback_query.data[10:])
+        await bot.delete_message(
+            chat_id=callback_query.message.chat.id,
+            message_id=callback_query.message.message_id
+        )
+        await bot.send_message(
+            text="Введите цену товара или нажмите на кнопку \"Назад\".",
+            chat_id=callback_query.message.chat.id,
+            reply_markup=markups.get_cancel_states_items()
+        )
+        await state_handler.addItem.price.set()
+    elif callback_query.data == "cancelStateItems":
+        await bot.edit_message_text(
+                text="📦Управление товаром",
+                message_id=callback_query.message.message_id,
+                chat_id=callback_query.message.chat.id,
+                reply_markup=markups.get_item_management_markup()
+            )
+        await state.finish()
+        
+
+
+@dp.callback_query_handler(state=state_handler.addItem.confirmation)
+async def addItemConfirmation(callback_query: types.CallbackQuery, state: FSMContext):
+    await bot.delete_message(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id)
+    if callback_query.data == "itmaddconfirm":
+        item = await state.get_data()
+        try:
+            c.execute(f"INSERT INTO items (name, price, cat_id, desc, active) VALUES (\"{item['itemname']}\", {item['price']}, {item['cat']}, \"{item['desc']}\", 1)")
+            conn.commit()
+            await bot.send_message(
+                text=f"Товар \"{item['itemname']}\" был успешно добавлен.",
+                chat_id=callback_query.message.chat.id,
+                reply_markup=markups.get_items_back()
+            )
+        except:
+            await bot.send_message(
+                text="Ошибка.",
+                chat_id=callback_query.message.chat.id,
+                reply_markup=markups.get_items_back()
+            )
+    elif callback_query.data == "deny":
+        await bot.send_message()(
+                text="📦Управление товаром",
+                chat_id=callback_query.message.chat.id,
+                reply_markup=markups.get_item_management_markup()
+            )
+    await state.finish()
+          
+    
+    
+@dp.message_handler(state=state_handler.addItem.price)
+async def addItemPrice(message: types.Message, state: FSMContext):
+    try:
+        await state.update_data(price=float(message.text))
+        await bot.send_message(
+            text="Введите описание товара или нажмите на кнопку \"Назад\".",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_cancel_states_items()
+        )
+        await state_handler.addItem.desc.set()
+    except:
+        await bot.send_message(
+            text="Произошла ошибка.",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_items_back()
+        )
+        await state.finish()
+        
+        
+@dp.message_handler(state=state_handler.addItem.desc)
+async def addItemDesc(message: types.Message, state: FSMContext):
+    await state.update_data(desc=message.text)
+    item = await state.get_data()
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="✅Да", callback_data="itmaddconfirm"), types.InlineKeyboardButton(text="❌Нет", callback_data="deny"))
+    await bot.send_message(
+        text=f"Вы уверены, что хотите добавить {item['itemname']}?\n\n➖➖➖➖➖➖➖➖➖\n{item['itemname']} - {item['price']}руб.\n➖➖➖➖➖➖➖➖➖\n{item['desc']}",
+        chat_id=message.chat.id,
+        reply_markup=markup
+    )
+    await state_handler.addItem.confirmation.set()
+    
+        
+
 @dp.message_handler(state=state_handler.seeUserProfile.userid)
 async def seeUserProfile(message: types.Message, state: FSMContext):
     userid = message.text
@@ -1020,37 +1424,6 @@ async def changeUserBalance(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@dp.message_handler(state=state_handler.seeUserProfile.userid)
-async def seeUserOrders(message: types.Message, state: FSMContext):
-    orders = usr.get_user_orders(message.text)
-    if not orders:
-        await bot.send_message(
-            chat_id=message.chat.id,
-            text='🧍Управление пользователями',
-            reply_markup=markups.get_client_management_markup(),
-        )
-        await bot.send_message(
-            chat_id=message.chat.id,
-            text=f'У пользователя с ID {message.text} нет заказов'
-        )
-    else:
-        ordersMarkup = types.InlineKeyboardMarkup()
-        for order in orders:
-            c.execute(f"SELECT * FROM items WHERE id={order[2]}")
-            for item in c:
-                pass
-            btn = types.InlineKeyboardButton(text=f'[{item[1]}] - {order[0]}', callback_data=f'userOrder{order[0]}')
-            ordersMarkup.add(btn)
-        text = f'➖➖➖➖➖➖➖➖➖\nЗаказы пользователя {message.text}\n➖➖➖➖➖➖➖➖➖'
-        ordersMarkup.add(markups.get_clients_back_button())
-        await bot.send_message(
-            text=text,
-            chat_id=message.chat.id,
-            reply_markup=ordersMarkup
-        )
-    await state.finish()
-
-
 @dp.message_handler(state=state_handler.changeMainBtc.wallet)
 async def changeQiwiToken(message: types.Message, state: FSMContext):
     conf.set('payment_settings', 'main_btc_adress', message.text)
@@ -1066,6 +1439,7 @@ async def changeQiwiToken(message: types.Message, state: FSMContext):
         text=f"Основной Bitcoin кошелёк был изменен на \"{message.text}\"",
     )
     await state.finish()
+
 
 @dp.message_handler(state=state_handler.notifyAll.message)
 async def notifyAll(message: types.Message, state: FSMContext):
@@ -1084,6 +1458,8 @@ async def notifyAll(message: types.Message, state: FSMContext):
         chat_id=message.chat.id
     )
     await state.finish()
+
+    
 
 @dp.message_handler(state=state_handler.changeQiwiToken.token)
 async def changeQiwiToken(message: types.Message, state: FSMContext):
@@ -1195,6 +1571,28 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 message_id=callback_query.message.message_id,
                 chat_id=chatid,
                 reply_markup=markups.get_seeUserProfile_markup(userid)
+            )
+            
+    elif call[:14] == "cancelStateCat":
+        if user.is_admin():
+            catid = call[14:]
+            c.execute(F"SELECT * FROM cats WHERE id={catid}")
+            cat = list(c)[0]
+            
+            await bot.edit_message_text(
+                text=cat[1],
+                message_id=callback_query.message.message_id,
+                chat_id=chatid,
+                reply_markup=markups.get_cat_edit_markup(cat[0])
+        )
+    
+    elif call == "cancelStateItems":
+        if user.is_admin():
+            await bot.edit_message_text(
+                text="📦Управление товаром",
+                message_id=callback_query.message.message_id,
+                chat_id=chatid,
+                reply_markup=markups.get_item_management_markup()
             )
 
     elif call == 'cancelStateQiwiSettings':

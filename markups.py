@@ -14,25 +14,65 @@ btnOrdersBack = types.InlineKeyboardButton(text='🔙Назад', callback_data=
 btnProfileBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='backProfile')
 btnAdminBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='backAdmin')
 goBackSettings = types.InlineKeyboardButton(text='🔙Назад', callback_data='botSettings')
+goBackSettingsDel = types.InlineKeyboardButton(text="🔙Назад", callback_data="botSettingsDel")
 goBackStats = types.InlineKeyboardButton(text='🔙Назад', callback_data='shopStats')
+goBackItems = types.InlineKeyboardButton(text='🔙Назад', callback_data='itemManagement')
 goBackUserStats = types.InlineKeyboardButton(text='🔙Назад', callback_data='userStatsBack')
-goBackOrderStats = types.InlineKeyboardButton(text='🔙Назад', callback_data='StatsItem')
+goBackOrderStats = types.InlineKeyboardButton(text='🔙Назад', callback_data='orderStatsBack')
 goBackFromItem = types.InlineKeyboardButton(text='🔙Назад', callback_data='backFromitem')
-goBackOrderStatsItem = types.InlineKeyboardButton(text='🔙Назад', callback_data='goBackOrderStatsItem')
 btnCancelStateMainSettings = types.InlineKeyboardButton(text='🔙Назад', callback_data='cancelStateMainSettings')
 btnCancelStateQiwiSettings = types.InlineKeyboardButton(text='🔙Назад', callback_data='cancelStateQiwiSettings')
 btnCancelStateBTCSettings = types.InlineKeyboardButton(text='🔙Назад', callback_data='cancelStateBTCSettings')
 btnCancelStateClients = types.InlineKeyboardButton(text='🔙Назад', callback_data='cancelStateClients')
+btnCancelStateItems = types.InlineKeyboardButton(text='🔙Назад', callback_data='cancelStateItems')
 btnClientsBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='clientManagement')
+btnClose = types.InlineKeyboardButton(text="❌Закрыть", callback_data="close")
+btnCatsEditBack = types.InlineKeyboardButton(text="🔙Назад", callback_data="editCats")
+btnStatsSettingsBack = types.InlineKeyboardButton(text="🔙Назад", callback_data="statsSettingsBack")
 
+
+def get_cancel_states_additem():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(btnCancelStateItems)
+    return markup
+
+
+def get_back_cats_edit():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(btnCatsEditBack)
+    return markup
+
+
+def get_back_cat_edit(catid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"editCat{catid}"))
+    return markup
+
+
+def get_cancel_states_cats(catid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"cancelStateCat{catid}"))
+    return markup
 
 def get_clients_back_button():
     return btnClientsBack
 
 
+def get_items_back():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(goBackItems)
+    return markup
+
+
 def get_cancel_states_clients():
     markup = types.InlineKeyboardMarkup()
     markup.add(btnCancelStateClients)
+    return markup
+
+
+def get_cancel_states_items():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(btnCancelStateItems)
     return markup
 
 
@@ -60,6 +100,11 @@ def get_user_stats_back():
     return userStatsMarkup
 
 
+def get_order_stats_back():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(goBackOrderStats)
+    return markup
+
 # Основное меню
 markupMain = types.ReplyKeyboardMarkup(resize_keyboard=True)
 profile = types.KeyboardButton('📁Профиль')
@@ -85,6 +130,7 @@ btnStats = types.InlineKeyboardButton(text='📈Статистика магаз�
 markupAdmin.add(btnStats)
 btnBotSettings = types.InlineKeyboardButton(text='⚙Настройки бота', callback_data='botSettings')
 markupAdmin.add(btnBotSettings)
+markupAdmin.add(btnClose)
 
 
 def get_admin_markup():
@@ -92,51 +138,52 @@ def get_admin_markup():
 
 
 # товар
-markupItems = types.InlineKeyboardMarkup()
-btnAddCat = types.InlineKeyboardButton(text="Добавить категорию")
+markupItemManagement = types.InlineKeyboardMarkup()
+btnAddCat = types.InlineKeyboardButton(text="🛍️Добавить категорию", callback_data="addCat")
+btnAddItem = types.InlineKeyboardButton(text="🗃️Добавить товар", callback_data="addItem")
+markupItemManagement.add(btnAddCat, btnAddItem)
+
+btnEditCats = types.InlineKeyboardButton(text="✏️ Изменить категорию", callback_data="editCats")
+btnEditItem = types.InlineKeyboardButton(text="✏️ Изменить товар", callback_data="editItem")
+markupItemManagement.add(btnEditCats, btnEditItem)
+
+btnAddItemStock = types.InlineKeyboardButton(text="🚛Добавить аккаунты", callback_data="addStock")
+markupItemManagement.add(btnAddItemStock)
+
+markupItemManagement.add(btnAdminBack)
+
+def get_item_management_markup():
+    return markupItemManagement
+# 🏷️ цена
+
+def get_cat_edit_markup(catid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="Изменить название", callback_data=f"editNameCat{catid}"))
+    markup.add(types.InlineKeyboardButton(text="❌Удалить", callback_data=f"deleteCat{catid}"))
+    markup.add(types.InlineKeyboardButton(text='🔙Назад', callback_data="editCats"))
+    return markup
+    
 
 
 # статистика
 markupStats = types.InlineKeyboardMarkup()
-btnUserStats = types.InlineKeyboardButton(text='👥Статистика пользователей', callback_data='userStats')
-markupStats.add(btnUserStats)
-btnOrderStats = types.InlineKeyboardButton(text='📦Статистика заказов', callback_data='statsOrder')
-markupStats.add(btnOrderStats)
+markupStats.add(types.InlineKeyboardButton(text='👥Статистика регистраций', callback_data='userStats'))
+markupStats.add(types.InlineKeyboardButton(text='📦Статистика заказов', callback_data='orderStats'))
 markupStats.add(btnAdminBack)
 
-userStats = types.InlineKeyboardMarkup()
-btnUserStatsDay = types.InlineKeyboardButton(text='За день', callback_data='userStatsDay')
-userStats.add(btnUserStatsDay)
-btnUserStatsWeek = types.InlineKeyboardButton(text='За неделю', callback_data='userStatsWeek')
-userStats.add(btnUserStatsWeek)
-btnUserStatsMonth = types.InlineKeyboardButton(text='За месяц', callback_data='userStatsMonth')
-userStats.add(btnUserStatsMonth)
-btnUserStatsAllTime = types.InlineKeyboardButton(text='За всё время', callback_data='userStatsAllTime')
-userStats.add(btnUserStatsAllTime)
-userStats.add(goBackStats)
+userStatsMarkup = types.InlineKeyboardMarkup()
+userStatsMarkup.add(types.InlineKeyboardButton(text='За всё время', callback_data='userStatsAllTime'))
+userStatsMarkup.add(types.InlineKeyboardButton(text='За месяц', callback_data='userStatsMonth'))
+userStatsMarkup.add(types.InlineKeyboardButton(text='За неделю', callback_data='userStatsWeek'))
+userStatsMarkup.add(types.InlineKeyboardButton(text='За день', callback_data='userStatsDay'))
+userStatsMarkup.add(goBackStats)
 
-
-itemStatsMarkup = types.InlineKeyboardMarkup()
-btnItemStatsDay = types.InlineKeyboardButton(text='За день', callback_data='StatsDayItem')
-itemStatsMarkup.add(btnItemStatsDay)
-btnItemStatsWeek = types.InlineKeyboardButton(text='За неделю', callback_data='StatsWeekItem')
-itemStatsMarkup.add(btnItemStatsWeek)
-btnItemStatsMonth = types.InlineKeyboardButton(text='За месяц', callback_data='StatsMonthItem')
-itemStatsMarkup.add(btnItemStatsMonth)
-btnItemStatsAllTime = types.InlineKeyboardButton(text='За всё время', callback_data='StatsAllTimeItem')
-itemStatsMarkup.add(btnItemStatsAllTime)
-itemStatsMarkup.add(goBackStats)
-
-
-def get_stats_item_markup():
-    return itemStatsMarkup
-
-
-def get_stats_order_markup():
-    statsOrderMarkup = types.InlineKeyboardMarkup()
-    btnItemStats = types.InlineKeyboardButton(text='💡Статистика по товару', callback_data='StatsItem')
-    statsOrderMarkup.add(btnItemStats)
-    return statsOrderMarkup
+orderStatsMarkup = types.InlineKeyboardMarkup()
+orderStatsMarkup.add(types.InlineKeyboardButton(text='За всё время', callback_data='orderStatsAllTime'))
+orderStatsMarkup.add(types.InlineKeyboardButton(text='За месяц', callback_data='orderStatsMonthly'))
+orderStatsMarkup.add(types.InlineKeyboardButton(text='За неделю', callback_data='orderStatsWeekly'))
+orderStatsMarkup.add(types.InlineKeyboardButton(text='За день', callback_data='orderStatsDaily'))
+orderStatsMarkup.add(goBackStats)
 
 
 def get_stats_markup():
@@ -144,7 +191,11 @@ def get_stats_markup():
 
 
 def get_user_stats_markup():
-    return userStats
+    return userStatsMarkup
+
+
+def get_order_stats_markup():
+    return orderStatsMarkup
 
 
 # FAQ панель
@@ -268,12 +319,11 @@ def get_back_user_orders_markup(userid):
 
 # Настройки бота
 settingsMarkup = types.InlineKeyboardMarkup()
-btnMainSettings = types.InlineKeyboardButton(text=f"🛠️Основные настройки", callback_data='mainSettings')
-btnQiwiSettings = types.InlineKeyboardButton(text=f"🥝Настройки QIWI кошелька", callback_data='qiwiSettings')
-btnBtcSettings = types.InlineKeyboardButton(text=f"💵Настройки BTC кошелька", callback_data='btcSettings')
-settingsMarkup.add(btnMainSettings)
-settingsMarkup.add(btnQiwiSettings)
-settingsMarkup.add(btnBtcSettings)
+
+settingsMarkup.add(types.InlineKeyboardButton(text=f"🛠️Основные настройки", callback_data='mainSettings'))
+settingsMarkup.add(types.InlineKeyboardButton(text=f"🥝Настройки QIWI кошелька", callback_data='qiwiSettings'))
+settingsMarkup.add(types.InlineKeyboardButton(text=f"💵Настройки BTC кошелька", callback_data='btcSettings'))
+settingsMarkup.add(types.InlineKeyboardButton(text="📈Настройки статистики", callback_data="statsSettings"))
 settingsMarkup.add(btnAdminBack)
 
 
@@ -299,10 +349,45 @@ def get_main_settings_markup():
     return mainSettingsMarkup
 
 
-# Настройки qiwi
+# настройки статистики
+def get_stats_settings_markup():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="🌈Цвет графика", callback_data="statsColor"))
+    markup.add(types.InlineKeyboardButton(text="🔲Ширина обводки", callback_data="statsBorderWidth"))
+    markup.add(types.InlineKeyboardButton(text="ℹ️Размер названия графика", callback_data="statsTitleFontSize"))
+    markup.add(types.InlineKeyboardButton(text="↔️Размер текста для осей", callback_data="statsAxisFontSize"))
+    markup.add(types.InlineKeyboardButton(text="🔢Размер текста для делений", callback_data="statsTicksFontSize"))
+    markup.add(goBackSettingsDel)
+    return markup
+
+def get_stats_color_markup():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="⬛️", callback_data="statsColorBlack"), types.InlineKeyboardButton(text="⬜️", callback_data="statsColorWhite"), types.InlineKeyboardButton(text="🟥", callback_data="statsColorRed"))
+    markup.add(types.InlineKeyboardButton(text="🟨", callback_data="statsColorYellow"), types.InlineKeyboardButton(text="🟪", callback_data="statsColorPurple"), types.InlineKeyboardButton(text="🟦", callback_data="statsColorBlue"))
+    markup.add(types.InlineKeyboardButton(text="🟧", callback_data="statsColorOrange"), types.InlineKeyboardButton(text="🟩", callback_data="statsColorGreen"), types.InlineKeyboardButton(text="🟫", callback_data="statsColorBrown"))
+    markup.add(btnStatsSettingsBack)
+    return markup
+
+def get_stats_border_width_markup():
+    conf = ConfigParser()
+    conf.read("config.ini", encoding="utf-8")
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=("⛔️" if int(conf["stats_settings"]["linewidth"]) == 0 else "➖"), callback_data=("none" if int(conf["stats_settings"]["linewidth"]) == 0 else "statsBorderWidthReduce")), types.InlineKeyboardButton(text=conf["stats_settings"]["linewidth"], callback_data="none"), types.InlineKeyboardButton(text="➕", callback_data="statsBorderWidthAdd"))
+    markup.add(btnStatsSettingsBack)
+    return markup
+
+def get_stats_font_markup(confsetting, callback):
+    conf = ConfigParser()
+    conf.read("config.ini", encoding="utf-8")
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=("⛔️" if int(conf["stats_settings"][confsetting]) == 2 else "➖"), callback_data=("none" if int(conf["stats_settings"][confsetting]) == 2 else callback + "Reduce")), types.InlineKeyboardButton(text=conf["stats_settings"][confsetting], callback_data="none"), types.InlineKeyboardButton(text="➕", callback_data=callback + "Add"))
+    markup.add(btnStatsSettingsBack)
+    return markup
+
+
 def get_qiwi_settings():
     qiwi_conf = ConfigParser()
-    qiwi_conf.read('config.ini', encoding='utf8')
+    qiwi_conf.read("config.ini", encoding="utf-8")
 
     qiwiSettingsMarkup = types.InlineKeyboardMarkup()
     btnQiwiNumber = types.InlineKeyboardButton(text=f"Номер QIWI: {qiwi_conf['payment_settings']['qiwi_number']}",
