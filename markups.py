@@ -31,6 +31,23 @@ btnCatsEditBack = types.InlineKeyboardButton(text="🔙Назад", callback_dat
 btnStatsSettingsBack = types.InlineKeyboardButton(text="🔙Назад", callback_data="statsSettingsBack")
 
 
+def get_cancel_states_editItem(itemid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"cancelStatesEditItem{itemid}"))
+    return markup
+
+def cancel_states_addaccounts(catid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"cancelStatesAddAccounts{catid}"))
+    return markup
+
+
+def get_back_item_edit(itemid):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"editItem{itemid}"))
+    return markup
+
+
 def get_cancel_states_additem():
     markup = types.InlineKeyboardMarkup()
     markup.add(btnCancelStateItems)
@@ -144,8 +161,8 @@ btnAddItem = types.InlineKeyboardButton(text="🗃️Добавить товар
 markupItemManagement.add(btnAddCat, btnAddItem)
 
 btnEditCats = types.InlineKeyboardButton(text="✏️ Изменить категорию", callback_data="editCats")
-btnEditItem = types.InlineKeyboardButton(text="✏️ Изменить товар", callback_data="editItem")
-markupItemManagement.add(btnEditCats, btnEditItem)
+btnEditItems = types.InlineKeyboardButton(text="✏️ Изменить товар", callback_data="editItems")
+markupItemManagement.add(btnEditCats, btnEditItems)
 
 btnAddItemStock = types.InlineKeyboardButton(text="🚛Добавить аккаунты", callback_data="addStock")
 markupItemManagement.add(btnAddItemStock)
@@ -154,7 +171,7 @@ markupItemManagement.add(btnAdminBack)
 
 def get_item_management_markup():
     return markupItemManagement
-# 🏷️ цена
+# c цена
 
 def get_cat_edit_markup(catid):
     markup = types.InlineKeyboardMarkup()
@@ -162,8 +179,19 @@ def get_cat_edit_markup(catid):
     markup.add(types.InlineKeyboardButton(text="❌Удалить", callback_data=f"deleteCat{catid}"))
     markup.add(types.InlineKeyboardButton(text='🔙Назад', callback_data="editCats"))
     return markup
-    
 
+
+def get_edit_item_markup(item):
+    itemid = item[0]
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="📋Изменить название", callback_data=f"editNameItem{itemid}"))
+    markup.add(types.InlineKeyboardButton(text="📝Изменить описание", callback_data=f"editDescItem{itemid}"))
+    markup.add(types.InlineKeyboardButton(text="🏷️Изменить цену", callback_data=f"editPriceItem{itemid}"))
+    markup.add(types.InlineKeyboardButton(text="🛍️Изменить категорию", callback_data=f"editCatItem{itemid}"))
+    markup.add(types.InlineKeyboardButton(text=("🙈Скрыть товар" if item[5] == 1 else "🐵Показать товар"), callback_data=f"hideItem{itemid}"))
+    markup.add(types.InlineKeyboardButton(text="❌Удалить", callback_data=f"deleteItem{itemid}"))
+    markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"editItemsCat{item[3]}"))
+    return markup
 
 # статистика
 markupStats = types.InlineKeyboardMarkup()
@@ -372,7 +400,7 @@ def get_stats_border_width_markup():
     conf = ConfigParser()
     conf.read("config.ini", encoding="utf-8")
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=("⛔️" if int(conf["stats_settings"]["linewidth"]) == 0 else "➖"), callback_data=("none" if int(conf["stats_settings"]["linewidth"]) == 0 else "statsBorderWidthReduce")), types.InlineKeyboardButton(text=conf["stats_settings"]["linewidth"], callback_data="none"), types.InlineKeyboardButton(text="➕", callback_data="statsBorderWidthAdd"))
+    markup.add(types.InlineKeyboardButton(text=("⛔️" if int(conf["stats_settings"]["linewidth"]) == 0 else "➖"), callback_data=("none" if int(conf["stats_settings"]["linewidth"]) == 0 else "statsBorderWidthReduce")), types.InlineKeyboardButton(text=conf["stats_settings"]["linewidth"], callback_data="defaultBorderWidth"), types.InlineKeyboardButton(text="➕", callback_data="statsBorderWidthAdd"))
     markup.add(btnStatsSettingsBack)
     return markup
 
@@ -380,7 +408,7 @@ def get_stats_font_markup(confsetting, callback):
     conf = ConfigParser()
     conf.read("config.ini", encoding="utf-8")
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=("⛔️" if int(conf["stats_settings"][confsetting]) == 2 else "➖"), callback_data=("none" if int(conf["stats_settings"][confsetting]) == 2 else callback + "Reduce")), types.InlineKeyboardButton(text=conf["stats_settings"][confsetting], callback_data="none"), types.InlineKeyboardButton(text="➕", callback_data=callback + "Add"))
+    markup.add(types.InlineKeyboardButton(text=("⛔️" if int(conf["stats_settings"][confsetting]) == 2 else "➖"), callback_data=("none" if int(conf["stats_settings"][confsetting]) == 2 else callback + "Reduce")), types.InlineKeyboardButton(text=conf["stats_settings"][confsetting], callback_data=f"defaultFont{confsetting}"), types.InlineKeyboardButton(text="➕", callback_data=callback + "Add"))
     markup.add(btnStatsSettingsBack)
     return markup
 

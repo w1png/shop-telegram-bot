@@ -9,6 +9,8 @@ from os import path
 from sys import exit
 from aiogram.types import message, message_id, user
 from configparser import ConfigParser
+
+from aiogram.types.callback_query import CallbackQuery
 import markups
 import state_handler
 from user import User
@@ -213,17 +215,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chatid,
                 reply_markup=markups.markups.get_items_back()
             )
-    
-    elif callText[:7] == "editCat":
-        c.execute(F"SELECT * FROM cats WHERE id={callText[7:]}")
-        cat = list(c)[0]
-        
-        await bot.edit_message_text(
-            text=cat[1],
-            message_id=callback_query.message.message_id,
-            chat_id=chatid,
-            reply_markup=markups.get_cat_edit_markup(cat[0])
-        )
         
     elif callText[:9] == "deleteCat":
         catid = callText[9:]
@@ -258,11 +249,153 @@ async def process_callback(callback_query: types.CallbackQuery):
         )
         await state_handler.addItem.itemname.set()
     
+    elif callText == "editItems":
+        c.execute("SELECT * FROM cats")
+        markup = types.InlineKeyboardMarkup()
+        for cat in list(c):
+            markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"editItemsCat{cat[0]}"))
+        markup.add(markups.goBackItems)
+        await bot.edit_message_text(
+            text=f"Выберите категорию",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markup
+        )
+
+    elif callText[:12] == "editItemsCat":
+        c.execute(f"SELECT * FROM cats WHERE id={callText[12:]}")
+        cat = list(c)[0]
+        c.execute(f"SELECT * FROM items WHERE cat_id={callText[12:]}")
+        markup = types.InlineKeyboardMarkup()
+        for item in list(c):
+            markup.add(types.InlineKeyboardButton(text=item[1], callback_data=f"editItem{item[0]}"))
+        markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data="editItems"))
+        await bot.edit_message_text(
+            text=f"Выберите товар",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markup
+        )
+
     elif callText[:8] == "editItem":
-        pass
+        c.execute(f"SELECT * FROM items WHERE id={callText[8:]}")
+        item = list(c)[0]
+        c.execute(f"SELECT * FROM cats WHERE id={item[3]}")
+        cat = list(c)[0]
+        await bot.edit_message_text(
+            text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markups.get_edit_item_markup(item)
+        )
+
+    elif callText[:11] == "editCatItem":
+        markup = types.InlineKeyboardMarkup()
+        c.execute("SELECT * FROM cats")
+        for cat in list(c):
+            markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"setCatItem{cat[0]}"))
+        markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data="cancelStatesEditItem"))
+        c.execute(f"SELECT * FROM items WHERE id={callText[11:]}")
+        await bot.edit_message_text(
+            text=f"Выберите категорию для {list(c)[0][1]} или нажмите на кнопку \"Назад\"",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markup
+        )
+        await state_handler.changeItemCat.cat.set()
+        state = Dispatcher.get_current().current_state()
+        await state.update_data(itemid=callText[11:])
+
+    elif callText[:7] == "editCat":
+        c.execute(f"SELECT * FROM cats WHERE id={callText[7:]}")
+        cat = list(c)[0]
+        
+        await bot.edit_message_text(
+            text=cat[1],
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_cat_edit_markup(cat[0])
+        )
+
+    elif callText[:12] == "editDescItem":
+        c.execute(f"SELECT * FROM items WHERE id={callText[12:]}")
+        item = list(c)[0]
+        await bot.edit_message_text(
+            text=f"Введите новое описание для {item[1]} или нажмите кнопку \"Назад\"",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markups.get_cancel_states_editItem(callText[12:])
+        )
+        await state_handler.ChangeItemDesc.desc.set()
+        state = Dispatcher.get_current().current_state()
+        await state.update_data(itemid=callText[12:])
+
+    elif callText[:8] == "hideItem":
+        c.execute(f"SELECT * FROM items WHERE id={callText[8:]}")
+        item = list(c)[0]
+        c.execute(f"UPDATE items SET active={1 if item[5] == 0 else 0} WHERE id={callText[8:]}")
+        conn.commit()
+        c.execute(f"SELECT * FROM items WHERE id={callText[8:]}")
+        item = list(c)[0]
+        c.execute(f"SELECT * FROM cats WHERE id={item[3]}")
+        cat = list(c)[0]
+        await bot.edit_message_text(
+            text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markups.get_edit_item_markup(item)
+        )
+
+    elif callText[:17] == "deleteItemConfirm":
+        c.execute(f"SELECT * FROM items WHERE id={callText[17:]}")
+        item = list(c)
+        c.execute(f"DELETE FROM items WHERE id={callText[17:]}")
+        conn.commit()
+
+        await bot.edit_message_text(
+            text="📦Управление товаром",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.get_item_management_markup()
+        )
+
+    elif callText[:10] == "deleteItem":
+        c.execute(F"SELECT * FROM items WHERE id={callText[10:]}")
+        item = list(c)[0]
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(text="✅Да", callback_data=f"deleteItemConfirm{callText[10:]}"), types.InlineKeyboardButton(text="❌Нет", callback_data=f"editItem{callText[10:]}"))
+        await bot.edit_message_text(
+            text=f"Вы уверены, что хотите удалить {item[1]}?",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markup
+        )
+
+    elif callText[:12] == "editNameItem":
+        c.execute(f"SELECT * FROM items WHERE id={callText[12:]}")
+        item = list(c)[0]
+        await bot.edit_message_text(
+            text=f"Введите новое название для \"{item[1]}\" или нажмите на кнопку \"Назад\"",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markups.get_cancel_states_editItem(item[0])
+        )
+        await state_handler.ChangeItemName.name.set()
+        state = Dispatcher.get_current().current_state()
+        await state.update_data(itemid=callText[12:])
     
-    elif callText[:8] == "addStock":
-        pass
+    elif callText[:13] == "editPriceItem":
+        c.execute(f"SELECT * FROM items WHERE id={callText[13:]}")
+        item = list(c)[0]
+        await bot.edit_message_text(
+            text=f"Введите новую цену для \"{item[1]}\" или нажмите на кнопку \"Назад\"",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markups.get_cancel_states_editItem(callText[13:])
+        )
+        await state_handler.ChangeItemPrice.price.set()
+        state = Dispatcher.get_current().current_state()
+        await state.update_data(itemid=callText[13:])
         
     elif callText[:4] == 'item':
         c.execute(f"SELECT * FROM items WHERE id={callText[4:]}")
@@ -942,6 +1075,37 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_stats_border_width_markup()
             )
 
+    elif callText == "defaultBorderWidth":
+            conf.set("stats_settings", "linewidth", "1")
+            with open('config.ini', 'w') as config:
+                conf.write(config)
+
+            await bot.delete_message(
+                chat_id=chatid,
+                message_id=callback_query.message.message_id
+            )
+            await bot.send_photo(
+                caption=f"🔲Ширина обводки",
+                chat_id=chatid,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_stats_border_width_markup()
+            )
+    
+    elif callText[:11] == "defaultFont":
+        conf.set("stats_settings", callText[11:], "16")
+        with open('config.ini', 'w') as config:
+                conf.write(config)
+        await bot.delete_message(
+            chat_id=chatid,
+            message_id=callback_query.message.message_id
+        )
+        await bot.send_photo(
+            caption=f"📈Настройки статистики",
+            chat_id=chatid,
+            photo=stats.get_random_graph(),
+            reply_markup=markups.get_stats_settings_markup()
+        )
+
     elif callText[:18] == "statsTitleFontSize":
         if callText == "statsTitleFontSize":
             await bot.delete_message(
@@ -1013,7 +1177,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id
             )
             await bot.send_photo(
-                caption=f"↔️Размер текста для осей",
+                caption=f"↔️Размер текста для делений",
                 chat_id=chatid,
                 photo=stats.get_random_graph(),
                 reply_markup=markups.get_stats_font_markup("ticksfontsize", "statsTicksFontSize")
@@ -1032,7 +1196,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id
             )
             await bot.send_photo(
-                caption=f"↔️Размер текста для осей",
+                caption=f"↔️Размер текста для делений",
                 chat_id=chatid,
                 photo=stats.get_random_graph(),
                 reply_markup=markups.get_stats_font_markup("ticksfontsize", "statsTicksFontSize")
@@ -1221,6 +1385,46 @@ async def process_callback(callback_query: types.CallbackQuery):
         )
         await state_handler.changeMainBtc.wallet.set()
 
+    elif callText == "addStock":
+        markup = types.InlineKeyboardMarkup()
+        c.execute(f"SELECT * FROM cats")
+        for cat in list(c):
+            markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"addStockCat{cat[0]}"))
+        markup.add(markups.goBackItems)
+        await bot.edit_message_text(
+            text=f"Выберите категорию товара",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markup
+        )
+
+    elif callText[:11] == "addStockCat":
+        c.execute(f"SELECT * FROM items WHERE cat_id={callText[11:]}")
+        markup = types.InlineKeyboardMarkup()
+        for item in list(c):
+            markup.add(types.InlineKeyboardButton(text=item[1], callback_data=f"addStockItem{item[0]}"))
+        markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data="addStock"))
+        await bot.edit_message_text(
+            text=f"Выберите товар",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markup
+        )
+
+    elif callText[:12] == "addStockItem":
+        c.execute(f"SELECT * FROM items WHERE id={callText[12:]}")
+        item = list(c)[0]
+        await bot.edit_message_text(
+            text=f"Введите данные от аккаунтов в формате:\nlogin:pass\nlogin:pass",
+            message_id=callback_query.message.message_id,
+            chat_id=chatid,
+            reply_markup=markups.cancel_states_addaccounts(item[3])
+        )
+        await state_handler.AddAccounts.details.set()
+        state = Dispatcher.get_current().current_state()
+        await state.update_data(itemid=item[0])
+
+
     elif callText == 'clientManagement':
         await bot.edit_message_text(
             chat_id=chatid,
@@ -1249,7 +1453,6 @@ async def addCat(message: types.Message, state: FSMContext):
             reply_markup=markups.get_items_back()
         )
     await state.finish()
-    
 
 @dp.message_handler(state=state_handler.changeCatName.catname)
 async def changeCatName(message: types.Message, state: FSMContext):
@@ -1275,6 +1478,30 @@ async def changeCatName(message: types.Message, state: FSMContext):
     await state.finish()
     
 
+@dp.message_handler(state=state_handler.ChangeItemDesc.desc)
+async def changeItemDesc(message: types.Message, state: FSMContext):
+    itemid = await state.get_data()
+    itemid = itemid["itemid"]
+    try:
+        c.execute(f"UPDATE items SET desc=\"{message.text}\" WHERE id={itemid}")
+        conn.commit()
+        c.execute(f"SELECT * FROM items WHERE id={itemid}")
+        item = list(c)[0]
+        await bot.send_message(
+            text=f"Описание {item[1]} было обновлено.",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_item_edit(item[0])
+        )
+    except:
+        await bot.send_message(
+            text=f"Произошла ошибка",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_item_edit(itemid)
+        )
+    await state.finish()
+    
+
+
 @dp.message_handler(state=state_handler.addItem.itemname)
 async def addItemName(message: types.Message, state: FSMContext):
     itemname = message.text
@@ -1291,6 +1518,32 @@ async def addItemName(message: types.Message, state: FSMContext):
     )
     await state_handler.addItem.cat.set()
     
+
+@dp.message_handler(state=state_handler.ChangeItemName.name)
+async def changeItemName(message: types.Message, state: FSMContext):
+    itemid = await state.get_data()
+    itemid = itemid["itemid"]
+    c.execute(f"SELECT * FROM items WHERE id={itemid}")
+    olditem = list(c)[0]
+    try:
+        c.execute(f"UPDATE items SET name=\"{message.text}\" WHERE id={itemid}")
+        conn.commit()
+        c.execute(f"SELECT * FROM items WHERE id={itemid}")
+        item = list(c)[0]
+        await bot.send_message(
+            text=f"Название для \"{olditem[1]}\" было обновлено на \"{item[1]}\".",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_item_edit(itemid)
+        )
+    except:
+        await bot.send_message(
+            text=f"Произошла ошибка",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_item_edit(itemid)
+        )
+    await state.finish()
+    
+
     
 @dp.callback_query_handler(state=state_handler.addItem.cat)
 async def addItemCat(callback_query: types.CallbackQuery, state: FSMContext):
@@ -1315,6 +1568,69 @@ async def addItemCat(callback_query: types.CallbackQuery, state: FSMContext):
             )
         await state.finish()
         
+
+@dp.callback_query_handler(state=state_handler.changeItemCat.cat)
+async def editItemCat(callback_query: types.CallbackQuery, state: FSMContext):
+    itemid = await state.get_data()
+    c.execute(f"SELECT * FROM items WHERE id={itemid['itemid']}")
+    item = list(c)[0]
+    if callback_query.data[:10] == "setCatItem":
+        try:
+            c.execute(f"SELECT * FROM cats WHERE id={callback_query.data[10:]}")
+            cat = list(c)[0]
+            c.execute(f"UPDATE items SET cat_id={callback_query.data[10:]} WHERE id={item[0]}")
+            conn.commit()
+            await bot.edit_message_text(
+                text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_edit_item_markup(item)
+            )
+        except:
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"editItem{item[0]}"))
+            await bot.edit_message_text(
+                text=f"Произошла ошибка.",
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markup
+            )
+    elif callback_query.data == "cancelStatesEditItem":
+        c.execute(f"SELECT * FROM cats WHERE id={item[3]}")
+        cat = list(c)[0]
+        await bot.edit_message_text(
+            text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
+            chat_id=callback_query.message.chat.id,
+            message_id=callback_query.message.message_id,
+            reply_markup=markups.get_edit_item_markup(item)
+        )
+    await state.finish()
+
+
+@dp.message_handler(state=state_handler.ChangeItemPrice.price)
+async def changeItemPrice(message: types.Message, state: FSMContext):
+    itemid = await state.get_data()
+    itemid = itemid["itemid"]
+    try:
+        c.execute(f"SELECT * FROM items WHERE id={itemid}")
+        olditem = list(c)[0]
+        c.execute(f"UPDATE items SET price={float(message.text)} WHERE id={itemid}")
+        conn.commit()
+        c.execute(f"SELECT * FROM items WHERE id={itemid}")
+        item = list(c)[0]
+        await bot.send_message(
+            text=f"Цена для \"{item[1]}\" была обновлна с {olditem[2]}руб. до {item[2]}руб.",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_item_edit(itemid)
+        )
+
+    except:
+        await bot.send_message(
+            text=f"Произошла ошибка.",
+            chat_id=message.chat.id,
+            reply_markup=markups.get_back_item_edit(itemid)
+        )
+    await state.finish()
 
 
 @dp.callback_query_handler(state=state_handler.addItem.confirmation)
@@ -1378,7 +1694,62 @@ async def addItemDesc(message: types.Message, state: FSMContext):
     )
     await state_handler.addItem.confirmation.set()
     
-        
+
+@dp.message_handler(state=state_handler.AddAccounts.details)
+async def addAccounts(message: types.Message, state: FSMContext):
+    await state.update_data(details=message.text)
+    itemid = await state.get_data()
+    itemid = itemid["itemid"]
+    c.execute(f"SELECT * FROM items WHERE id={itemid}")
+    item = list(c)[0]
+    text = ""
+    for account in message.text.split("\n"):
+        try:
+            text += f"➖➖➖➖➖➖➖➖➖\nЛогин: {account.split(':')[0]}\nПароль: {account.split(':')[1]}\n"
+        except:
+            text += f"➖➖➖➖➖➖➖➖➖\nОшибка: \"{account}\"\n"
+    text += "➖➖➖➖➖➖➖➖➖\nВы уверены, что хотите добавить эти аккаунты?"
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="✅Да", callback_data="addAccountsConfirm"), types.InlineKeyboardButton(text="❌Нет", callback_data=f"cancelStatesAddAccounts{item[3]}"))
+    await bot.send_message(
+        text=text,
+        chat_id=message.chat.id,
+        reply_markup=markup
+    )
+    await state_handler.AddAccounts.confirmation.set()
+       
+
+
+@dp.callback_query_handler(state=state_handler.addItem.confirmation)
+async def addItemConfirmation(callback_query: types.CallbackQuery, state: FSMContext):
+    print("-")
+    if callback_query.data == "addAccountsConfirm":
+        print("+")
+        state_data = await state.get_data()
+        itemid = state_data["itemid"]
+        details = state_data["details"]
+
+        try: 
+            for account in details.split("\n"):
+                c.execute(f"INSERT INTO item_stock(item_id, login, password) VALUES ({itemid}, \"{account.split(':')[0]}\", \"{account.split(':')[1]}\")")
+            conn.commit()
+            c.execute(f"SELECT * FROM items WHERE id={itemid}")
+            item = list(c)[0]
+            await bot.edit_message_text(
+                text=str(len(details.split('\n'))) + f" аккаунтов было добавлено для {item[1]}.",
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_items_back()
+            )
+        except:
+            await bot.edit_message_text(
+                text=f"Произошла ошибка",
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_items_back()
+            )
+        await state.finish()
+  
 
 @dp.message_handler(state=state_handler.seeUserProfile.userid)
 async def seeUserProfile(message: types.Message, state: FSMContext):
@@ -1585,6 +1956,62 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 chat_id=chatid,
                 reply_markup=markups.get_cat_edit_markup(cat[0])
         )
+
+    elif call[:20] == "cancelStatesEditItem":
+        itemid = await state.get_data()
+        itemid = itemid["itemid"]
+        c.execute(f"SELECT * FROM items WHERE id={itemid}")
+        item = list(c)[0]
+        c.execute(f"SELECT * FROM cats WHERE id={item[3]}")
+        cat = list(c)[0]
+        await bot.edit_message_text(
+            text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
+            chat_id=callback_query.message.chat.id,
+            message_id=callback_query.message.message_id,
+            reply_markup=markups.get_edit_item_markup(item)
+        )
+
+    elif call[:23] == "cancelStatesAddAccounts":
+        c.execute(f"SELECT * FROM items WHERE cat_id={call[23:]}")
+        markup = types.InlineKeyboardMarkup()
+        for item in list(c):
+            markup.add(types.InlineKeyboardButton(text=item[1], callback_data=f"addStockItem{item[0]}"))
+        markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data="addStock"))
+        await bot.edit_message_text(
+            text=f"Выберите товар",
+            chat_id=chatid,
+            message_id=callback_query.message.message_id,
+            reply_markup=markup
+        )
+
+    elif callback_query.data == "addAccountsConfirm":
+        try:
+            state_data = await state.get_data()
+            itemid = state_data["itemid"]
+            details = state_data["details"]
+            errors = 0
+
+            for account in details.split("\n"):
+                try:
+                    c.execute(f"INSERT INTO item_stock(item_id, login, password) VALUES ({itemid}, \"{account.split(':')[0]}\", \"{account.split(':')[1]}\")")
+                except:
+                    errors += 1
+            conn.commit()
+            c.execute(f"SELECT * FROM items WHERE id={itemid}")
+            item = list(c)[0]
+            await bot.edit_message_text(
+                text=str(len(details.split('\n')) - errors) + f" аккаунтов было добавлено для {item[1]}.",
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_items_back()
+            )
+        except:
+            await bot.edit_message_text(
+                text=f"Произошла ошибка",
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_items_back()
+            )
     
     elif call == "cancelStateItems":
         if user.is_admin():

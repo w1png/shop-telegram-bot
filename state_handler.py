@@ -44,3 +44,29 @@ class addItem(StatesGroup):
     price = State()
     desc = State()
     confirmation = State()
+
+
+class changeItemCat(StatesGroup):
+    itemid = State()
+    cat = State()
+
+
+class ChangeItemDesc(StatesGroup):
+    itemid = State()
+    desc = State()
+
+
+class ChangeItemName(StatesGroup):
+    itemid = State()
+    name = State()
+
+
+class ChangeItemPrice(StatesGroup):
+    itemid = State()
+    price = State()
+
+
+class AddAccounts(StatesGroup):
+    itemid = State()
+    details = State()
+    confirmation = State()

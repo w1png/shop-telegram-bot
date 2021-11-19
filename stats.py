@@ -8,6 +8,8 @@ class RegistrationCharts:
     def __init__(self):
         self.conn = sqlite3.connect("data.db")
         self.c = self.conn.cursor()
+        self.conf = ConfigParser()
+        self.conf.read("config.ini", encoding="utf-8")
 
     def clist(self):
         self.c.execute("SELECT * FROM users")
@@ -16,12 +18,14 @@ class RegistrationCharts:
     def saveplot(self, data, filename, title):
         plt.autoscale()
         plt.figure(figsize=(10, 10))
-        plt.title(title)
-        plt.xlabel("Дата")
-        plt.ylabel("Кол-во регистраций")
-        plt.bar(range(len(data)), list(data.values()))
+        plt.title(title, fontsize=self.conf["stats_settings"]["titlefontsize"])
+        plt.xlabel("Дата", fontsize=self.conf["stats_settings"]["axisfontsize"])
+        plt.ylabel("Кол-во регистраций", fontsize=self.conf["stats_settings"]["axisfontsize"])
+        plt.tick_params(labelsize=self.conf["stats_settings"]["ticksfontsize"]) 
+        plt.bar(range(len(data)), list(data.values()), color="#" + self.conf["stats_settings"]["barcolor"], edgecolor="black", linewidth=self.conf["stats_settings"]["linewidth"])
         plt.xticks(range(len(data)), list(data.keys()), rotation=90)
         plt.savefig(f'images/{filename}.png')
+        plt.close()
         return open(f'images/{filename}.png', 'rb')
 
     # TODO: maybe remake
@@ -63,6 +67,8 @@ class OrderCharts:
     def __init__(self):
         self.conn = sqlite3.connect("data.db")
         self.c = self.conn.cursor()
+        self.conf = ConfigParser()
+        self.conf.read("config.ini", encoding="utf-8")
 
     def clist(self):
         self.c.execute("SELECT * FROM orders")
@@ -71,12 +77,15 @@ class OrderCharts:
     def saveplot(self, data, filename, title):
         plt.autoscale()
         plt.figure(figsize=(10, 10))
-        plt.title(title)
-        plt.xlabel("Дата")
-        plt.ylabel("Кол-во регистраций")
+        plt.title(title, fontsize=self.conf["stats_settings"]["titlefontsize"])
+        plt.xlabel("Дата", fontsize=self.conf["stats_settings"]["axisfontsize"])
+        plt.ylabel("Кол-во заказов", fontsize=self.conf["stats_settings"]["axisfontsize"])
+        plt.tick_params(labelsize=self.conf["stats_settings"]["ticksfontsize"]) 
+        plt.bar(range(len(data)), list(data.values()), color="#" + self.conf["stats_settings"]["barcolor"], edgecolor="black", linewidth=self.conf["stats_settings"]["linewidth"])
         plt.bar(range(len(data)), list(data.values()))
         plt.xticks(range(len(data)), list(data.keys()), rotation=90)
         plt.savefig(f'images/{filename}.png')
+        plt.close()
         return open(f'images/{filename}.png', 'rb')
 
     # TODO: maybe remake
@@ -123,10 +132,10 @@ def get_random_graph():
     plt.title("Название", fontsize=conf["stats_settings"]["titlefontsize"])
     plt.xlabel("Ось Х", fontsize=conf["stats_settings"]["axisfontsize"])
     plt.ylabel("Ось У", fontsize=conf["stats_settings"]["axisfontsize"])
-    data = {randint(5, 100): randint(5, 100) for _ in range(randint(2, 30))}
+    plt.tick_params(labelsize=conf["stats_settings"]["ticksfontsize"]) 
+    data = {f"{randint(1, 30):02}.{randint(1, 12):02}.{randint(2010, 2030)}": randint(5, 100) for _ in range(randint(2, 30))}
     plt.bar(range(len(data)), list(data.values()), color="#" + conf["stats_settings"]["barcolor"], edgecolor="black", linewidth=conf["stats_settings"]["linewidth"])
     plt.xticks(range(len(data)), list(data.keys()), rotation=90)
-    plt.tick_params(labelsize=conf["stats_settings"]["ticksfontsize"]) 
     plt.savefig(f'images/random_graph.png')
+    plt.close()
     return open(f'images/random_graph.png', 'rb')
-
