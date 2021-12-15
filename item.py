@@ -12,6 +12,7 @@ class Item:
     
     def clist(self):
         c.execute(f"SELECT * FROM items WHERE id={self.get_id()}")
+        return list(c)[0]
 
     def get_name(self):
         return self.clist()[1]
@@ -57,8 +58,8 @@ class Category:
             return self.id
 
     def clist(self):
-        c.execute(f"SECECT * FROM cats WHERE id={self.get_id()}")
-        return list(c)
+        c.execute(f"SELECT * FROM cats WHERE id={self.get_id()}")
+        return list(c)[0]
 
     def get_name(self):
         return self.clist()[0]

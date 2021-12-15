@@ -22,7 +22,7 @@ class User:
 
     def clist(self):
         c.execute(f"SELECT * FROM users WHERE user_id={self.get_id()}")
-        return list(c)
+        return list(c)[0]
 
     def get_balance(self):
         return self.clist()[1]

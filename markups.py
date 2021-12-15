@@ -14,7 +14,7 @@ btnCatBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='ba
 btnFAQBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='goBackFaq')
 btnOrdersBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='orders')
 btnProfileBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='backProfile')
-btnAdminBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='backAdmin')
+
 goBackSettings = types.InlineKeyboardButton(text='🔙Назад', callback_data='botSettings')
 goBackSettingsDel = types.InlineKeyboardButton(text="🔙Назад", callback_data="botSettingsDel")
 goBackStats = types.InlineKeyboardButton(text='🔙Назад', callback_data='shopStats')
@@ -30,6 +30,7 @@ btnCancelStateItems = types.InlineKeyboardButton(text='🔙Назад', callback
 btnClientsBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='clientManagement')
 btnCatsEditBack = types.InlineKeyboardButton(text="🔙Назад", callback_data="editCats")
 btnStatsSettingsBack = types.InlineKeyboardButton(text="🔙Назад", callback_data="statsSettingsBack")
+btnAdminBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='backAdmin')
 
 
 def get_cancel_states_editItem(itemid):
@@ -123,45 +124,21 @@ def get_order_stats_back():
     markup.add(goBackOrderStats)
     return markup
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Back buttons
-btnClose = types.InlineKeyboardButton(text="❌ Закрыть", callback_data="close")
-
-
-
-# Markups
-def get_markup_main():
-    markupMain = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markupMain.row(catalogue = types.KeyboardButton(tt.catalogue))
-    markupMain.row(types.KeyboardButton(tt.profile), faq = types.KeyboardButton(tt.faq))
-    return markupMain
-
-def get_markup_admin():
-    markupAdmin = types.InlineKeyboardMarkup()
-
-    markupAdmin.add(types.InlineKeyboardButton(text=tt.item_management, callback_data="admin_itemManagement"))
-    markupAdmin.add(types.InlineKeyboardButton(text=tt.client_management, callback_data="admin_clientManagement"))
-    markupAdmin.add(types.InlineKeyboardButton(text=tt.item_stats, callback_data="admin_shopStats"))
-    markupAdmin.add(types.InlineKeyboardButton(text=tt.bot_settings, callback_data="admin_botSettings"))
-    markupAdmin.add(btnClose)
-
-def get_markup_profile(user_id):
-    markupProfile = types.InlineKeyboardMarkup()
-    markupProfile.add(types.InlineKeyboardButton(text=tt.my_orders, callback_data="orders"))
-    markupProfile.add(types.InlineKeyboardButton(text=tt.my_support_tickets, callback_data="seeSupportTickets"))
-
-    user = usr.User(user_id)
-    if user.is_admin():
-        markupProfile.add(types.InlineKeyboardButton(text=tt.disable_notif if user.notif_on() else tt.enable_notif, callback_data="disableNotif" if user.notif_on() else "enableNotif"))
-    return markupProfile
-
-
-def get_markup_catalogue(cat_list):
-    markup = types.InlineKeyboardMarkup()
-    for cat in cat_list:
-        markup.add(types.InlineKeyboardButton(text=tt.back, callback_data=f"viewCat{cat[0]}"))
-    return markup
-
-
+btnBackAdmin = types.InlineKeyboardButton(text=tt.back, callback_data="admin_adminPanel")
 
 
 # Single buttons
@@ -172,6 +149,109 @@ def get_support_button():
     return types.KeyboardButton(tt.support_menu)
 
 
+# Markups
+# /start buttons
+def get_markup_main():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton(tt.catalogue))
+    markup.add(types.KeyboardButton(tt.profile), types.KeyboardButton(tt.faq))
+    return markup
+
+def get_markup_admin():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.item_management, callback_data="admin_itemManagement"))
+    markup.add(types.InlineKeyboardButton(text=tt.user_management, callback_data="admin_userManagement"))
+    markup.add(types.InlineKeyboardButton(text=tt.shop_stats, callback_data="admin_shopStats"))
+    markup.add(types.InlineKeyboardButton(text=tt.bot_settings, callback_data="admin_shopSettings"))
+    return markup
+
+def get_markup_profile(user_id):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.my_orders, callback_data="myOrders"))
+    markup.add(types.InlineKeyboardButton(text=tt.my_support_tickets, callback_data="mySupportTickets"))
+
+    user = usr.User(user_id)
+    if user.is_admin():
+        markup.add(types.InlineKeyboardButton(text=tt.disable_notif if user.notif_on() else tt.enable_notif, callback_data="disableNotif" if user.notif_on() else "enableNotif"))
+    return markup
+
+
+def get_markup_catalogue(cat_list):
+    markup = types.InlineKeyboardMarkup()
+    for cat in cat_list:
+        markup.add(types.InlineKeyboardButton(text=cat[1], callback_data=f"viewCat{cat[0]}"))
+    return markup
+
+
+# Admin panel tabs
+# Item management
+def get_markup_itemManagement():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.add_cat, callback_data="admin_addCat"), types.InlineKeyboardButton(text=tt.add_item, callback_data="admin_addItem"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_cat, callback_data="admin_editCats"), types.InlineKeyboardButton(text=tt.change_item, callback_data="admin_editItems"))
+    markup.add(btnBackAdmin)
+    return markup
+
+# User management
+def get_markup_userManagement():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.user_profile, callback_data="admin_seeUserProfile"))
+    markup.add(types.InlineKeyboardButton(text=tt.notify_everyone, callback_data="admin_notifyEveryone"))
+    markup.add(btnBackAdmin)
+    return markup
+
+# Shop stats
+def get_markup_shopStats():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.registration_stats, callback_data="admin_registrationStats"))
+    markup.add(types.InlineKeyboardButton(text=tt.order_stats, callback_data="admin_orderStats"))
+    markup.add(btnBackAdmin)
+    return markup
+
+# Shop settings
+def get_markup_shopSettings():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.main_settings, callback_data="admin_mainSettings"))
+    markup.add(types.InlineKeyboardButton(text=tt.stats_settings, callback_data="admin_statsSettings"))
+    markup.add(btnBackAdmin)
+    return markup
+
+
+# userStatsMarkup = types.InlineKeyboardMarkup()
+# userStatsMarkup.add(types.InlineKeyboardButton(text='За всё время', callback_data='userStatsAllTime'))
+# userStatsMarkup.add(types.InlineKeyboardButton(text='За месяц', callback_data='userStatsMonth'))
+# userStatsMarkup.add(types.InlineKeyboardButton(text='За неделю', callback_data='userStatsWeek'))
+# userStatsMarkup.add(types.InlineKeyboardButton(text='За день', callback_data='userStatsDay'))
+# userStatsMarkup.add(goBackStats)
+
+# orderStatsMarkup = types.InlineKeyboardMarkup()
+# orderStatsMarkup.add(types.InlineKeyboardButton(text='За всё время', callback_data='orderStatsAllTime'))
+# orderStatsMarkup.add(types.InlineKeyboardButton(text='За месяц', callback_data='orderStatsMonthly'))
+# orderStatsMarkup.add(types.InlineKeyboardButton(text='За неделю', callback_data='orderStatsWeekly'))
+# orderStatsMarkup.add(types.InlineKeyboardButton(text='За день', callback_data='orderStatsDaily'))
+# orderStatsMarkup.add(goBackStats)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -179,19 +259,7 @@ def get_support_button():
 
 
 # товар
-markupItemManagement = types.InlineKeyboardMarkup()
-btnAddCat = types.InlineKeyboardButton(text="🛍️Добавить категорию", callback_data="addCat")
-btnAddItem = types.InlineKeyboardButton(text="🗃️Добавить товар", callback_data="addItem")
-markupItemManagement.add(btnAddCat, btnAddItem)
 
-btnEditCats = types.InlineKeyboardButton(text="✏️ Изменить категорию", callback_data="editCats")
-btnEditItems = types.InlineKeyboardButton(text="✏️ Изменить товар", callback_data="editItems")
-markupItemManagement.add(btnEditCats, btnEditItems)
-
-markupItemManagement.add(btnAdminBack)
-
-def get_item_management_markup():
-    return markupItemManagement
 # c цена
 
 def get_cat_edit_markup(catid):
@@ -215,24 +283,7 @@ def get_edit_item_markup(item):
     return markup
 
 # статистика
-markupStats = types.InlineKeyboardMarkup()
-markupStats.add(types.InlineKeyboardButton(text='👥Статистика регистраций', callback_data='userStats'))
-markupStats.add(types.InlineKeyboardButton(text='📦Статистика заказов', callback_data='orderStats'))
-markupStats.add(btnAdminBack)
 
-userStatsMarkup = types.InlineKeyboardMarkup()
-userStatsMarkup.add(types.InlineKeyboardButton(text='За всё время', callback_data='userStatsAllTime'))
-userStatsMarkup.add(types.InlineKeyboardButton(text='За месяц', callback_data='userStatsMonth'))
-userStatsMarkup.add(types.InlineKeyboardButton(text='За неделю', callback_data='userStatsWeek'))
-userStatsMarkup.add(types.InlineKeyboardButton(text='За день', callback_data='userStatsDay'))
-userStatsMarkup.add(goBackStats)
-
-orderStatsMarkup = types.InlineKeyboardMarkup()
-orderStatsMarkup.add(types.InlineKeyboardButton(text='За всё время', callback_data='orderStatsAllTime'))
-orderStatsMarkup.add(types.InlineKeyboardButton(text='За месяц', callback_data='orderStatsMonthly'))
-orderStatsMarkup.add(types.InlineKeyboardButton(text='За неделю', callback_data='orderStatsWeekly'))
-orderStatsMarkup.add(types.InlineKeyboardButton(text='За день', callback_data='orderStatsDaily'))
-orderStatsMarkup.add(goBackStats)
 
 
 def get_stats_markup():
@@ -343,13 +394,7 @@ def get_back_user_orders_markup(userid):
 
 
 # Настройки бота
-settingsMarkup = types.InlineKeyboardMarkup()
 
-settingsMarkup.add(types.InlineKeyboardButton(text=f"🛠️Основные настройки", callback_data='mainSettings'))
-settingsMarkup.add(types.InlineKeyboardButton(text=f"🥝Настройки QIWI кошелька", callback_data='qiwiSettings'))
-settingsMarkup.add(types.InlineKeyboardButton(text=f"💵Настройки BTC кошелька", callback_data='btcSettings'))
-settingsMarkup.add(types.InlineKeyboardButton(text="📈Настройки статистики", callback_data="statsSettings"))
-settingsMarkup.add(btnAdminBack)
 
 
 def get_settings_markup():

@@ -62,7 +62,7 @@ async def handle_text(message):
             await bot.send_message(
                 chat_id=message.chat.id,
                 text=tt.admin_panel,
-                reply_markup=markups.markups.get_markup_admin(),
+                reply_markup=markups.get_markup_admin(),
             )
     elif message.text == tt.faq:
         await bot.send_message(
@@ -88,13 +88,74 @@ async def handle_text(message):
 
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery):
+    chat_id = callback_query.message.chat.id
+    call_data = callback_query.data
+    
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
-    chatid = callback_query.message.chat.id
-    callText = callback_query.data
-    user = User(chatid)
+    user = usr.User(chat_id)
 
-    if callText[:3] == 'cat':
+    if call_data[:6] == "admin_" and user.is_admin():
+        call_data = call_data[6:]
+
+        if call_data == "adminPanel":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.admin_panel,
+                reply_markup=markups.get_markup_admin(),
+            )
+
+        # Admin tabs
+        # Item management
+        elif call_data == "itemManagement":
+            await bot.edit_message_text(
+                text=tt.item_management,
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id,
+                reply_markup=markups.get_markup_itemManagement()
+            )
+        elif call_data == "addCat":
+            pass
+        elif call_data == "editCat":
+            pass
+        elif call_data == "addItem":
+            pass
+        elif call_data == "editItem":
+            pass
+
+        # User management
+        elif call_data == "userManagement":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.user_management,
+                reply_markup=markups.get_markup_userManagement(),
+            )
+
+        # Stats
+        elif call_data == "shopStats":
+            await bot.edit_message_text(
+                text=tt.shop_stats,
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_shopStats()
+            )
+
+        # Settings
+        elif call_data == "shopSettings":
+            await bot.edit_message_text(
+                text=tt.bot_settings,
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id,
+                reply_markup=markups.get_markup_shopSettings()
+            )
+            
+
+
+    if call_data != None:
+        pass
+    elif call_data[:3] == 'cat':
         catMarkup = types.InlineKeyboardMarkup()
         c.execute(f"SELECT * FROM cats WHERE id={callText[3:]}")
         try:
@@ -123,13 +184,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markup
             )
     
-    elif callText == "itemManagement":
-        await bot.edit_message_text(
-            text="📦Управление товаром",
-            message_id=callback_query.message.message_id,
-            chat_id=chatid,
-            reply_markup=markups.get_item_management_markup()
-        )
+    
         
     elif callText == "addCat":
         await bot.edit_message_text(
@@ -711,12 +766,7 @@ async def process_callback(callback_query: types.CallbackQuery):
         )
 
     elif callText == "shopStats":
-        await bot.edit_message_text(
-            text=f"📈Статистика магазина (BETA)",
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            reply_markup=markups.get_stats_markup()
-        )
+        pass
 
     elif callText[:10] == "orderStats":
         callText = callback_query.data
@@ -1373,12 +1423,7 @@ async def process_callback(callback_query: types.CallbackQuery):
 
 
     elif callText == 'clientManagement':
-        await bot.edit_message_text(
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            text='🧍Управление пользователями',
-            reply_markup=markups.get_client_management_markup(),
-        )
+        pass
 
 
 @dp.message_handler(state=state_handler.addCat.catname)
