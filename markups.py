@@ -1,7 +1,9 @@
 from aiogram import types
 from aiogram.types.callback_query import CallbackQuery
-import user as usr
 from configparser import ConfigParser
+
+import item
+import user as usr
 import text_templates as tt
 
 conf = ConfigParser()
@@ -156,7 +158,8 @@ def get_markup_profile(user_id):
 def get_markup_catalogue(cat_list):
     markup = types.InlineKeyboardMarkup()
     for cat in cat_list:
-        markup.add(types.InlineKeyboardButton(text="tt.back", callback_data=""))
+        markup.add(types.InlineKeyboardButton(text=tt.back, callback_data=f"viewCat{cat[0]}"))
+    return markup
 
 
 

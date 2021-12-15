@@ -65,3 +65,9 @@ class Category:
 
     def set_name(self, value):
         c.execute(f"UPDATE cats SET name=\"{value}\" WHERE id={self.get_id()}")
+
+
+def get_cat_list():
+    c.execute(f"SELECT * FROM cats")
+    return list(c)
+    

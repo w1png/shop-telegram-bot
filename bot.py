@@ -13,6 +13,7 @@ import markups
 import state_handler
 import user as usr
 import stats
+import item
 import text_templates as tt
 
 
@@ -34,20 +35,10 @@ async def welcome(message: types.Message):
     user = usr.User(message.chat.id)
 
     markupMain = markups.get_markup_main()
-
-    if not usr.does_user_exist(message.chat.id):
-        if str(message.chat.id) == conf['main']['main_admin_id']:
-            c.execute(f"INSERT INTO users VALUEs({message.chat.id}, 0, 1, 0, 0, 0, \"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")")
-            conn.commit()
-            markupMain.row(markups.get_admin_panel_button())
-        else:
-            c.execute(f"INSERT INTO users VALUEs({message.chat.id}, 0, 0, 0, 0, 0, \"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")")
-            conn.commit()
-    else:
-        if user.is_admin():
-            markupMain.row(markups.get_admin_panel_button())
-        if user.is_support():
-            markupMain.row(markups.get_support_button())
+    if user.is_admin():
+        markupMain.row(markups.get_admin_panel_button())
+    if user.is_support():
+        markupMain.row(markups.get_support_button())
 
     if conf["shop_settings"]["enable_sticker"] == "1":
         sti = open('AnimatedSticker.tgs', 'rb')
@@ -63,7 +54,6 @@ async def welcome(message: types.Message):
 @dp.message_handler()
 async def handle_text(message):
     user = usr.User(message.chat.id)
-    
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
 
@@ -74,31 +64,24 @@ async def handle_text(message):
                 text=tt.admin_panel,
                 reply_markup=markups.markups.get_markup_admin(),
             )
-
     elif message.text == tt.faq:
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.get_faq_template(conf["shop_settings"]["shop_name"]),
             reply_markup=markups.get_faq_markup(),
         )
-
     elif message.text == tt.profile:
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.get_profile_template(user.get_id(), user.get_orders(), user.get_balance(), user.get_register_date()),
             reply_markup=markups.get_markup_profile(user_id=user.get_id()),
         )
-
-    elif message.text == tt.catalogue:
-        catMarkup = types.InlineKeyboardMarkup()
-        c.execute('SELECT * FROM cats')
-        cats = list(c)
-        for category in cats:
-            btnCat = types.InlineKeyboardButton(text=category[1], callback_data=f"cat{category[0]}")
-            catMarkup.add(btnCat)
-        await bot.send_message(message.chat.id, '➖➖➖➖➖➖➖➖➖➖\n🛍️Категории\n➖➖➖➖➖➖➖➖➖➖',
-                               reply_markup=catMarkup)
-
+    elif message.text == tt.catalogue: 
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=tt.catalogue,
+            reply_markup=markups.get_markup_catalogue(item.get_cat_list()),
+        )
     else:
         await bot.send_message(message.chat.id, 'Не могу понять команду :(')
 
