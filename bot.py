@@ -5,20 +5,16 @@ import datetime
 from random import choice, randint
 from aiogram.dispatcher import FSMContext
 from string import ascii_letters, digits
-from os import path
-from sys import exit
 from aiogram.types import message, message_id, user
 from configparser import ConfigParser
-
 from aiogram.types.callback_query import CallbackQuery
+
 import markups
 import state_handler
-from user import User
 import user as usr
 import stats
+import text_templates as tt
 
-if not path.isfile("data.db"):
-    print("Создаем базу данных...")
 
 conn = sqlite3.connect('data.db')
 c = conn.cursor()
@@ -31,74 +27,69 @@ bot = Bot(token=conf['main']['token'])
 dp = Dispatcher(bot, storage=storage)
 
 
-def get_item_count(item_id):
-    c.execute(f"SELECT * FROM item_stock WHERE item_id={item_id}")
-    count = 0
-    for _ in c:
-        count += 1
-    return count
-
-
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
-
-    user = User(message.chat.id)
+    user = usr.User(message.chat.id)
 
     markupMain = markups.get_markup_main()
-    adminPanel = types.KeyboardButton('🔴Админ панель')
 
     if not usr.does_user_exist(message.chat.id):
         if str(message.chat.id) == conf['main']['main_admin_id']:
             c.execute(f"INSERT INTO users VALUEs({message.chat.id}, 0, 1, 0, 0, 0, \"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")")
             conn.commit()
-            markupMain.row(adminPanel)
+            markupMain.row(markups.get_admin_panel_button())
         else:
             c.execute(f"INSERT INTO users VALUEs({message.chat.id}, 0, 0, 0, 0, 0, \"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\")")
             conn.commit()
     else:
         if user.is_admin():
-            markupMain.row(adminPanel)
-        if user.is_admin():
-            btnSupport = types.KeyboardButton(text='☎Меню тех. поддержки')
-            markupMain.row(btnSupport)
+            markupMain.row(markups.get_admin_panel_button())
+        if user.is_support():
+            markupMain.row(markups.get_support_button())
 
-    sti = open('AnimatedSticker.tgs', 'rb')
-    await bot.send_sticker(message.chat.id, sti)
-    sti.close()
-    await bot.send_message(message.chat.id,
-                            conf["shop_settings"]["shop_greeting"],
-                           reply_markup=markupMain)
+    if conf["shop_settings"]["enable_sticker"] == "1":
+        sti = open('AnimatedSticker.tgs', 'rb')
+        await bot.send_sticker(message.chat.id, sti)
+        sti.close()
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=conf["shop_settings"]["shop_greeting"],
+        reply_markup=markupMain,
+    )
 
 
 @dp.message_handler()
 async def handle_text(message):
-    user = User(message.chat.id)
+    user = usr.User(message.chat.id)
     
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
 
-    if message.text == '🔴Админ панель':
+    if message.text == tt.admin_panel:
         if user.is_admin():
-            await bot.send_message(message.chat.id, '🔴Админ панель', reply_markup=markups.get_admin_markup())
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text=tt.admin_panel,
+                reply_markup=markups.markups.get_markup_admin(),
+            )
 
-    elif message.text == 'ℹ️FAQ':
-        markupFAQ = markups.get_faq_markup()
-        await bot.send_message(message.chat.id, f'➖➖➖➖➖➖➖➖➖➖\nℹ️FAQ магазина {conf["shop_settings"]["shop_name"]}'
-                                                f'\n➖➖➖➖➖➖➖➖➖➖', reply_markup=markupFAQ)
-    elif message.text == '📁Профиль':
-        markupProfile = markups.get_markup_profile(user_id=message.chat.id)
-        await bot.send_message(message.chat.id,
-                               f"➖➖➖➖➖➖➖➖➖➖\n"
-                               f"📝id: {message.chat.id}\n"
-                               f"📈Кол-во заказов: {len(usr.get_user_orders(message.chat.id))}\n"
-                               f"💸Баланс: {user.get_balance()}руб.\n"
-                               f"Дата регистрации: {user.get_register_date()}"
-                               f"\n➖➖➖➖➖➖➖➖➖➖",
-                               reply_markup=markupProfile)
+    elif message.text == tt.faq:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=tt.get_faq_template(conf["shop_settings"]["shop_name"]),
+            reply_markup=markups.get_faq_markup(),
+        )
 
-    elif message.text == '🛒Каталог':
+    elif message.text == tt.profile:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=tt.get_profile_template(user.get_id(), user.get_orders(), user.get_balance(), user.get_register_date()),
+            reply_markup=markups.get_markup_profile(user_id=user.get_id()),
+        )
+
+    elif message.text == tt.catalogue:
         catMarkup = types.InlineKeyboardMarkup()
         c.execute('SELECT * FROM cats')
         cats = list(c)

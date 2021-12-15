@@ -2,10 +2,10 @@ from aiogram import types
 from aiogram.types.callback_query import CallbackQuery
 import user as usr
 from configparser import ConfigParser
+import text_templates as tt
 
 conf = ConfigParser()
 conf.read('config.ini', encoding='utf8')
-
 
 # Назад
 btnCatBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='backCat')
@@ -26,7 +26,6 @@ btnCancelStateBTCSettings = types.InlineKeyboardButton(text='🔙Назад', ca
 btnCancelStateClients = types.InlineKeyboardButton(text='🔙Назад', callback_data='cancelStateClients')
 btnCancelStateItems = types.InlineKeyboardButton(text='🔙Назад', callback_data='cancelStateItems')
 btnClientsBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='clientManagement')
-btnClose = types.InlineKeyboardButton(text="❌Закрыть", callback_data="close")
 btnCatsEditBack = types.InlineKeyboardButton(text="🔙Назад", callback_data="editCats")
 btnStatsSettingsBack = types.InlineKeyboardButton(text="🔙Назад", callback_data="statsSettingsBack")
 
@@ -122,36 +121,58 @@ def get_order_stats_back():
     markup.add(goBackOrderStats)
     return markup
 
-# Основное меню
-markupMain = types.ReplyKeyboardMarkup(resize_keyboard=True)
-profile = types.KeyboardButton('📁Профиль')
-catalogue = types.KeyboardButton('🛒Каталог')
-faq = types.KeyboardButton('ℹ️FAQ')
-adminPanel = types.KeyboardButton('🔴Админ панель')
-markupMain.row(catalogue)
-markupMain.row(profile, faq)
+# Back buttons
+btnClose = types.InlineKeyboardButton(text="❌ Закрыть", callback_data="close")
 
 
+
+# Markups
 def get_markup_main():
+    markupMain = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markupMain.row(catalogue = types.KeyboardButton(tt.catalogue))
+    markupMain.row(types.KeyboardButton(tt.profile), faq = types.KeyboardButton(tt.faq))
     return markupMain
 
+def get_markup_admin():
+    markupAdmin = types.InlineKeyboardMarkup()
 
-# Админ-панель
-markupAdmin = types.InlineKeyboardMarkup()
+    markupAdmin.add(types.InlineKeyboardButton(text=tt.item_management, callback_data="admin_itemManagement"))
+    markupAdmin.add(types.InlineKeyboardButton(text=tt.client_management, callback_data="admin_clientManagement"))
+    markupAdmin.add(types.InlineKeyboardButton(text=tt.item_stats, callback_data="admin_shopStats"))
+    markupAdmin.add(types.InlineKeyboardButton(text=tt.bot_settings, callback_data="admin_botSettings"))
+    markupAdmin.add(btnClose)
 
-btnItemManagement = types.InlineKeyboardButton(text='📦Управление товаром', callback_data='itemManagement')
-markupAdmin.add(btnItemManagement)
-btnClientManagement = types.InlineKeyboardButton(text='🧍Управление пользователями', callback_data='clientManagement')
-markupAdmin.add(btnClientManagement)
-btnStats = types.InlineKeyboardButton(text='📈Статистика магазина (BETA)', callback_data='shopStats')
-markupAdmin.add(btnStats)
-btnBotSettings = types.InlineKeyboardButton(text='⚙Настройки бота', callback_data='botSettings')
-markupAdmin.add(btnBotSettings)
-markupAdmin.add(btnClose)
+def get_markup_profile(user_id):
+    markupProfile = types.InlineKeyboardMarkup()
+    markupProfile.add(types.InlineKeyboardButton(text=tt.my_orders, callback_data="orders"))
+    markupProfile.add(types.InlineKeyboardButton(text=tt.my_support_tickets, callback_data="seeSupportTickets"))
+
+    user = usr.User(user_id)
+    if user.is_admin():
+        markupProfile.add(types.InlineKeyboardButton(text=tt.disable_notif if user.notif_on() else tt.enable_notif, callback_data="disableNotif" if user.notif_on() else "enableNotif"))
+    return markupProfile
 
 
-def get_admin_markup():
-    return markupAdmin
+def get_markup_catalogue(cat_list):
+    markup = types.InlineKeyboardMarkup()
+    for cat in cat_list:
+        markup.add(types.InlineKeyboardButton(text="tt.back", callback_data=""))
+
+
+
+
+# Single buttons
+def get_admin_panel_button():
+    return types.KeyboardButton(tt.admin_panel)
+
+def get_support_button():
+    return types.KeyboardButton(tt.support_menu)
+
+
+
+
+
+
 
 
 # товар
@@ -259,27 +280,7 @@ def get_balance_markup():
 
 
 # Профиль
-def get_markup_profile(user_id):
-    markupProfile = types.InlineKeyboardMarkup()
-    btnBalance = types.InlineKeyboardButton(text='💰Пополнить Баланс', callback_data='balance')
-    btnOrders = types.InlineKeyboardButton(text='📂Мои заказы', callback_data='orders')
-    btnSeeSupportTickets = types.InlineKeyboardButton(text='🙋Мои тикеты в тех. поддержку',
-                                                      callback_data='seeSupportTickets')
 
-    markupProfile.add(btnOrders)
-    markupProfile.add(btnSeeSupportTickets)
-    markupProfile.add(btnBalance)
-    user = usr.User(user_id)
-
-    if user.is_supplier() or user.is_admin():
-        if user.notif_on():
-            btnNotif = types.InlineKeyboardButton(text='🔕Выключить ововещения о кол-ве товара',
-                                                  callback_data='disableNotif')
-        else:
-            btnNotif = types.InlineKeyboardButton(text='🔔Включить ововещения о кол-ве товара',
-                                                  callback_data='enableNotif')
-        markupProfile.add(btnNotif)
-    return markupProfile
 
 
 # Управление пользователями

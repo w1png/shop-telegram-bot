@@ -11,7 +11,7 @@ class User:
         return self.user_id
 
     def clist(self):
-        c.execute(f"SELECT * FROM users WHERE user_id={self.user_id}")
+        c.execute(f"SELECT * FROM users WHERE user_id={self.get_id()}")
         return list(c)
 
     def get_balance(self):
@@ -38,17 +38,17 @@ class User:
         return self.clist()[5] == 1
 
     def enable_notif(self):
-        c.execute(f"UPDATE users SET notification=1 WHERE user_id={self.user_id}")
+        c.execute(f"UPDATE users SET notification=1 WHERE user_id={self.get_id()}")
 
     def disable_notif(self):
-        c.execute(f"UPDATE users SET notification=0 WHERE user_id={self.user_id}")
+        c.execute(f"UPDATE users SET notification=0 WHERE user_id={self.get_id()}")
 
     def get_orders(self):
-        c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.user_id}\"")
+        c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
         return list(c)
 
     def set_balance(self, value):
-        c.execute(f"UPDATE users SET balance={value} WHERE user_id={self.user_id}")
+        c.execute(f"UPDATE users SET balance={value} WHERE user_id={self.get_id()}")
 
 
 def does_user_exist(user_id):
