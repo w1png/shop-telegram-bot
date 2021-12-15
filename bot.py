@@ -23,34 +23,8 @@ if not path.isfile("data.db"):
 conn = sqlite3.connect('data.db')
 c = conn.cursor()
 
-c.execute('CREATE TABLE IF NOT EXISTS "cats" ("id" INTEGER, "name" TEXT NOT NULL, PRIMARY KEY("id"))')
-c.execute('CREATE TABLE IF NOT EXISTS item_stock (id INTEGER PRIMARY KEY, item_id INTEGER, login TEXT, password TEXT)')
-c.execute('CREATE TABLE IF NOT EXISTS "items" ("id" INTEGER, "name" TEXT NOT NULL, "price" FLOAT NOT NULL,"cat_id" INTEGER NOT NULL, "desc" TEXT, PRIMARY KEY("id"))')
-c.execute('CREATE TABLE IF NOT EXISTS "orders" ("order_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "item_id" INTEGER NOT NULL, "details" TEXT NOT NULL, "date" TEXT NOT NULL)')
-c.execute('CREATE TABLE IF NOT EXISTS "payments" ("payment_id" TEXT, "user_id" INTEGER, "summ" FLOAT, "done" INTEGER, "date" TEXT)')
-c.execute('CREATE TABLE IF NOT EXISTS "support" ("id" INTEGER, "order_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "email" TEXT NOT NULL, "problem" TEXT NOT NULL, "item_name" TEXT NOT NULL, "item_details" INTEGER NOT NULL, "is_resolved" INTEGER NOT NULL, PRIMARY KEY("id"))')
-c.execute('CREATE TABLE IF NOT EXISTS "users" ("user_id" INTEGER NOT NULL, "balance" FLOAT NOT NULL, "is_admin" INTEGER, "is_supplier" INTEGER, "is_support" INTEGER, "notification" INTEGER, "date_created" TEXT)')
-
-if not path.isfile("config.ini"):
-    with open("config.ini", 'w') as config:
-        config.write("[main]\ntoken = Токен\nmain_admin_id = ID главного администратора\n\n[shop_settings]\nshop_name = Название магазина\nrefund_policy = Политика возврата\nshop_contacts = Контакты\n\n[payment_settings]\nqiwi_number = Номер киви кошелька\nqiwi_token = Токен киви кошелька\nqiwi_isactive = 0\nmain_btc_adress = Адрес btc кошелька\nbtc_isactive = 0\n")
-    conf = ConfigParser()
-    conf.read("config.ini", encoding="utf-8")
-    conf.set("main", "token", input("Для начала работы введите токен бота: "))
-    
-    while True:
-        main_admin_id = input("Введите ваш ID. (Его можно узнать в @userinfobot): ")
-        if main_admin_id.isnumeric(): break
-
-    conf.set("main", "main_admin_id", str(main_admin_id))
-    print("Остальные настройки можно изменить в 🔴Админ панель -> ⚙Настройки бота")
-    
-    with open("config.ini", 'w') as configfile:
-        conf.write(configfile)
-
 conf = ConfigParser()
 conf.read('config.ini', encoding='utf8')
-
 
 storage = MemoryStorage()
 bot = Bot(token=conf['main']['token'])
@@ -94,8 +68,7 @@ async def welcome(message: types.Message):
     await bot.send_sticker(message.chat.id, sti)
     sti.close()
     await bot.send_message(message.chat.id,
-                            f"Добро пожаловать в магазин аккаунтов "
-                            f"{conf['shop_settings']['shop_name']}, {message.from_user.first_name}!",
+                            conf["shop_settings"]["shop_greeting"],
                            reply_markup=markupMain)
 
 
@@ -213,7 +186,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text="Вы пока не добавили ни одной категории.",
                 message_id=callback_query.message.message_id,
                 chat_id=chatid,
-                reply_markup=markups.markups.get_items_back()
+                reply_markup=markups.get_items_back()
             )
         
     elif callText[:9] == "deleteCat":

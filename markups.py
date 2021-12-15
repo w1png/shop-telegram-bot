@@ -164,9 +164,6 @@ btnEditCats = types.InlineKeyboardButton(text="✏️ Изменить кате�
 btnEditItems = types.InlineKeyboardButton(text="✏️ Изменить товар", callback_data="editItems")
 markupItemManagement.add(btnEditCats, btnEditItems)
 
-btnAddItemStock = types.InlineKeyboardButton(text="🚛Добавить аккаунты", callback_data="addStock")
-markupItemManagement.add(btnAddItemStock)
-
 markupItemManagement.add(btnAdminBack)
 
 def get_item_management_markup():
@@ -308,10 +305,6 @@ def get_seeUserProfile_markup(userid):
     btnUserRemoveAdmin = types.InlineKeyboardButton(text="🔴Убрать роль администратора", callback_data=f"removeUserAdmin{userid}")
     btnUserMakeAdmin = types.InlineKeyboardButton(text="🔴Сделать администратором", callback_data=f"makeUserAdmin{userid}")
     seeUserProfileMarkup.add(btnUserRemoveAdmin) if user.is_admin() else seeUserProfileMarkup.add(btnUserMakeAdmin)
-    
-    btnUserRemoveSupplier = types.InlineKeyboardButton(text="🚚Убрать роль поставщика", callback_data=f"removeUserSupplier{userid}")
-    btnUserMakeSupplier = types.InlineKeyboardButton(text="🚚Сделать поставщиком", callback_data=f"makeUserSupplier{userid}")
-    seeUserProfileMarkup.add(btnUserRemoveSupplier) if user.is_supplier() else seeUserProfileMarkup.add(btnUserMakeSupplier)
     
     btnUserRemoveSupport = types.InlineKeyboardButton(text="☎️Убрать роль оператора тех. поддержки", callback_data=f"removeUserSupport{userid}")
     btnUserMakeSupport = types.InlineKeyboardButton(text="☎️Сделать оператором тех. поддержки", callback_data=f"makeUserSupport{userid}")
