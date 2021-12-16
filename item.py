@@ -51,6 +51,16 @@ class Item:
         conn.commit()
 
 
+def get_item_list():
+    c.execute("SELECT * FROM items")
+    return list(c)
+
+
+def create_item(name, price, cat_id, desc):
+    c.execute(f"INSERT INTO items(name, price, cat_id, desc) VALUES(?, ?, ?, ?)", [name, price, cat_id, desc])
+    conn.commit()
+
+
 class Category:
     def __init__(self, cat_id):
         self.id = cat_id
@@ -72,7 +82,6 @@ class Category:
     def delete(self):
         c.execute(f"DELETE FROM cats WHERE id={self.get_id()}")
         conn.commit()
-
 
 
 def get_cat_list():

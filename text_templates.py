@@ -1,3 +1,5 @@
+import item as itm
+
 line_separator = "➖➖➖➖➖➖➖➖➖➖"
 
 
@@ -17,6 +19,12 @@ def get_category_was_created_successfuly(cat_name):
 def get_category_data(cat):
     return f"{line_separator}\nID: {cat.get_id()}\nНазвание: {cat.get_name()}\n{line_separator}"
 
+def get_item_card(item=None, name=None, price=None, desc=None):
+    if item:
+        name = item.get_name()
+        price = item.get_price()
+        desc = item.get_desc()
+    return f"{line_separator}\n{name} - {'{:.2f}'.format(price)} руб.\n{line_separator}\n{desc}"
 
 # Single phrases
 error = "Произошла ошибка!"
@@ -58,4 +66,7 @@ order_stats = "📦Статистика заказов"
 main_settings = "🛠️Основные настройки"
 stats_settings = "📈Настройки статистики"
 
+# Misc buttons
 back = "🔙 Назад"
+confirm = "✅ Да"
+deny = "❌ Нет"

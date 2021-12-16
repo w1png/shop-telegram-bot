@@ -8,82 +8,23 @@ class addCat(StatesGroup):
 
 class changeCatName(StatesGroup):
     state_message = State()
+    cat_id = State()
     name = State()
 
 class addItem(StatesGroup):
-    state_message = State()
     name = State()
-
-
-
-
-
-
-
-
-
-
-
-class changeShopName(StatesGroup):
-    name = State()
-class notifyAll(StatesGroup):
-    message = State()
-
-class changeShopContacts(StatesGroup):
-    text = State()
-
-class changeShopRefund(StatesGroup):
-    text = State()
-
-class changeQiwiNumber(StatesGroup):
-    number = State()
-
-class changeQiwiToken(StatesGroup):
-    token = State()
-
-class changeMainBtc(StatesGroup):
-    wallet = State()
-    
-class changeUserBalance(StatesGroup):
-    bal = State()
-
-class seeUserProfile(StatesGroup):
-    userid = State()
-
-
-class changeCatName(StatesGroup):
-    catname = State()
-
-
-class addItem(StatesGroup):
-    itemname = State()
-    cat = State()
     price = State()
+    cat_id = State()
     desc = State()
     confirmation = State()
 
 
-class changeItemCat(StatesGroup):
-    itemid = State()
-    cat = State()
 
 
-class ChangeItemDesc(StatesGroup):
-    itemid = State()
-    desc = State()
 
 
-class ChangeItemName(StatesGroup):
-    itemid = State()
-    name = State()
 
 
-class ChangeItemPrice(StatesGroup):
-    itemid = State()
-    price = State()
 
 
-class AddAccounts(StatesGroup):
-    itemid = State()
-    details = State()
-    confirmation = State()
+

@@ -141,11 +141,12 @@ def get_order_stats_back():
 btnBackAdmin = types.InlineKeyboardButton(text=tt.back, callback_data="admin_adminPanel")
 btnBackItemManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_itemManagement")
 btnBackEditCatChooseCategory = types.InlineKeyboardButton(text=tt.back, callback_data="admin_editCatChooseCategory")
-
+def btnBackEditCat(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_editCat{cat_id}")
 
 # Single buttons
 btnAdminPanel = types.KeyboardButton(tt.admin_panel)
 btnSupportMenu = types.KeyboardButton(tt.support_menu)
+
 
 
 def single_button(btn):
@@ -209,6 +210,18 @@ def get_markup_editCat(cat_id):
     markup.add(types.InlineKeyboardButton(text="Изменить название", callback_data=f"admin_editCatName{cat_id}"))
     markup.add(types.InlineKeyboardButton(text="❌Удалить", callback_data=f"admin_editCatDelete{cat_id}"))
     markup.add(btnBackEditCatChooseCategory)
+    return markup
+
+def get_markup_addItemSetCat():
+    markup = types.InlineKeyboardMarkup()
+    for cat in item.get_cat_list():
+        markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"admin_addItemSetCat{cat[0]}"))
+    markup.add(btnBackItemManagement)    
+    return markup
+
+def get_markup_addItemConfirmation():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.confirm, callback_data="admin_addItemConfirm"), types.InlineKeyboardButton(text=tt.deny, callback_data="admin_itemManagement"))
     return markup
 
 # User management
