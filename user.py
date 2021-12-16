@@ -35,17 +35,17 @@ class User:
         conn.commit()
 
     def is_support(self):
-        return self.clist()[4] == 1
+        return self.clist()[3] == 1
 
     def set_support(self, value):
         c.execute(f"UPDATE users SET is_support={value} WHERE user_id={self.get_id()}")
         conn.commit()
 
     def get_register_date(self):
-        return self.clist()[6]
+        return self.clist()[5]
 
     def notif_on(self):
-        return self.clist()[5] == 1
+        return self.clist()[4] == 1
 
     def enable_notif(self):
         c.execute(f"UPDATE users SET notification=1 WHERE user_id={self.get_id()}")

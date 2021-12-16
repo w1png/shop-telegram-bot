@@ -142,6 +142,8 @@ btnBackAdmin = types.InlineKeyboardButton(text=tt.back, callback_data="admin_adm
 btnBackItemManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_itemManagement")
 btnBackEditCatChooseCategory = types.InlineKeyboardButton(text=tt.back, callback_data="admin_editCatChooseCategory")
 def btnBackEditCat(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_editCat{cat_id}")
+btnBackFaq = types.InlineKeyboardButton(text=tt.back, callback_data="faq")
+btnBackProfile = types.InlineKeyboardButton(text=tt.back, callback_data="profile")
 
 # Single buttons
 btnAdminPanel = types.KeyboardButton(tt.admin_panel)
@@ -171,6 +173,12 @@ def get_markup_admin():
     markup.add(types.InlineKeyboardButton(text=tt.bot_settings, callback_data="admin_shopSettings"))
     return markup
 
+def get_markup_faq():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.contacts, callback_data="contacts"))
+    markup.add(types.InlineKeyboardButton(text=tt.refund, callback_data="refund"))
+    return markup
+
 def get_markup_profile(user_id):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.my_orders, callback_data="myOrders"))
@@ -181,6 +189,12 @@ def get_markup_profile(user_id):
         markup.add(types.InlineKeyboardButton(text=tt.disable_notif if user.notif_on() else tt.enable_notif, callback_data="disableNotif" if user.notif_on() else "enableNotif"))
     return markup
 
+def get_markup_myOrders(order_list):
+    markup = types.InlineKeyboardMarkup()
+    for order in order_list:
+        markup.add(types.InlineKeyboardButton(text=f"[{order[0]}] {order[4]}", callback_data=f"seeMyOrder{order[0]}"))
+    markup.add(btnBackProfile)
+    return markup
 
 def get_markup_catalogue(cat_list):
     markup = types.InlineKeyboardMarkup()
@@ -330,16 +344,7 @@ def get_order_stats_markup():
     return orderStatsMarkup
 
 
-# FAQ панель
-markupFAQ = types.InlineKeyboardMarkup()
-btnRefund = types.InlineKeyboardButton(text='🎫Политика возврата', callback_data='refund')
-btnContacts = types.InlineKeyboardButton(text='📞Контакты', callback_data='contacts')
-markupFAQ.add(btnContacts)
-markupFAQ.add(btnRefund)
 
-
-def get_faq_markup():
-    return markupFAQ
 
 
 # пополнение баланса

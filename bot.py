@@ -68,7 +68,7 @@ async def handle_text(message):
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.get_faq_template(conf["shop_settings"]["shop_name"]),
-            reply_markup=markups.get_faq_markup(),
+            reply_markup=markups.get_markup_faq(),
         )
     elif message.text == tt.profile:
         await bot.send_message(
@@ -95,6 +95,7 @@ async def process_callback(callback_query: types.CallbackQuery):
     conf.read('config.ini', encoding='utf8')
     user = usr.User(chat_id)
     
+    # Admin calls
     if call_data.startswith("admin_") and user.is_admin():
         call_data = call_data[6:]
         
@@ -220,6 +221,55 @@ async def process_callback(callback_query: types.CallbackQuery):
 
         elif call_data == "statsSettings":
             pass
+    
+    # Non admin calls
+    else:
+        # FAQ
+        if call_data == "faq":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_faq_template(conf["shop_settings"]["shop_name"]),
+                reply_markup=markups.get_markup_faq(),
+            )
+        elif call_data == "contacts":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=conf["shop_settings"]["shop_contacts"],
+                reply_markup=markups.single_button(markups.btnBackFaq),
+            )
+        elif call_data == "refund":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=conf["shop_settings"]["refund_policy"],
+                reply_markup=markups.single_button(markups.btnBackFaq),
+            )
+
+        # Profile
+        elif call_data == "profile":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_profile_template(user.get_id(), user.get_orders(), user.get_balance(), user.get_register_date()),
+                reply_markup=markups.get_markup_profile(user_id=user.get_id()),
+            )
+        elif call_data == "myOrders":
+            user = usr.User(chat_id)
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.my_orders,
+                reply_markup=markups.get_markup_myOrders(user.get_orders()),
+            )
+        elif call_data.startswith("seeMyOrder"):
+            pass
+        elif call_data == "mySupportTickets":
+            pass
+        
+
+
             
 
 

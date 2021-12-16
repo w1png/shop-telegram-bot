@@ -4,6 +4,11 @@ conn = sqlite3.connect("data.db")
 c = conn.cursor()
 
 
+def does_item_exist(item_id):
+    c.execute(f"SELECT * FROM items WHERE id={item_id}")
+    return len(list(c)) == 1
+
+
 class Item:
     def __init__(self, itemid):
         self.item_id = itemid
@@ -57,7 +62,7 @@ def get_item_list():
 
 
 def create_item(name, price, cat_id, desc):
-    c.execute(f"INSERT INTO items(name, price, cat_id, desc) VALUES(?, ?, ?, ?)", [name, price, cat_id, desc])
+    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active) VALUES(?, ?, ?, ?, 1)", [name, price, cat_id, desc])
     conn.commit()
 
 

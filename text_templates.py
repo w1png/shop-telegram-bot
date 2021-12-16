@@ -5,7 +5,7 @@ line_separator = "➖➖➖➖➖➖➖➖➖➖"
 
 # Multiple lines
 def get_profile_template(chatid, user_orders, user_balance, user_reg_date):
-    return f"{line_separator}\n📝 id:{chatid}\n📈 Кол-во заказов: {len(user_orders)}\n💸 Баланс: {user_balance}руб.\n📅 Дата регистрации: {user_reg_date}"
+    return f"{line_separator}\n📝 id:{chatid}\n📈 Кол-во заказов: {len(user_orders)}\n💸 Баланс: {user_balance}руб.\n📅 Дата регистрации: {user_reg_date}\n{line_separator}"
 
 def get_faq_template(shop_name):
     return f"{line_separator}\nℹ️ FAQ магазина {shop_name}\n{line_separator}"
@@ -29,7 +29,7 @@ def get_item_card(item=None, name=None, price=None, desc=None):
 # Single phrases
 error = "Произошла ошибка!"
 
-# /start buttons
+# /start
 admin_panel = "🔴 Админ панель"
 faq = "ℹ️ FAQ"
 profile = "📁 Профиль"
@@ -42,7 +42,11 @@ user_management = "🧍 Управление пользователями"
 shop_stats = "📈 Статистика магазина (BETA)"
 bot_settings = "⚙ Настройки бота"
 
-# Profile buttons
+# FAQ
+contacts = "📞 Контакты"
+refund = "🎫 Политика возврата"
+
+# Profile
 my_orders = "📂 Мои заказы"
 my_support_tickets = "🙋 Мои тикеты в тех. поддержку"
 enable_notif = "🔔Включить ововещения о кол-ве товара"
