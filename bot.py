@@ -20,6 +20,8 @@ import text_templates as tt
 conn = sqlite3.connect('data.db')
 c = conn.cursor()
 
+DEBUG = True
+
 conf = ConfigParser()
 conf.read('config.ini', encoding='utf8')
 
@@ -30,6 +32,9 @@ dp = Dispatcher(bot, storage=storage)
 
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
+    if DEBUG:
+        print(f"DEBUG: COMMAND [{message.chat.id}] {message.text}")
+
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
     user = usr.User(message.chat.id)
@@ -53,6 +58,9 @@ async def welcome(message: types.Message):
 
 @dp.message_handler()
 async def handle_text(message):
+    if DEBUG:
+        print(f"DEBUG: MESSAGE [{message.chat.id}] {message.text}")
+    
     user = usr.User(message.chat.id)
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
@@ -91,6 +99,9 @@ async def process_callback(callback_query: types.CallbackQuery):
     chat_id = callback_query.message.chat.id
     call_data = callback_query.data
     
+    if DEBUG:
+        print(f"DEBUG: CALL [{chat_id}] {call_data}")
+
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
     user = usr.User(chat_id)
@@ -174,8 +185,30 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.single_button(markups.btnBackItemManagement),
             )
             await state_handler.addItem.name.set()
-        elif call_data == "editItem":
-            pass
+        elif call_data == "editItemChooseCategory":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text="Выберите категорию товара, который вы хотите редактировать: ",
+                reply_markup=markups.get_markup_editItemChooseCategory(itm.get_cat_list()),
+            )
+        elif call_data.startswith("editItemChooseItem"):
+            cat = itm.Category(call_data[18:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Выберите товар, который вы хотите редактировать: ",
+                reply_markup=markups.get_markup_editItemChooseItem(cat.get_item_list()),
+            )
+        elif call_data.startswith("editItem"):
+            item = itm.Item(call_data[8:])
+            cat = itm.Category(item.get_cat_id())
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}",
+                reply_markup=markups.get_markup_editItem(item),
+            )
 
         # User management
         elif call_data == "userManagement":

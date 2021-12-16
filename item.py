@@ -55,6 +55,12 @@ class Item:
         c.execute(f"UPDATE items SET active={value} WHERE id={self.get_id()}")
         conn.commit()
 
+    def get_amount(self):
+        return self.clist()[6]
+    
+    def set_amount(self, value):
+        c.execute(f"UPDATE items SET amount={value} WHERE id={self.get_id()}")
+
 
 def get_item_list():
     c.execute("SELECT * FROM items")
@@ -62,7 +68,7 @@ def get_item_list():
 
 
 def create_item(name, price, cat_id, desc):
-    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active) VALUES(?, ?, ?, ?, 1)", [name, price, cat_id, desc])
+    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active) VALUES(?, ?, ?, ?, 1, 0)", [name, price, cat_id, desc])
     conn.commit()
 
 
@@ -71,7 +77,7 @@ class Category:
         self.id = cat_id
 
     def get_id(self):
-            return self.id
+        return self.id
 
     def clist(self):
         c.execute(f"SELECT * FROM cats WHERE id={self.get_id()}")
@@ -87,6 +93,10 @@ class Category:
     def delete(self):
         c.execute(f"DELETE FROM cats WHERE id={self.get_id()}")
         conn.commit()
+
+    def get_item_list(self):
+        c.execute(f"SELECT * FROM items WHERE cat_id={self.get_id()}")
+        return list(c)
 
 
 def get_cat_list():
