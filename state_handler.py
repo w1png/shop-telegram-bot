@@ -1,10 +1,31 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import message
 
+# Item management
+class addCat(StatesGroup):
+    state_message = State()
+    name = State()
+
+class changeCatName(StatesGroup):
+    state_message = State()
+    name = State()
+
+class addItem(StatesGroup):
+    state_message = State()
+    name = State()
+
+
+
+
+
+
+
+
+
+
 
 class changeShopName(StatesGroup):
     name = State()
-
 class notifyAll(StatesGroup):
     message = State()
 
@@ -28,10 +49,6 @@ class changeUserBalance(StatesGroup):
 
 class seeUserProfile(StatesGroup):
     userid = State()
-
-class addCat(StatesGroup):
-    catid = State()
-    catname = State()
 
 
 class changeCatName(StatesGroup):

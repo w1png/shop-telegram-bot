@@ -5,7 +5,7 @@ import datetime
 from random import choice, randint
 from aiogram.dispatcher import FSMContext
 from string import ascii_letters, digits
-from aiogram.types import message, message_id, user
+from aiogram.types import message, message_entity, message_id, user
 from configparser import ConfigParser
 from aiogram.types.callback_query import CallbackQuery
 
@@ -13,7 +13,7 @@ import markups
 import state_handler
 import user as usr
 import stats
-import item
+import item as itm
 import text_templates as tt
 
 
@@ -36,9 +36,9 @@ async def welcome(message: types.Message):
 
     markupMain = markups.get_markup_main()
     if user.is_admin():
-        markupMain.row(markups.get_admin_panel_button())
+        markupMain.row(markups.btnAdminPanel)
     if user.is_support():
-        markupMain.row(markups.get_support_button())
+        markupMain.row(markups.btnSupportMenu)
 
     if conf["shop_settings"]["enable_sticker"] == "1":
         sti = open('AnimatedSticker.tgs', 'rb')
@@ -56,7 +56,7 @@ async def handle_text(message):
     user = usr.User(message.chat.id)
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
-
+    
     if message.text == tt.admin_panel:
         if user.is_admin():
             await bot.send_message(
@@ -80,7 +80,7 @@ async def handle_text(message):
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.catalogue,
-            reply_markup=markups.get_markup_catalogue(item.get_cat_list()),
+            reply_markup=markups.get_markup_catalogue(itm.get_cat_list()),
         )
     else:
         await bot.send_message(message.chat.id, 'Не могу понять команду :(')
@@ -94,10 +94,10 @@ async def process_callback(callback_query: types.CallbackQuery):
     conf = ConfigParser()
     conf.read('config.ini', encoding='utf8')
     user = usr.User(chat_id)
-
-    if call_data[:6] == "admin_" and user.is_admin():
+    
+    if call_data.startswith("admin_") and user.is_admin():
         call_data = call_data[6:]
-
+        
         if call_data == "adminPanel":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -116,9 +116,47 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_itemManagement()
             )
         elif call_data == "addCat":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text="Введите название новой категории или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackItemManagement),
+            )
+            await state_handler.addCat.name.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
+        elif call_data == "editCatChooseCategory":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text="Выберите категорию, которую хотите изменить или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.get_markup_editCatChooseCategory(itm.get_cat_list()),
+            )
+        elif call_data.startswith("editCatDelete"):
+            cat = itm.Category(call_data[13:])
+
+            try:
+                text = f"Категория {cat.get_name()} была успешно удалена."
+                cat.delete()
+            except:
+                text = f"Произошла ошибка!"
+                
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markups.single_button(markups.btnBackEditCatChooseCategory),
+            )
+        elif call_data.startswith("editCatName"):
             pass
-        elif call_data == "editCat":
-            pass
+        elif call_data.startswith("editCat"):
+            cat = itm.Category(call_data[7:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_category_data(cat),
+                reply_markup=markups.get_markup_editCat(cat.get_id()),
+            )
         elif call_data == "addItem":
             pass
         elif call_data == "editItem":
@@ -133,6 +171,12 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_userManagement(),
             )
 
+        elif call_data == "seeUserProfile":
+            pass
+
+        elif call_data == "notifyEveryone":
+            pass
+
         # Stats
         elif call_data == "shopStats":
             await bot.edit_message_text(
@@ -142,6 +186,12 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_shopStats()
             )
 
+        elif call_data == "registrationStats":
+            pass
+    
+        elif call_data == "orderStats":
+            pass
+
         # Settings
         elif call_data == "shopSettings":
             await bot.edit_message_text(
@@ -150,8 +200,13 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chat_id,
                 reply_markup=markups.get_markup_shopSettings()
             )
-            
 
+        elif call_data == "mainSettings":
+            pass
+
+        elif call_data == "statsSettings":
+            pass
+            
 
     if call_data != None:
         pass
@@ -1426,633 +1481,45 @@ async def process_callback(callback_query: types.CallbackQuery):
         pass
 
 
-@dp.message_handler(state=state_handler.addCat.catname)
+@dp.message_handler(state=state_handler.addCat.name)
 async def addCat(message: types.Message, state: FSMContext):
-    catname = message.text
-    c.execute(f"SELECT * FROM cats WHERE name=\"{catname}\"")
-    if not list(c):
-        c.execute(f"INSERT INTO cats (name) VALUES(\"{catname}\")")
-        conn.commit()
-        await bot.send_message(
-            text=f"Категория с названием {catname} была создана.",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_items_back()
-        )
-    else:
-        await bot.send_message(
-            text=f"Категория с названием {catname} уже существует!",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_items_back()
-        )
-    await state.finish()
+    data = await state.get_data()
+    cat_name = message.text
 
-@dp.message_handler(state=state_handler.changeCatName.catname)
-async def changeCatName(message: types.Message, state: FSMContext):
-    catid = await state.get_data()
-    catid = catid['catid']
-    c.execute(f"SELECT * FROM cats WHERE id={catid}")
-    oldcat = list(c)[0]
     try:
-        c.execute(f"UPDATE cats SET name=\"{message.text}\" WHERE id={catid}")
-        c.execute(f"SELECT * FROM cats WHERE id={catid}")
-        newcat = list(c)[0]
-        await bot.send_message(
-            text=f"Название категории \"{oldcat[1]}\" с ID {catid} было обновлено на \"{newcat[1]}\".",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_cat_edit(catid)
-        )
+        item.create_cat(cat_name)
+        text = tt.get_category_was_created_successfuly(cat_name)
     except:
-        await bot.send_message(
-            text="Ошибка.",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_cat_edit(catid)
-        )
-    await state.finish()
-    
+        text = tt.error
 
-@dp.message_handler(state=state_handler.ChangeItemDesc.desc)
-async def changeItemDesc(message: types.Message, state: FSMContext):
-    itemid = await state.get_data()
-    itemid = itemid["itemid"]
-    try:
-        c.execute(f"UPDATE items SET desc=\"{message.text}\" WHERE id={itemid}")
-        conn.commit()
-        c.execute(f"SELECT * FROM items WHERE id={itemid}")
-        item = list(c)[0]
-        await bot.send_message(
-            text=f"Описание {item[1]} было обновлено.",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_item_edit(item[0])
-        )
-    except:
-        await bot.send_message(
-            text=f"Произошла ошибка",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_item_edit(itemid)
-        )
-    await state.finish()
-    
-
-
-@dp.message_handler(state=state_handler.addItem.itemname)
-async def addItemName(message: types.Message, state: FSMContext):
-    itemname = message.text
-    await state.update_data(itemname=itemname)
-    markup = types.InlineKeyboardMarkup()
-    c.execute(f"SELECT * FROM cats")
-    for cat in list(c):
-        markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"addItemCat{cat[0]}"))
-    markup.add(markups.btnCancelStateItems)
-    await bot.send_message(
-        text=f"Ввыберите категорию для \"{itemname}\" или нажмите на кнопку \"Назад\".",
-        chat_id=message.chat.id,
-        reply_markup=markup
-    )
-    await state_handler.addItem.cat.set()
-    
-
-@dp.message_handler(state=state_handler.ChangeItemName.name)
-async def changeItemName(message: types.Message, state: FSMContext):
-    itemid = await state.get_data()
-    itemid = itemid["itemid"]
-    c.execute(f"SELECT * FROM items WHERE id={itemid}")
-    olditem = list(c)[0]
-    try:
-        c.execute(f"UPDATE items SET name=\"{message.text}\" WHERE id={itemid}")
-        conn.commit()
-        c.execute(f"SELECT * FROM items WHERE id={itemid}")
-        item = list(c)[0]
-        await bot.send_message(
-            text=f"Название для \"{olditem[1]}\" было обновлено на \"{item[1]}\".",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_item_edit(itemid)
-        )
-    except:
-        await bot.send_message(
-            text=f"Произошла ошибка",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_item_edit(itemid)
-        )
-    await state.finish()
-    
-
-    
-@dp.callback_query_handler(state=state_handler.addItem.cat)
-async def addItemCat(callback_query: types.CallbackQuery, state: FSMContext):
-    if callback_query.data[:10] == "addItemCat":
-        await state.update_data(cat=callback_query.data[10:])
-        await bot.delete_message(
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id
-        )
-        await bot.send_message(
-            text="Введите цену товара или нажмите на кнопку \"Назад\".",
-            chat_id=callback_query.message.chat.id,
-            reply_markup=markups.get_cancel_states_items()
-        )
-        await state_handler.addItem.price.set()
-    elif callback_query.data == "cancelStateItems":
-        await bot.edit_message_text(
-                text="📦Управление товаром",
-                message_id=callback_query.message.message_id,
-                chat_id=callback_query.message.chat.id,
-                reply_markup=markups.get_item_management_markup()
-            )
-        await state.finish()
-        
-
-@dp.callback_query_handler(state=state_handler.changeItemCat.cat)
-async def editItemCat(callback_query: types.CallbackQuery, state: FSMContext):
-    itemid = await state.get_data()
-    c.execute(f"SELECT * FROM items WHERE id={itemid['itemid']}")
-    item = list(c)[0]
-    if callback_query.data[:10] == "setCatItem":
-        try:
-            c.execute(f"SELECT * FROM cats WHERE id={callback_query.data[10:]}")
-            cat = list(c)[0]
-            c.execute(f"UPDATE items SET cat_id={callback_query.data[10:]} WHERE id={item[0]}")
-            conn.commit()
-            await bot.edit_message_text(
-                text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
-                chat_id=callback_query.message.chat.id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_edit_item_markup(item)
-            )
-        except:
-            markup = types.InlineKeyboardMarkup()
-            markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data=f"editItem{item[0]}"))
-            await bot.edit_message_text(
-                text=f"Произошла ошибка.",
-                chat_id=callback_query.message.chat.id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markup
-            )
-    elif callback_query.data == "cancelStatesEditItem":
-        c.execute(f"SELECT * FROM cats WHERE id={item[3]}")
-        cat = list(c)[0]
-        await bot.edit_message_text(
-            text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id,
-            reply_markup=markups.get_edit_item_markup(item)
-        )
-    await state.finish()
-
-
-@dp.message_handler(state=state_handler.ChangeItemPrice.price)
-async def changeItemPrice(message: types.Message, state: FSMContext):
-    itemid = await state.get_data()
-    itemid = itemid["itemid"]
-    try:
-        c.execute(f"SELECT * FROM items WHERE id={itemid}")
-        olditem = list(c)[0]
-        c.execute(f"UPDATE items SET price={float(message.text)} WHERE id={itemid}")
-        conn.commit()
-        c.execute(f"SELECT * FROM items WHERE id={itemid}")
-        item = list(c)[0]
-        await bot.send_message(
-            text=f"Цена для \"{item[1]}\" была обновлна с {olditem[2]}руб. до {item[2]}руб.",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_item_edit(itemid)
-        )
-
-    except:
-        await bot.send_message(
-            text=f"Произошла ошибка.",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_back_item_edit(itemid)
-        )
-    await state.finish()
-
-
-@dp.callback_query_handler(state=state_handler.addItem.confirmation)
-async def addItemConfirmation(callback_query: types.CallbackQuery, state: FSMContext):
-    await bot.delete_message(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id)
-    if callback_query.data == "itmaddconfirm":
-        item = await state.get_data()
-        try:
-            c.execute(f"INSERT INTO items (name, price, cat_id, desc, active) VALUES (\"{item['itemname']}\", {item['price']}, {item['cat']}, \"{item['desc']}\", 1)")
-            conn.commit()
-            await bot.send_message(
-                text=f"Товар \"{item['itemname']}\" был успешно добавлен.",
-                chat_id=callback_query.message.chat.id,
-                reply_markup=markups.get_items_back()
-            )
-        except:
-            await bot.send_message(
-                text="Ошибка.",
-                chat_id=callback_query.message.chat.id,
-                reply_markup=markups.get_items_back()
-            )
-    elif callback_query.data == "deny":
-        await bot.send_message()(
-                text="📦Управление товаром",
-                chat_id=callback_query.message.chat.id,
-                reply_markup=markups.get_item_management_markup()
-            )
-    await state.finish()
-          
-    
-    
-@dp.message_handler(state=state_handler.addItem.price)
-async def addItemPrice(message: types.Message, state: FSMContext):
-    try:
-        await state.update_data(price=float(message.text))
-        await bot.send_message(
-            text="Введите описание товара или нажмите на кнопку \"Назад\".",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_cancel_states_items()
-        )
-        await state_handler.addItem.desc.set()
-    except:
-        await bot.send_message(
-            text="Произошла ошибка.",
-            chat_id=message.chat.id,
-            reply_markup=markups.get_items_back()
-        )
-        await state.finish()
-        
-        
-@dp.message_handler(state=state_handler.addItem.desc)
-async def addItemDesc(message: types.Message, state: FSMContext):
-    await state.update_data(desc=message.text)
-    item = await state.get_data()
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text="✅Да", callback_data="itmaddconfirm"), types.InlineKeyboardButton(text="❌Нет", callback_data="deny"))
-    await bot.send_message(
-        text=f"Вы уверены, что хотите добавить {item['itemname']}?\n\n➖➖➖➖➖➖➖➖➖\n{item['itemname']} - {item['price']}руб.\n➖➖➖➖➖➖➖➖➖\n{item['desc']}",
-        chat_id=message.chat.id,
-        reply_markup=markup
-    )
-    await state_handler.addItem.confirmation.set()
-    
-
-@dp.message_handler(state=state_handler.AddAccounts.details)
-async def addAccounts(message: types.Message, state: FSMContext):
-    await state.update_data(details=message.text)
-    itemid = await state.get_data()
-    itemid = itemid["itemid"]
-    c.execute(f"SELECT * FROM items WHERE id={itemid}")
-    item = list(c)[0]
-    text = ""
-    for account in message.text.split("\n"):
-        try:
-            text += f"➖➖➖➖➖➖➖➖➖\nЛогин: {account.split(':')[0]}\nПароль: {account.split(':')[1]}\n"
-        except:
-            text += f"➖➖➖➖➖➖➖➖➖\nОшибка: \"{account}\"\n"
-    text += "➖➖➖➖➖➖➖➖➖\nВы уверены, что хотите добавить эти аккаунты?"
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text="✅Да", callback_data="addAccountsConfirm"), types.InlineKeyboardButton(text="❌Нет", callback_data=f"cancelStatesAddAccounts{item[3]}"))
-    await bot.send_message(
-        text=text,
-        chat_id=message.chat.id,
-        reply_markup=markup
-    )
-    await state_handler.AddAccounts.confirmation.set()
-       
-
-
-@dp.callback_query_handler(state=state_handler.addItem.confirmation)
-async def addItemConfirmation(callback_query: types.CallbackQuery, state: FSMContext):
-    print("-")
-    if callback_query.data == "addAccountsConfirm":
-        print("+")
-        state_data = await state.get_data()
-        itemid = state_data["itemid"]
-        details = state_data["details"]
-
-        try: 
-            for account in details.split("\n"):
-                c.execute(f"INSERT INTO item_stock(item_id, login, password) VALUES ({itemid}, \"{account.split(':')[0]}\", \"{account.split(':')[1]}\")")
-            conn.commit()
-            c.execute(f"SELECT * FROM items WHERE id={itemid}")
-            item = list(c)[0]
-            await bot.edit_message_text(
-                text=str(len(details.split('\n'))) + f" аккаунтов было добавлено для {item[1]}.",
-                chat_id=callback_query.message.chat.id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_items_back()
-            )
-        except:
-            await bot.edit_message_text(
-                text=f"Произошла ошибка",
-                chat_id=callback_query.message.chat.id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_items_back()
-            )
-        await state.finish()
-  
-
-@dp.message_handler(state=state_handler.seeUserProfile.userid)
-async def seeUserProfile(message: types.Message, state: FSMContext):
-    userid = message.text
-    if usr.does_user_exist(userid):
-        profuser = usr.User(userid)
-        text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
-        await bot.send_message(
-            text=text,
-            chat_id=message.chat.id,
-            reply_markup=markups.get_seeUserProfile_markup(userid)
-        )
-    else:
-        await bot.send_message(
-            text=f"Пользователя с ID {userid} не существует!",
-            chat_id=message.chat.id
-        )
-    await state.finish()
-
-
-@dp.message_handler(state=state_handler.changeUserBalance.bal)
-async def changeUserBalance(message: types.Message, state: FSMContext):
-    userid = await state.get_data()
-    userid = userid['userid']
-    profuser = usr.User(userid)
-    try:
-        usr.set_user_balance(userid, int(message.text), set_value=True)
-        
-        text2=f"Баланс пользователя {userid} был обновлен до {message.text} руб."
-    except:
-        text2="Ошибка"
-        
-    text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
-    await bot.send_message(
-        text=text,
-        chat_id=message.chat.id,
-        reply_markup=markups.get_seeUserProfile_markup(userid)
-    )
-    await bot.send_message(
-        text=text2,
+    await bot.delete_message(
+        message_id=data["state_message"],
         chat_id=message.chat.id
     )
-    await state.finish()
-
-
-@dp.message_handler(state=state_handler.changeMainBtc.wallet)
-async def changeQiwiToken(message: types.Message, state: FSMContext):
-    conf.set('payment_settings', 'main_btc_adress', message.text)
-    with open('config.ini', 'w') as config:
-        conf.write(config)
-    await bot.send_message(
-        text='💵Настройки BTC кошелька',
-        chat_id=message.chat.id,
-        reply_markup=markups.get_btc_settings_markup()
-    )
     await bot.send_message(
         chat_id=message.chat.id,
-        text=f"Основной Bitcoin кошелёк был изменен на \"{message.text}\"",
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackItemManagement),
     )
     await state.finish()
-
-
-@dp.message_handler(state=state_handler.notifyAll.message)
-async def notifyAll(message: types.Message, state: FSMContext):
-    c.execute("SELECT * FROM users")
-    successful = len(usr.get_user_list())
-    try:
-        for user in usr.get_user_list():
-            await bot.send_message(
-                text=message.text,
-                chat_id=user[0]
-            )
-    except:
-        successful -= 1
-    await bot.send_message(
-        text=f"Сообщение \"{message.text}\" было отправлено {successful} пользователям.",
-        chat_id=message.chat.id
-    )
-    await state.finish()
-
-    
-
-@dp.message_handler(state=state_handler.changeQiwiToken.token)
-async def changeQiwiToken(message: types.Message, state: FSMContext):
-    conf.set('payment_settings', 'qiwi_token', message.text)
-    with open('config.ini', 'w') as config:
-        conf.write(config)
-    await bot.send_message(
-        text='🥝Настройки QIWI кошелька',
-        chat_id=message.chat.id,
-        reply_markup=markups.get_qiwi_settings()
-    )
-    await bot.send_message(
-        chat_id=message.chat.id,
-        text=f"Токен QIWI был изменен на \"{message.text}\""
-    )
-    await state.finish()
-
-
-@dp.message_handler(state=state_handler.changeQiwiNumber.number)
-async def changeQiwiNumber(message: types.Message, state: FSMContext):
-    conf.set('payment_settings', 'qiwi_number', message.text)
-    with open('config.ini', 'w') as config:
-        conf.write(config)
-    await bot.send_message(
-        text='🥝Настройки QIWI кошелька',
-        chat_id=message.chat.id,
-        reply_markup=markups.get_qiwi_settings()
-    )
-    await bot.send_message(
-        chat_id=message.chat.id,
-        text=f"Номер QIWI был изменен на \"{message.text}\"",
-    )
-    await state.finish()
-
-
-@dp.message_handler(state=state_handler.changeShopRefund.text)
-async def changeShopRefund(message: types.Message, state: FSMContext):
-    conf.set('shop_settings', 'refund_policy', message.text)
-    with open('config.ini', 'w') as config:
-        conf.write(config)
-    await bot.send_message(
-        text='🛠Основные настройки',
-        chat_id=message.chat.id,
-        reply_markup=markups.get_main_settings_markup()
-    )
-    await bot.send_message(
-        chat_id=message.chat.id,
-        text=f"Текст для вкладки \"Политика возврата\" был изменен на \"{message.text}\"",
-    )
-    await state.finish()
-
-
-@dp.message_handler(state=state_handler.changeShopContacts.text)
-async def changeShopContacts(message: types.Message, state: FSMContext):
-    conf.set('shop_settings', 'shop_contacts', message.text)
-    with open('config.ini', 'w') as config:
-        conf.write(config)
-    await bot.send_message(
-        text='🛠Основные настройки',
-        chat_id=message.chat.id,
-        reply_markup=markups.get_main_settings_markup()
-    )
-    await bot.send_message(
-        chat_id=message.chat.id,
-        text=f"Текст для вкладки \"Контакты\" был изменен на \"{message.text}\"",
-    )
-    await state.finish()
-
-
-@dp.message_handler(state=state_handler.changeShopName.name)
-async def changeShopName(message: types.Message, state: FSMContext):
-    conf.set('shop_settings', 'shop_name', message.text)
-    with open('config.ini', 'w') as config:
-        conf.write(config)
-    await bot.send_message(
-        text='🛠Основные настройки',
-        chat_id=message.chat.id,
-        reply_markup=markups.get_main_settings_markup()
-    )
-    await bot.send_message(
-        chat_id=message.chat.id,
-        text=f"Название магазина было изменено на \"{message.text}\"",
-    )
-    await state.finish()
-
 
 @dp.callback_query_handler(state='*')
 async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
-    chatid = callback_query.message.chat.id
-    user = User(chatid)
-    call = callback_query.data
-    if call == 'cancelStateMainSettings':
-        if user.is_admin():
-            await bot.edit_message_text(
-                text='🛠Основные настройки',
-                message_id=callback_query.message.message_id,
-                chat_id=chatid,
-                reply_markup=markups.get_main_settings_markup()
-            )
-            
-    elif call[:15] == "cancelStateUser":
-        if user.is_admin():
-            userid = call[15:]
-            profuser = usr.User(userid)
-            text=f"➖➖➖➖➖➖➖➖➖➖\n📝id: {userid}\n📈Кол-во заказов: {len(usr.get_user_orders(userid))}\n💸Баланс: {profuser.get_balance()} руб.\nДата регистрации: {profuser.get_register_date()}\n➖➖➖➖➖➖➖➖➖➖"
-
-            await bot.edit_message_text(
-                text=text,
-                message_id=callback_query.message.message_id,
-                chat_id=chatid,
-                reply_markup=markups.get_seeUserProfile_markup(userid)
-            )
-            
-    elif call[:14] == "cancelStateCat":
-        if user.is_admin():
-            catid = call[14:]
-            c.execute(F"SELECT * FROM cats WHERE id={catid}")
-            cat = list(c)[0]
-            
-            await bot.edit_message_text(
-                text=cat[1],
-                message_id=callback_query.message.message_id,
-                chat_id=chatid,
-                reply_markup=markups.get_cat_edit_markup(cat[0])
-        )
-
-    elif call[:20] == "cancelStatesEditItem":
-        itemid = await state.get_data()
-        itemid = itemid["itemid"]
-        c.execute(f"SELECT * FROM items WHERE id={itemid}")
-        item = list(c)[0]
-        c.execute(f"SELECT * FROM cats WHERE id={item[3]}")
-        cat = list(c)[0]
-        await bot.edit_message_text(
-            text=f"➖➖➖➖➖➖➖➖➖\n{item[1]} - {item[2]}руб.\nКатегория: \"{cat[1]}\"\n➖➖➖➖➖➖➖➖➖\n{item[4]}",
-            chat_id=callback_query.message.chat.id,
-            message_id=callback_query.message.message_id,
-            reply_markup=markups.get_edit_item_markup(item)
-        )
-
-    elif call[:23] == "cancelStatesAddAccounts":
-        c.execute(f"SELECT * FROM items WHERE cat_id={call[23:]}")
-        markup = types.InlineKeyboardMarkup()
-        for item in list(c):
-            markup.add(types.InlineKeyboardButton(text=item[1], callback_data=f"addStockItem{item[0]}"))
-        markup.add(types.InlineKeyboardButton(text="🔙Назад", callback_data="addStock"))
-        await bot.edit_message_text(
-            text=f"Выберите товар",
-            chat_id=chatid,
-            message_id=callback_query.message.message_id,
-            reply_markup=markup
-        )
-
-    elif callback_query.data == "addAccountsConfirm":
-        try:
-            state_data = await state.get_data()
-            itemid = state_data["itemid"]
-            details = state_data["details"]
-            errors = 0
-
-            for account in details.split("\n"):
-                try:
-                    c.execute(f"INSERT INTO item_stock(item_id, login, password) VALUES ({itemid}, \"{account.split(':')[0]}\", \"{account.split(':')[1]}\")")
-                except:
-                    errors += 1
-            conn.commit()
-            c.execute(f"SELECT * FROM items WHERE id={itemid}")
-            item = list(c)[0]
-            await bot.edit_message_text(
-                text=str(len(details.split('\n')) - errors) + f" аккаунтов было добавлено для {item[1]}.",
-                chat_id=callback_query.message.chat.id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_items_back()
-            )
-        except:
-            await bot.edit_message_text(
-                text=f"Произошла ошибка",
-                chat_id=callback_query.message.chat.id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_items_back()
-            )
+    chat_id = callback_query.message.chat.id
+    call_data = callback_query.data
     
-    elif call == "cancelStateItems":
-        if user.is_admin():
+    if call_data[:6] == "admin_":
+        call_data = call_data[6:]
+        
+        if call_data == "itemManagement":
             await bot.edit_message_text(
-                text="📦Управление товаром",
+                chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                chat_id=chatid,
-                reply_markup=markups.get_item_management_markup()
+                text=tt.item_management,
+                reply_markup=markups.get_markup_itemManagement(),
             )
-
-    elif call == 'cancelStateQiwiSettings':
-        if user.is_admin():
-            await bot.edit_message_text(
-                text='🥝Настройки QIWI кошелька',
-                message_id=callback_query.message.message_id,
-                chat_id=chatid,
-                reply_markup=markups.get_qiwi_settings()
-            )
-
-    elif call == 'cancelStateBTCSettings':
-        if user.is_admin():
-            await bot.edit_message_text(
-                text='💵Настройки BTC кошелька',
-                message_id=callback_query.message.message_id,
-                chat_id=chatid,
-                reply_markup=markups.get_btc_settings_markup()
-            )
-            
-    elif call == "cancelStateNotifyAll":
-        if user.is_admin():
-            await bot.edit_message_text(
-                chat_id=chatid,
-                message_id=callback_query.message.message_id,
-                text="🧍Управление пользователями",
-                reply_markup=markups.get_client_management_markup()
-            )
-
-    elif call == 'cancelStateClients':
-        if user.is_admin():
-            await bot.edit_message_text(
-                chat_id=chatid,
-                message_id=callback_query.message.message_id,
-                text='🧍Управление пользователями',
-                reply_markup=markups.get_client_management_markup(),
-            )
-
     await state.finish()
 
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
-

@@ -2,9 +2,9 @@ from aiogram import types
 from aiogram.types.callback_query import CallbackQuery
 from configparser import ConfigParser
 
-import item
 import user as usr
 import text_templates as tt
+import item
 
 conf = ConfigParser()
 conf.read('config.ini', encoding='utf8')
@@ -139,14 +139,19 @@ def get_order_stats_back():
 
 # Back buttons
 btnBackAdmin = types.InlineKeyboardButton(text=tt.back, callback_data="admin_adminPanel")
+btnBackItemManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_itemManagement")
+btnBackEditCatChooseCategory = types.InlineKeyboardButton(text=tt.back, callback_data="admin_editCatChooseCategory")
 
 
 # Single buttons
-def get_admin_panel_button():
-    return types.KeyboardButton(tt.admin_panel)
+btnAdminPanel = types.KeyboardButton(tt.admin_panel)
+btnSupportMenu = types.KeyboardButton(tt.support_menu)
 
-def get_support_button():
-    return types.KeyboardButton(tt.support_menu)
+
+def single_button(btn):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(btn)
+    return markup
 
 
 # Markups
@@ -188,8 +193,22 @@ def get_markup_catalogue(cat_list):
 def get_markup_itemManagement():
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.add_cat, callback_data="admin_addCat"), types.InlineKeyboardButton(text=tt.add_item, callback_data="admin_addItem"))
-    markup.add(types.InlineKeyboardButton(text=tt.change_cat, callback_data="admin_editCats"), types.InlineKeyboardButton(text=tt.change_item, callback_data="admin_editItems"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_cat, callback_data="admin_editCatChooseCategory"), types.InlineKeyboardButton(text=tt.change_item, callback_data="admin_editItems"))
     markup.add(btnBackAdmin)
+    return markup
+
+def get_markup_editCatChooseCategory(cat_list):
+    markup = types.InlineKeyboardMarkup()
+    for cat in cat_list:
+        markup.add(types.InlineKeyboardButton(text=f"[{cat[0]}] {cat[1]}", callback_data=f"admin_editCat{cat[0]}"))
+    markup.add(btnBackItemManagement)
+    return markup
+
+def get_markup_editCat(cat_id):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="Изменить название", callback_data=f"admin_editCatName{cat_id}"))
+    markup.add(types.InlineKeyboardButton(text="❌Удалить", callback_data=f"admin_editCatDelete{cat_id}"))
+    markup.add(btnBackEditCatChooseCategory)
     return markup
 
 # User management

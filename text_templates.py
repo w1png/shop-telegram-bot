@@ -11,8 +11,16 @@ def get_faq_template(shop_name):
 def get_categories_template():
     return f"{line_separator}\n🛍️ Категории\n{line_separator}"
 
+def get_category_was_created_successfuly(cat_name):
+    return f"Категория {cat_name} была успешно создана."
+
+def get_category_data(cat):
+    return f"{line_separator}\nID: {cat.get_id()}\nНазвание: {cat.get_name()}\n{line_separator}"
+
 
 # Single phrases
+error = "Произошла ошибка!"
+
 # /start buttons
 admin_panel = "🔴 Админ панель"
 faq = "ℹ️ FAQ"

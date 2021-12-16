@@ -1,5 +1,6 @@
 import sqlite3
-conn = sqlite3.connect('data.db')
+
+conn = sqlite3.connect("data.db")
 c = conn.cursor()
 
 
@@ -62,13 +63,23 @@ class Category:
         return list(c)[0]
 
     def get_name(self):
-        return self.clist()[0]
+        return self.clist()[1]
 
     def set_name(self, value):
         c.execute(f"UPDATE cats SET name=\"{value}\" WHERE id={self.get_id()}")
+        conn.commit()
+
+    def delete(self):
+        c.execute(f"DELETE FROM cats WHERE id={self.get_id()}")
+        conn.commit()
+
 
 
 def get_cat_list():
     c.execute(f"SELECT * FROM cats")
     return list(c)
     
+
+def create_cat(cat_name):
+    c.execute(f"INSERT INTO cats(name) VALUES(?)", [cat_name])
+    conn.commit()
