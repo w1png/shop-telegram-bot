@@ -300,6 +300,32 @@ async def process_callback(callback_query: types.CallbackQuery):
             pass
         elif call_data == "mySupportTickets":
             pass
+
+        # Catalogue
+        elif call_data == "catalogue":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.catalogue,
+                reply_markup=markups.get_markup_catalogue(itm.get_cat_list()),
+            )
+        elif call_data.startswith("viewCat"):
+            cat = itm.Category(call_data[7:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=cat.get_name(),
+                reply_markup=markups.get_markup_viewCat(cat.get_item_list()),
+            )
+        elif call_data.startswith("viewItem"):
+            item = itm.Item(call_data[8:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_item_card(item=item),
+                reply_markup=markups.get_markup_viewItem(item),
+            )
+            
         
 
 
@@ -375,7 +401,7 @@ async def addItemSetPrice(message: types.Message, state: FSMContext):
         await bot.send_message(
             chat_id=message.chat.id,
             text=f"Выберите категорию для \"{data['name']}\" или нажмите на кнопку \"Назад\".",
-            reply_markup=markups.get_markup_addItemSetCat(),
+            reply_markup=markups.get_markup_addItemSetCat(itm.get_cat_list()),
         )
         await state_handler.addItem.cat_id.set()
     except:

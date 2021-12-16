@@ -64,7 +64,7 @@ class Item:
 
 def get_item_list():
     c.execute("SELECT * FROM items")
-    return list(c)
+    return map(Item, [item[0] for item in list(c)])
 
 
 def create_item(name, price, cat_id, desc):
@@ -96,12 +96,12 @@ class Category:
 
     def get_item_list(self):
         c.execute(f"SELECT * FROM items WHERE cat_id={self.get_id()}")
-        return list(c)
+        return map(Item, [item[0] for item in list(c)])
 
 
 def get_cat_list():
     c.execute(f"SELECT * FROM cats")
-    return list(c)
+    return map(Category, [cat[0] for cat in list(c)])
     
 
 def create_cat(cat_name):
