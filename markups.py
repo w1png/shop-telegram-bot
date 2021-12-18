@@ -148,6 +148,9 @@ def btnBackEditCat(cat_id): return types.InlineKeyboardButton(text=tt.back, call
 btnBackEditItemChooseCategory = types.InlineKeyboardButton(text=tt.back, callback_data="admin_editItemChooseCategory")
 def btnBackEditItemChooseItem(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_editItemChooseItem{cat_id}")
 
+# User management
+btnBackUserManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_userManagement")
+
 # /start menu
 btnBackFaq = types.InlineKeyboardButton(text=tt.back, callback_data="faq")
 btnBackProfile = types.InlineKeyboardButton(text=tt.back, callback_data="profile")
@@ -290,6 +293,11 @@ def get_markup_userManagement():
     markup.add(types.InlineKeyboardButton(text=tt.user_profile, callback_data="admin_seeUserProfile"))
     markup.add(types.InlineKeyboardButton(text=tt.notify_everyone, callback_data="admin_notifyEveryone"))
     markup.add(btnBackAdmin)
+    return markup
+
+def get_markup_notifyEveryoneConfirmation():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.confirm, callback_data="admin_notifyEveryoneConfirm"), btnBackUserManagement)
     return markup
 
 # Shop stats

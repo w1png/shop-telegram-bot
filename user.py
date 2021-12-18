@@ -68,7 +68,7 @@ def does_user_exist(user_id):
 
 def get_notif_list():
     c.execute(f"SELECT * FROM users WHERE notification=1")
-    return list(c)
+    return map(User, [user[0] for user in list(c)])
 
 
 def get_user_login(message):
@@ -77,5 +77,4 @@ def get_user_login(message):
 
 def get_user_list():
     c.execute("SELECT * FROM users")
-    return list(c)
-
+    return map(User, [user[0] for user in list(c)])

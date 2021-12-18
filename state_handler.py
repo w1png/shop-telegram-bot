@@ -18,7 +18,11 @@ class addItem(StatesGroup):
     desc = State()
     confirmation = State()
 
-
+# User management
+class notifyEveryone(StatesGroup):
+    state_message = State()
+    message = State()
+    confirmation = State()
 
 
 

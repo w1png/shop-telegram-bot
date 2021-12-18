@@ -223,7 +223,15 @@ async def process_callback(callback_query: types.CallbackQuery):
             pass
 
         elif call_data == "notifyEveryone":
-            pass
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text="Введите сообщение, которое хотите отправить ВСЕМ пользователям.",
+                reply_markup=markups.single_button(markups.btnBackUserManagement),
+            )
+            await state_handler.notifyEveryone.message.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
 
         # Stats
         elif call_data == "shopStats":
@@ -327,11 +335,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             )
             
         
-
-
-            
-
-
 # State handlers
 # Item management
 @dp.message_handler(state=state_handler.addCat.name)
@@ -428,6 +431,24 @@ async def addItemSetDesc(message: types.Message, state: FSMContext):
     await state_handler.addItem.confirmation.set()
 
 
+# User management
+@dp.message_handler(state=state_handler.notifyEveryone.message)
+async def notifyEveryoneSetMessage(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    await state.update_data(message=message.text)
+    data = await state.get_data()
+
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=f"{tt.line_separator}\n\"{message.text}\"\n{tt.line_separator}\nВы уверены, что хотите отправить данное сообщение всем пользователям?",
+        reply_markup=markups.get_markup_notifyEveryoneConfirmation(),
+    )
+    await state_handler.notifyEveryone.confirmation.set()
+
 # State callbacks
 @dp.callback_query_handler(state='*')
 async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
@@ -466,6 +487,30 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 reply_markup=markups.single_button(markups.btnBackItemManagement),
             )
             await state.finish()
+        
+        elif call_data == "notifyEveryoneConfirm":
+            total = len(usr.get_user_list())
+            fail = 0
+            for user in usr.get_user_list():
+                try:
+                    await bot.send_message(
+                        chat_id=user.get_id(),
+                        text=data["message"],
+                    )
+                except:
+                    fail += 1
+
+            await bot.delete_message(
+                message_id=data["state_message"],
+                chat_id=message.chat.id
+            )
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text=f"Сообщение было отправлено {total - fail} из {total} пользователям.",
+                reply_markup=markups.single_button(markups.btnBackUserManagement),
+            )
+            await state.finish()
+
                 
 
         # "go-backs"
@@ -483,6 +528,13 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 message_id=callback_query.message.message_id,
                 text=tt.get_category_data(cat),
                 reply_markup=markups.get_markup_editCat(cat.get_id()),
+            )
+        elif call_data == "userManagement":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.user_management,
+                reply_markup=markups.get_markup_userManagement(),
             )
         else:
             await state.finish()
