@@ -205,7 +205,17 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("editItemDesc"):
             pass
         elif call_data.startswith("editItemPrice"):
-            pass
+            item = itm.Item(call_data[13:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новую цену для {item.get_name()} или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+            )
+            await state_handler.changeItemPrice.price.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(item_id=item.get_id())
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemCat"):
             pass
         elif call_data.startswith("editItemHide"):
@@ -470,6 +480,27 @@ async def addItemSetDesc(message: types.Message, state: FSMContext):
     )
     await state_handler.addItem.confirmation.set()
 
+@dp.message_handler(state=state_handler.changeItemPrice.price)
+async def editItemSetPrice(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    item = itm.Item(data["item_id"])
+    try:
+        text = f"Ценя для \"{item.get_name()}\" была изменена с {item.get_price()} на {'{:.2f}'.format(float(message.text))}."
+        item.set_price(float(message.text))
+    except:
+        text = tt.error
+    
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )        
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+    )
+
 
 # User management
 @dp.message_handler(state=state_handler.notifyEveryone.message)
@@ -561,6 +592,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 text=tt.item_management,
                 reply_markup=markups.get_markup_itemManagement(),
             )
+            await state.finish()
         elif call_data.startswith("editCat"):
             cat = itm.Category(call_data[7:])
             await bot.edit_message_text(
@@ -569,6 +601,17 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 text=tt.get_category_data(cat),
                 reply_markup=markups.get_markup_editCat(cat.get_id()),
             )
+            await state.finish()
+        elif call_data.startswith("editItem"):
+            item = itm.Item(call_data[8:])
+            cat = itm.Category(item.get_cat_id())
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_item_card(item) + f"\nКатегория: {cat.get_name()}",
+                reply_markup=markups.get_markup_editItem(item),
+            )
+            await state.finish()
         elif call_data == "userManagement":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -576,6 +619,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 text=tt.user_management,
                 reply_markup=markups.get_markup_userManagement(),
             )
+            await state.finish()
         else:
             await state.finish()
 

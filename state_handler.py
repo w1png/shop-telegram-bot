@@ -18,6 +18,11 @@ class addItem(StatesGroup):
     desc = State()
     confirmation = State()
 
+class changeItemPrice(StatesGroup):
+    state_message = State()
+    item_id = State()
+    price = State()
+
 # User management
 class notifyEveryone(StatesGroup):
     state_message = State()
