@@ -152,6 +152,11 @@ def btnBackEditItem(item_id): return types.InlineKeyboardButton(text=tt.back, ca
 # User management
 btnBackUserManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_userManagement")
 
+# Stats
+btnBackShopStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin_shopStats")
+btnBackRegistratonStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin_registrationStatsBack")
+btnBackOrderStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin_orderStatsBack")
+
 # /start menu
 btnBackFaq = types.InlineKeyboardButton(text=tt.back, callback_data="faq")
 btnBackProfile = types.InlineKeyboardButton(text=tt.back, callback_data="profile")
@@ -316,6 +321,24 @@ def get_markup_shopStats():
     markup.add(types.InlineKeyboardButton(text=tt.registration_stats, callback_data="admin_registrationStats"))
     markup.add(types.InlineKeyboardButton(text=tt.order_stats, callback_data="admin_orderStats"))
     markup.add(btnBackAdmin)
+    return markup
+
+def get_markup_registrationStats():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.all_time, callback_data="admin_registrationStatsAllTime"))
+    markup.add(types.InlineKeyboardButton(text=tt.monthly, callback_data="admin_registrationStatsMonthly"))
+    markup.add(types.InlineKeyboardButton(text=tt.weekly, callback_data="admin_registrationStatsWeekly"))
+    markup.add(types.InlineKeyboardButton(text=tt.daily, callback_data="admin_registrationStatsDaily"))
+    markup.add(btnBackShopStats)
+    return markup
+
+def get_markup_orderStats():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.all_time, callback_data="admin_orderStatsAllTime"))
+    markup.add(types.InlineKeyboardButton(text=tt.monthly, callback_data="admin_orderStatsMonthly"))
+    markup.add(types.InlineKeyboardButton(text=tt.weekly, callback_data="admin_orderStatsWeekly"))
+    markup.add(types.InlineKeyboardButton(text=tt.daily, callback_data="admin_orderStatsDaily"))
+    markup.add(btnBackShopStats)
     return markup
 
 # Shop settings

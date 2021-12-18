@@ -297,10 +297,8 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.user_management,
                 reply_markup=markups.get_markup_userManagement(),
             )
-
         elif call_data == "seeUserProfile":
             pass
-
         elif call_data == "notifyEveryone":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -320,12 +318,98 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 reply_markup=markups.get_markup_shopStats()
             )
-
         elif call_data == "registrationStats":
-            pass
-    
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.registration_stats,
+                reply_markup=markups.get_markup_registrationStats(),
+            )
+        elif call_data == "registrationStatsBack":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_message(
+                chat_id=callback_query.message.chat.id,
+                text=tt.registration_stats,
+                reply_markup=markups.get_markup_registrationStats(),
+            )
+        elif call_data.startswith("registrationStats"):
+            call_data = call_data[17:]
+            charts = stats.RegistrationCharts()
+            
+            match call_data:
+                case "AllTime":
+                    photo = charts.all_time()
+                    text = tt.all_time
+                case "Monthly":
+                    photo = charts.monthly()
+                    text = tt.monthly
+                case "Weekly":
+                    photo = charts.weekly()
+                    text = tt.weekly
+                case "Daily":
+                    photo = charts.daily()
+                    text = tt.daily
+
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                photo=photo,
+                caption=text,
+                reply_markup=markups.single_button(markups.btnBackRegistratonStats)
+            )
         elif call_data == "orderStats":
-            pass
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.order_stats,
+                reply_markup=markups.get_markup_orderStats(),
+            )    
+        elif call_data == "orderStatsBack":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_message(
+                chat_id=callback_query.message.chat.id,
+                text=tt.order_stats,
+                reply_markup=markups.get_markup_orderStats(),
+            )
+        elif call_data.startswith("orderStats"):
+            call_data = call_data[10:]
+            charts = stats.OrderCharts()
+            
+            match call_data:
+                case "AllTime":
+                    photo = charts.all_time()
+                    text = tt.all_time
+                case "Monthly":
+                    photo = charts.monthly()
+                    text = tt.monthly
+                case "Weekly":
+                    photo = charts.weekly()
+                    text = tt.weekly
+                case "Daily":
+                    photo = charts.daily()
+                    text = tt.daily
+
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                photo=photo,
+                caption=text,
+                reply_markup=markups.single_button(markups.btnBackOrderStats)
+            )
+
+        
 
         # Settings
         elif call_data == "shopSettings":
