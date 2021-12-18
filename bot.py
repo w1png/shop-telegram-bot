@@ -203,13 +203,23 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("editItemName"):
             pass
         elif call_data.startswith("editItemDesc"):
-            pass
+            item = itm.Item(call_data[12:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новое описание для \"{item.get_name()}\" или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+            )
+            await state_handler.changeItemDesc.desc.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(item_id=item.get_id())
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemPrice"):
             item = itm.Item(call_data[13:])
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите новую цену для {item.get_name()} или нажмите на кнопку \"Назад\".",
+                text=f"Введите новую цену для \"{item.get_name()}\" или нажмите на кнопку \"Назад\".",
                 reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
             )
             await state_handler.changeItemPrice.price.set()
@@ -488,6 +498,27 @@ async def editItemSetPrice(message: types.Message, state: FSMContext):
     try:
         text = f"Ценя для \"{item.get_name()}\" была изменена с {item.get_price()} на {'{:.2f}'.format(float(message.text))}."
         item.set_price(float(message.text))
+    except:
+        text = tt.error
+    
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )        
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+    )
+
+@dp.message_handler(state=state_handler.changeItemDesc.desc)
+async def editItemSetDesc(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    item = itm.Item(data["item_id"])
+    try:
+        text = f"Описание для \"{item.get_name()}\" было изменено с \"{item.get_desc()}\" на \"{message.text}\""
+        item.set_desc(message.text)
     except:
         text = tt.error
     

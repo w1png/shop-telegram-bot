@@ -23,6 +23,11 @@ class changeItemPrice(StatesGroup):
     item_id = State()
     price = State()
 
+class changeItemDesc(StatesGroup):
+    state_message = State()
+    item_id = State()
+    desc = State()
+    
 # User management
 class notifyEveryone(StatesGroup):
     state_message = State()
