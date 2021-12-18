@@ -20,32 +20,32 @@ class User:
     def get_id(self):
         return self.user_id
 
-    def clist(self):
+    def __clist(self):
         c.execute(f"SELECT * FROM users WHERE user_id={self.get_id()}")
         return list(c)[0]
 
     def get_balance(self):
-        return self.clist()[1]
+        return self.__clist()[1]
 
     def is_admin(self):
-        return self.clist()[2] == 1
+        return self.__clist()[2] == 1
 
     def set_admin(self, value):
         c.execute(f"UPDATE users SET is_admin={value} WHERE user_id={self.get_id()}")
         conn.commit()
 
     def is_support(self):
-        return self.clist()[3] == 1
+        return self.__clist()[3] == 1
 
     def set_support(self, value):
         c.execute(f"UPDATE users SET is_support={value} WHERE user_id={self.get_id()}")
         conn.commit()
 
     def get_register_date(self):
-        return self.clist()[5]
+        return self.__clist()[5]
 
     def notif_on(self):
-        return self.clist()[4] == 1
+        return self.__clist()[4] == 1
 
     def enable_notif(self):
         c.execute(f"UPDATE users SET notification=1 WHERE user_id={self.get_id()}")

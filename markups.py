@@ -147,6 +147,7 @@ btnBackEditCatChooseCategory = types.InlineKeyboardButton(text=tt.back, callback
 def btnBackEditCat(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_editCat{cat_id}")
 btnBackEditItemChooseCategory = types.InlineKeyboardButton(text=tt.back, callback_data="admin_editItemChooseCategory")
 def btnBackEditItemChooseItem(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_editItemChooseItem{cat_id}")
+def btnBackEditItem(item_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_editItem{item_id}")
 
 # User management
 btnBackUserManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_userManagement")
@@ -207,6 +208,7 @@ def get_markup_myOrders(order_list):
     markup.add(btnBackProfile)
     return markup
 
+# Catalogue
 def get_markup_catalogue(cat_list):
     markup = types.InlineKeyboardMarkup()
     for cat in cat_list:
@@ -216,7 +218,8 @@ def get_markup_catalogue(cat_list):
 def get_markup_viewCat(item_list):
     markup = types.InlineKeyboardMarkup()
     for item in item_list:
-        markup.add(types.InlineKeyboardButton(text=f"{item.get_name()} - {item.get_price()} руб.", callback_data=f"viewItem{item.get_id()}"))
+        if item.is_active():
+            markup.add(types.InlineKeyboardButton(text=f"{item.get_name()} - {item.get_price()} руб.", callback_data=f"viewItem{item.get_id()}"))
     markup.add(btnBackCatalogue)
     return markup
 
@@ -281,7 +284,7 @@ def get_markup_editItem(item):
     markup.add(types.InlineKeyboardButton(text=tt.change_name, callback_data=f"admin_editItemName{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_desc, callback_data=f"admin_editItemDesc{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_price, callback_data=f"admin_editItemPrice{itemid}"))
-    markup.add(types.InlineKeyboardButton(text=tt.change_item_cat, callback_data=f"admin_editCatPrice{itemid}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_item_cat, callback_data=f"admin_editItemCat{itemid}"))
     markup.add(types.InlineKeyboardButton(text=(tt.hide if item.is_active() else tt.show), callback_data=f"admin_editItemHide{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.delete, callback_data=f"admin_editItemDelete{itemid}"))
     markup.add(btnBackEditItemChooseItem(item.get_cat_id()))
@@ -368,25 +371,6 @@ def get_cat_edit_markup(catid):
     markup.add(types.InlineKeyboardButton(text="❌Удалить", callback_data=f"deleteCat{catid}"))
     markup.add(types.InlineKeyboardButton(text='🔙Назад', callback_data="editCats"))
     return markup
-
-
-
-
-# статистика
-
-
-
-def get_stats_markup():
-    return markupStats
-
-
-def get_user_stats_markup():
-    return userStatsMarkup
-
-
-def get_order_stats_markup():
-    return orderStatsMarkup
-
 
 
 

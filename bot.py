@@ -200,6 +200,45 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=f"Выберите товар, который вы хотите редактировать: ",
                 reply_markup=markups.get_markup_editItemChooseItem(cat.get_item_list()),
             )
+        elif call_data.startswith("editItemName"):
+            pass
+        elif call_data.startswith("editItemDesc"):
+            pass
+        elif call_data.startswith("editItemPrice"):
+            pass
+        elif call_data.startswith("editItemCat"):
+            pass
+        elif call_data.startswith("editItemHide"):
+            item = itm.Item(call_data[12:])
+            cat = itm.Category(item.get_id())
+            try:
+                item.set_active(0 if item.is_active() else 1)
+                text = tt.get_item_card(item) + f"\nКатегория: {cat.get_name()}"
+            except:
+                text = tt.error
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markups.get_markup_editItem(item),
+            )
+        elif call_data.startswith("editItemDelete"):
+            item = itm.Item(call_data[14:])
+            cat = itm.Category(item.get_cat_id())
+            try:
+                text = f"Товар \"{item.get_name()}\" был удалён."
+                item.delete()
+                markup = markups.single_button(markups.btnBackEditItemChooseItem(cat.get_id()))
+            except:
+                text = tt.error
+                markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
+
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markup,
+            )
         elif call_data.startswith("editItem"):
             item = itm.Item(call_data[8:])
             cat = itm.Category(item.get_cat_id())
@@ -209,6 +248,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}",
                 reply_markup=markups.get_markup_editItem(item),
             )
+        
 
         # User management
         elif call_data == "userManagement":
@@ -263,7 +303,7 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data == "statsSettings":
             pass
     
-    # Non admin calls
+    # User calls
     else:
         # FAQ
         if call_data == "faq":
