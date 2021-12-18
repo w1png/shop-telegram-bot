@@ -290,6 +290,13 @@ def get_markup_editItem(item):
     markup.add(btnBackEditItemChooseItem(item.get_cat_id()))
     return markup
 
+def get_markup_editItemCat(item_id, cat_list):
+    markup = types.InlineKeyboardMarkup()
+    for cat in cat_list:
+        markup.add(types.InlineKeyboardButton(text=f"[{cat.get_id()}] {cat.get_name()}", callback_data=f"admin_editItemSetCat{cat.get_id()}"))
+    markup.add(btnBackEditItem(item_id))
+    return markup
+
 # User management
 def get_markup_userManagement():
     markup = types.InlineKeyboardMarkup()

@@ -237,7 +237,16 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state.update_data(item_id=item.get_id())
             await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemCat"):
-            pass
+            item = itm.Item(call_data[11:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Выберите новую категорию для \"{item.get_name()}\" или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.get_markup_editItemCat(item_id=item.get_id(), cat_list=itm.get_cat_list()),
+            )
+            await state_handler.changeItemCat.cat.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(item_id=item.get_id())
         elif call_data.startswith("editItemHide"):
             item = itm.Item(call_data[12:])
             cat = itm.Category(item.get_id())
@@ -590,6 +599,9 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
     state = Dispatcher.get_current().current_state()
     data = await state.get_data()
 
+    if DEBUG:
+        print(f"DEBUG: CALL [{chat_id}] {call_data} (STATE)")
+
     if call_data[:6] == "admin_":
         call_data = call_data[6:]
         
@@ -644,7 +656,23 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             )
             await state.finish()
 
-                
+        elif call_data.startswith("editItemSetCat"):
+            item = itm.Item(data["item_id"])
+            old_cat = itm.Category(item.get_cat_id())
+            new_cat = itm.Category(call_data[14:])
+            try:
+                text = f"Категория для \"{item.get_name()}\" была изменена с \"{old_cat.get_name()}\" на \"{new_cat.get_name()}\"."
+                item.set_cat_id(new_cat.get_id())
+            except:
+                text = tt.error
+            
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+            )
+            await state.finish()
 
         # "go-backs"
         elif call_data == "itemManagement":
