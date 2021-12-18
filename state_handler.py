@@ -27,7 +27,12 @@ class changeItemDesc(StatesGroup):
     state_message = State()
     item_id = State()
     desc = State()
-    
+
+class changeItemName(StatesGroup):
+    state_message = State()
+    item_id = State()
+    name = State()
+
 # User management
 class notifyEveryone(StatesGroup):
     state_message = State()

@@ -201,7 +201,17 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_editItemChooseItem(cat.get_item_list()),
             )
         elif call_data.startswith("editItemName"):
-            pass
+            item = itm.Item(call_data[12:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новое название для \"{item.get_name()}\" или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+            )
+            await state_handler.changeItemName.name.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(item_id=item.get_id())
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemDesc"):
             item = itm.Item(call_data[12:])
             await bot.edit_message_text(
@@ -519,6 +529,27 @@ async def editItemSetDesc(message: types.Message, state: FSMContext):
     try:
         text = f"Описание для \"{item.get_name()}\" было изменено с \"{item.get_desc()}\" на \"{message.text}\""
         item.set_desc(message.text)
+    except:
+        text = tt.error
+    
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )        
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+    )
+
+@dp.message_handler(state=state_handler.changeItemName.name)
+async def editItemSetDesc(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    item = itm.Item(data["item_id"])
+    try:
+        text = f"Название для \"{item.get_name()}\" было изменено на \"{message.text}\"."
+        item.set_name(message.text)
     except:
         text = tt.error
     
