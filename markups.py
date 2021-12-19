@@ -151,6 +151,7 @@ def btnBackEditItem(item_id): return types.InlineKeyboardButton(text=tt.back, ca
 
 # User management
 btnBackUserManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_userManagement")
+def btnBackSeeUserProfile(user_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_seeUserProfile{user_id}")
 
 # Stats
 btnBackShopStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin_shopStats")
@@ -319,14 +320,8 @@ def get_markup_seeUserProfile(user):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.orders, callback_data=f"admin_seeUserOrders{user.get_id()}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_balance, callback_data=f"admin_cangeUserBalance{user.get_id()}"))
-    
-    btnMakeUserAdmin = types.InlineKeyboardButton(text=tt.add_admin_role, callback_data="admin_makeUserAdmin")
-    btnRemoveUserAdmin = types.InlineKeyboardButton(text=tt.remove_admin_role, callback_data="admin_removeUserAdmin")
-    markup.add(btnRemoveUserAdmin if user.is_admin() else btnMakeUserAdmin)
-    
-    btnRemoveUserSupport = types.InlineKeyboardButton(text=tt.remove_support_role, callback_data=f"admin_removeUserSupport{user.get_id()}")
-    btnMakeUserSupport = types.InlineKeyboardButton(text=tt.add_support_role, callback_data=f"admin_makeUserSupport{user.get_id()}")
-    markup.add(btnRemoveUserSupport if user.is_admin() else btnMakeUserSupport)
+    markup.add(types.InlineKeyboardButton(text=tt.remove_admin_role if user.is_admin() else tt.add_admin_role, callback_data=f"admin_changeUserAdmin{user.get_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.remove_support_role if user.is_support() else tt.add_support_role, callback_data=f"admin_changeUserSupport{user.get_id()}"))
     
     markup.add(btnBackUserManagement)
     return markup

@@ -307,6 +307,52 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state_handler.seeUserProfile.user_id.set()
             state = Dispatcher.get_current().current_state()
             await state.update_data(state_message=callback_query.message.message_id)
+        elif call_data.startswith("seeUserProfile"):
+            user = usr.User(int(call_data[14:]))
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_profile_template(user),
+                reply_markup=markups.get_markup_seeUserProfile(user),
+            )
+        elif call_data.startswith("seeUserOrders"):
+            pass
+        elif call_data.startswith("changeUserBalance"):
+            pass
+        elif call_data.startswith("changeUserAdmin"):
+            editUser = usr.User(int(call_data[15:]))
+            if editUser.get_id() == user.get_id():
+                markup = markups.single_button(markups.btnBackSeeUserProfile(editUser.get_id()))
+                text = f"Вы не можете забрать роль администратора у себя!"
+            else:
+                try:
+                    editUser.set_admin(0 if editUser.is_admin() else 1)
+                    markup = markups.get_markup_seeUserProfile(editUser)
+                    text = tt.get_profile_template(editUser)
+                except:
+                    text = tt.error
+                    markup = markups.single_button(markups.btnBackSeeUserProfile(editUser.get_id()))
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markup,
+            )
+        elif call_data.startswith("changeUserSupport"):
+            editUser = usr.User(int(call_data[17:]))
+            try:
+                editUser.set_support(0 if editUser.is_support() else 1)
+                markup = markups.get_markup_seeUserProfile(editUser)
+                text = tt.get_profile_template(editUser)
+            except:
+                text = tt.error
+                markup = markups.single_button(markups.btnBackSeeUserProfile(editUser.get_id()))
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markup,
+            )
         elif call_data == "notifyEveryone":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -695,8 +741,6 @@ async def seeUserProfileSetUserID(message: types.Message, state: FSMContext):
     except:
         text = tt.error
         markup = markups.single_button(markups.btnBackUserManagement)
-    
-    
     state = Dispatcher.get_current().current_state()
     data = await state.get_data()
     await bot.delete_message(
@@ -827,6 +871,15 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 message_id=callback_query.message.message_id,
                 text=tt.user_management,
                 reply_markup=markups.get_markup_userManagement(),
+            )
+            await state.finish()
+        elif call_data.startswith("seeUserProfile"):
+            user = usr.User(call_data[14:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_profile_template(user),
+                reply_markup=markups.get_markup_seeUserProfile(user),
             )
             await state.finish()
         else:
