@@ -43,6 +43,9 @@ class notifyEveryone(StatesGroup):
     message = State()
     confirmation = State()
 
+class seeUserProfile(StatesGroup):
+    state_message = State()
+    user_id = State()
 
 
 

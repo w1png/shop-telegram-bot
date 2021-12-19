@@ -81,7 +81,7 @@ async def handle_text(message):
     elif message.text == tt.profile:
         await bot.send_message(
             chat_id=message.chat.id,
-            text=tt.get_profile_template(user.get_id(), user.get_orders(), user.get_balance(), user.get_register_date()),
+            text=tt.get_profile_template(user),
             reply_markup=markups.get_markup_profile(user_id=user.get_id()),
         )
     elif message.text == tt.catalogue: 
@@ -298,7 +298,15 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_userManagement(),
             )
         elif call_data == "seeUserProfile":
-            pass
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите ID пользователя или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackUserManagement),
+            )
+            await state_handler.seeUserProfile.user_id.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data == "notifyEveryone":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -409,8 +417,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.single_button(markups.btnBackOrderStats)
             )
 
-        
-
         # Settings
         elif call_data == "shopSettings":
             await bot.edit_message_text(
@@ -456,7 +462,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=tt.get_profile_template(user.get_id(), user.get_orders(), user.get_balance(), user.get_register_date()),
+                text=tt.get_profile_template(user),
                 reply_markup=markups.get_markup_profile(user_id=user.get_id()),
             )
         elif call_data == "myOrders":
@@ -674,6 +680,35 @@ async def notifyEveryoneSetMessage(message: types.Message, state: FSMContext):
         reply_markup=markups.get_markup_notifyEveryoneConfirmation(),
     )
     await state_handler.notifyEveryone.confirmation.set()
+    
+@dp.message_handler(state=state_handler.seeUserProfile)
+async def seeUserProfileSetUserID(message: types.Message, state: FSMContext):
+    try:
+        user_id = int(message.text)
+        if usr.does_user_exist(user_id):
+            user = usr.User(user_id)
+            markup = markups.get_markup_seeUserProfile(user)
+            text = tt.get_profile_template(user)
+        else:
+            text = f"Пользователя с ID {message.text} не существует." 
+            markup = markups.single_button(markups.btnBackUserManagement)
+    except:
+        text = tt.error
+        markup = markups.single_button(markups.btnBackUserManagement)
+    
+    
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markup,
+    )
+    await state.finish()
 
 # State callbacks
 @dp.callback_query_handler(state='*')

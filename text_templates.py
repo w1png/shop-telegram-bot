@@ -4,8 +4,8 @@ line_separator = "➖➖➖➖➖➖➖➖➖➖"
 
 
 # Multiple lines
-def get_profile_template(chatid, user_orders, user_balance, user_reg_date):
-    return f"{line_separator}\n📝 id:{chatid}\n📈 Кол-во заказов: {len(user_orders)}\n💸 Баланс: {'{:.2f}'.format(user_balance)}руб.\n📅 Дата регистрации: {user_reg_date}\n{line_separator}"
+def get_profile_template(user):
+    return f"{line_separator}\n📝 id: {user.get_id()}\n📈 Кол-во заказов: {len(user.get_orders())}\n💸 Баланс: {'{:.2f}'.format(user.get_balance())}руб.\n📅 Дата регистрации: {user.get_register_date()}\n{line_separator}"
 
 def get_faq_template(shop_name):
     return f"{line_separator}\nℹ️ FAQ магазина {shop_name}\n{line_separator}"
@@ -27,8 +27,6 @@ def get_item_card(item=None, name=None, price=None, desc=None):
     return f"{line_separator}\n{name} - {'{:.2f}'.format(price)} руб.\nВ наличии: {item.get_amount()} шт.\n{line_separator}\n{desc}"
 
 # Single phrases
-error = "Произошла ошибка!"
-
 # /start
 admin_panel = "🔴 Админ панель"
 faq = "ℹ️ FAQ"
@@ -72,6 +70,12 @@ delete = "❌ Удалить"
 # User management
 user_profile = "📁Профиль пользователя"
 notify_everyone = "🔔Оповещение всем пользователям"
+orders = "📁 Заказы"
+change_balance = "💎Изменить баланс"
+remove_admin_role = "🔴 Убрать роль администратора"
+add_admin_role = "🔴 Сделать администратором"
+remove_support_role = "☎️ Убрать роль оператора тех. поддержки"
+add_support_role = "☎️ Сделать оператором тех. поддержки"
 
 # Shop stats
 registration_stats = "👥Статистика регистраций"
@@ -89,3 +93,4 @@ stats_settings = "📈Настройки статистики"
 back = "🔙 Назад"
 confirm = "✅ Да"
 deny = "❌ Нет"
+error = "Произошла ошибка!"
