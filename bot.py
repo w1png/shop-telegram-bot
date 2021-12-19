@@ -317,8 +317,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             )
         elif call_data.startswith("seeUserOrders"):
             pass
-        elif call_data.startswith("changeUserBalance"):
-            pass
         elif call_data.startswith("changeUserAdmin"):
             editUser = usr.User(int(call_data[15:]))
             if editUser.get_id() == user.get_id():

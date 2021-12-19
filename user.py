@@ -24,28 +24,25 @@ class User:
         c.execute(f"SELECT * FROM users WHERE user_id={self.get_id()}")
         return list(c)[0]
 
-    def get_balance(self):
-        return self.__clist()[1]
-
     def is_admin(self):
-        return self.__clist()[2] == 1
+        return self.__clist()[1] == 1
 
     def set_admin(self, value):
         c.execute(f"UPDATE users SET is_admin={value} WHERE user_id={self.get_id()}")
         conn.commit()
 
     def is_support(self):
-        return self.__clist()[3] == 1
+        return self.__clist()[2] == 1
 
     def set_support(self, value):
         c.execute(f"UPDATE users SET is_support={value} WHERE user_id={self.get_id()}")
         conn.commit()
 
     def get_register_date(self):
-        return self.__clist()[5]
+        return self.__clist()[4]
 
     def notif_on(self):
-        return self.__clist()[4] == 1
+        return self.__clist()[3] == 1
 
     def enable_notif(self):
         c.execute(f"UPDATE users SET notification=1 WHERE user_id={self.get_id()}")
@@ -56,9 +53,6 @@ class User:
     def get_orders(self):
         c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
         return list(c)
-
-    def set_balance(self, value):
-        c.execute(f"UPDATE users SET balance={value} WHERE user_id={self.get_id()}")
 
 
 def does_user_exist(user_id):

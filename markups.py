@@ -319,7 +319,6 @@ def get_markup_notifyEveryoneConfirmation():
 def get_markup_seeUserProfile(user):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.orders, callback_data=f"admin_seeUserOrders{user.get_id()}"))
-    markup.add(types.InlineKeyboardButton(text=tt.change_balance, callback_data=f"admin_cangeUserBalance{user.get_id()}"))
     markup.add(types.InlineKeyboardButton(text=tt.remove_admin_role if user.is_admin() else tt.add_admin_role, callback_data=f"admin_changeUserAdmin{user.get_id()}"))
     markup.add(types.InlineKeyboardButton(text=tt.remove_support_role if user.is_support() else tt.add_support_role, callback_data=f"admin_changeUserSupport{user.get_id()}"))
     
@@ -401,42 +400,6 @@ def get_markup_shopSettings():
 
 
 
-
-# товар
-
-# c цена
-
-def get_cat_edit_markup(catid):
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text="Изменить название", callback_data=f"editNameCat{catid}"))
-    markup.add(types.InlineKeyboardButton(text="❌Удалить", callback_data=f"deleteCat{catid}"))
-    markup.add(types.InlineKeyboardButton(text='🔙Назад', callback_data="editCats"))
-    return markup
-
-
-
-
-# пополнение баланса
-def get_balance_markup():
-    conf = ConfigParser()
-    conf.read('config.ini', encoding='utf8')
-
-    balanceMarkup = types.InlineKeyboardMarkup()
-    if conf['payment_settings']['qiwi_isactive'] == '1':
-        btnQiwi = types.InlineKeyboardButton(text='🥝Qiwi', callback_data='qiwi')
-        balanceMarkup.add(btnQiwi)
-
-    btnYoomoney = types.InlineKeyboardButton(text='☂️ЮMoney', callback_data='yoomoney')
-    balanceMarkup.add(btnYoomoney)
-
-    if conf['payment_settings']['btc_isactive'] == '1':
-        btnBTC = types.InlineKeyboardButton(text='💹BTC', callback_data='btc')
-        balanceMarkup.add(btnBTC)
-
-    btnPromo = types.InlineKeyboardButton(text='🧾Промокод', callback_data='promocode')
-    balanceMarkup.add(btnPromo)
-    balanceMarkup.add(btnProfileBack)
-    return balanceMarkup
 
 
 # Профиль

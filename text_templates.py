@@ -5,7 +5,7 @@ line_separator = "➖➖➖➖➖➖➖➖➖➖"
 
 # Multiple lines
 def get_profile_template(user):
-    return f"{line_separator}\n📝 id: {user.get_id()}\n📈 Кол-во заказов: {len(user.get_orders())}\n💸 Баланс: {'{:.2f}'.format(user.get_balance())}руб.\n📅 Дата регистрации: {user.get_register_date()}\n{line_separator}"
+    return f"{line_separator}\n📝 id: {user.get_id()}\n📈 Кол-во заказов: {len(user.get_orders())}\n📅 Дата регистрации: {user.get_register_date()}\n{line_separator}"
 
 def get_faq_template(shop_name):
     return f"{line_separator}\nℹ️ FAQ магазина {shop_name}\n{line_separator}"
@@ -71,7 +71,6 @@ delete = "❌ Удалить"
 user_profile = "📁Профиль пользователя"
 notify_everyone = "🔔Оповещение всем пользователям"
 orders = "📁 Заказы"
-change_balance = "💎Изменить баланс"
 remove_admin_role = "🔴 Убрать роль администратора"
 add_admin_role = "🔴 Сделать администратором"
 remove_support_role = "☎️ Убрать роль оператора тех. поддержки"
