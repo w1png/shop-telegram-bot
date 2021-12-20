@@ -111,3 +111,21 @@ def get_cat_list():
 def create_cat(cat_name):
     c.execute(f"INSERT INTO cats(name) VALUES(?)", [cat_name])
     conn.commit()
+
+
+class Order:
+    def __init__(self, id):
+        self.id = id
+    
+    def get_id(self):
+        return self.id
+    
+    def __clist(self):
+        c.execute(f"SELECT * FROM orders WHERE order_id=?", [self.get_id()])
+        return list(c)[0]
+    
+    def get_user_id(self):
+        return self.__clist()[1]
+    
+    def get_data(self):
+        return self.__clist()[-1]
