@@ -288,7 +288,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_editItem(item),
             )
         
-
         # User management
         elif call_data == "userManagement":
             await bot.edit_message_text(
@@ -316,6 +315,14 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_seeUserProfile(user),
             )
         elif call_data.startswith("seeUserOrders"):
+            edit_user = usr.User(int(call_data[13:]))
+            await bot.edit_message_text( 
+                chat_id=message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=f"Заказы пользователя с ID {edit_user.get_id()}.",
+                reply_markup=markups.get_markup_seeUserOrders(edit_user),
+            )
+        elif call_data.startswith("seeUserOrder"):
             pass
         elif call_data.startswith("changeUserAdmin"):
             editUser = usr.User(int(call_data[15:]))
@@ -469,13 +476,69 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chat_id,
                 reply_markup=markups.get_markup_shopSettings()
             )
+        elif call_data == "shopSettingsDel":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_message(
+                text=tt.bot_settings,
+                chat_id=chat_id,
+                reply_markup=markups.get_markup_shopSettings()
+            )
 
         elif call_data == "mainSettings":
-            pass
+            await bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.main_settings,
+                reply_markup=markups.get_markup_mainSettings(),
+            )
 
         elif call_data == "statsSettings":
-            pass
-    
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.stats_settings,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettings()
+            )
+        elif call_data == "statsSettingsColor":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.graph_color,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsColor()
+            )
+        elif call_data.startswith("statsSettingsColor"):
+            color = call_data[18:]
+            match color:
+                case "Black":
+                    pass
+                case "Yellow":
+                    pass
+                case "Orange":
+                    pass
+                case "White":
+                    pass
+                case "Purple":
+                    pass
+                case "Green":
+                    pass
+                case "Red":
+                    pass
+                case "Blue":
+                    pass
+                case "Brown":
+                    pass
+            
     # User calls
     else:
         # FAQ

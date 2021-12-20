@@ -1,5 +1,4 @@
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.types import message
 
 # Item management
 class addCat(StatesGroup):

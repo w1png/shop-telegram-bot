@@ -158,6 +158,10 @@ btnBackShopStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin
 btnBackRegistratonStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin_registrationStatsBack")
 btnBackOrderStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin_orderStatsBack")
 
+# Settings
+btnBackShopSettingsDel = types.InlineKeyboardButton(text=tt.back, callback_data="admin_shopSettingsDel")
+btnBackStatsSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_statsSettings")
+
 # /start menu
 btnBackFaq = types.InlineKeyboardButton(text=tt.back, callback_data="faq")
 btnBackProfile = types.InlineKeyboardButton(text=tt.back, callback_data="profile")
@@ -325,6 +329,11 @@ def get_markup_seeUserProfile(user):
     markup.add(btnBackUserManagement)
     return markup
 
+def get_markup_seeUserOrders(user):
+    markup = types.InlineKeyboardMarkup()
+    for order in user.get_orders():
+        markup.add(types.InlineKeyboardButton(text=order[0], callback_data=f"seeUserOrder{order[0]}"))
+
 # Shop stats
 def get_markup_shopStats():
     markup = types.InlineKeyboardMarkup()
@@ -357,6 +366,29 @@ def get_markup_shopSettings():
     markup.add(types.InlineKeyboardButton(text=tt.main_settings, callback_data="admin_mainSettings"))
     markup.add(types.InlineKeyboardButton(text=tt.stats_settings, callback_data="admin_statsSettings"))
     markup.add(btnBackAdmin)
+    return markup
+
+# def get_markup_mainSettings():
+#     markup = types.InlineKeyboardMarkup()
+#     markup.add()
+#     return markup
+
+def get_markup_statsSettings():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.graph_color, callback_data="admin_statsSettingsColor"))
+    markup.add(types.InlineKeyboardButton(text=tt.border_width, callback_data="admin_statsSettingsBorderWidth"))
+    markup.add(types.InlineKeyboardButton(text=tt.title_font_size, callback_data="admin_statsSettingsTitleFontSize"))
+    markup.add(types.InlineKeyboardButton(text=tt.axis_font_size, callback_data="admin_statsSettingsAxisFontSize"))
+    markup.add(types.InlineKeyboardButton(text=tt.tick_font_size, callback_data="admin_statsSettingsTicksFontSize"))
+    markup.add(btnBackShopSettingsDel)
+    return markup
+
+def get_markup_statsSettingsColor():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="⬛️", callback_data="admin_statsSettingsColorBlack"), types.InlineKeyboardButton(text="⬜️", callback_data="admin_statsSettingsColorWhite"), types.InlineKeyboardButton(text="🟥", callback_data="admin_statsSettingsColorRed"))
+    markup.add(types.InlineKeyboardButton(text="🟨", callback_data="admin_statsSettingsColorYellow"), types.InlineKeyboardButton(text="🟪", callback_data="admin_statsSettingsColorPurple"), types.InlineKeyboardButton(text="🟦", callback_data="admin_statsSettingsColorBlue"))
+    markup.add(types.InlineKeyboardButton(text="🟧", callback_data="admin_statsSettingsColorOrange"), types.InlineKeyboardButton(text="🟩", callback_data="admin_statsSettingsColorGreen"), types.InlineKeyboardButton(text="🟫", callback_data="admin_statsSettingsColorBrown"))
+    markup.add(btnBackStatsSettings)
     return markup
 
 
@@ -483,13 +515,7 @@ def get_stats_settings_markup():
     markup.add(goBackSettingsDel)
     return markup
 
-def get_stats_color_markup():
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text="⬛️", callback_data="statsColorBlack"), types.InlineKeyboardButton(text="⬜️", callback_data="statsColorWhite"), types.InlineKeyboardButton(text="🟥", callback_data="statsColorRed"))
-    markup.add(types.InlineKeyboardButton(text="🟨", callback_data="statsColorYellow"), types.InlineKeyboardButton(text="🟪", callback_data="statsColorPurple"), types.InlineKeyboardButton(text="🟦", callback_data="statsColorBlue"))
-    markup.add(types.InlineKeyboardButton(text="🟧", callback_data="statsColorOrange"), types.InlineKeyboardButton(text="🟩", callback_data="statsColorGreen"), types.InlineKeyboardButton(text="🟫", callback_data="statsColorBrown"))
-    markup.add(btnStatsSettingsBack)
-    return markup
+
 
 def get_stats_border_width_markup():
     conf = ConfigParser()

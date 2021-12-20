@@ -2,6 +2,7 @@ from configparser import ConfigParser
 import sqlite3
 from configparser import ConfigParser
 from datetime import datetime
+import item as itm
 
 conn = sqlite3.connect('data.db')
 c = conn.cursor()
@@ -52,7 +53,7 @@ class User:
 
     def get_orders(self):
         c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
-        return list(c)
+        return map(itm.Order, [order[0] for order in list(c)])
 
 
 def does_user_exist(user_id):
