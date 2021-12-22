@@ -53,7 +53,7 @@ class User:
 
     def get_orders(self):
         c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
-        return map(itm.Order, [order[0] for order in list(c)])
+        return list(map(itm.Order, [order[0] for order in list(c)]))
 
 
 def does_user_exist(user_id):

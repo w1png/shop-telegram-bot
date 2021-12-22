@@ -98,6 +98,8 @@ async def handle_text(message):
 async def process_callback(callback_query: types.CallbackQuery):
     chat_id = callback_query.message.chat.id
     call_data = callback_query.data
+    conf = ConfigParser()
+    conf.read('config.ini', encoding='utf8')
     
     if DEBUG:
         print(f"DEBUG: CALL [{chat_id}] {call_data}")
@@ -521,23 +523,68 @@ async def process_callback(callback_query: types.CallbackQuery):
             color = call_data[18:]
             match color:
                 case "Black":
-                    pass
-                case "Yellow":
-                    pass
-                case "Orange":
-                    pass
+                    color = "000000"
                 case "White":
-                    pass
-                case "Purple":
-                    pass
-                case "Green":
-                    pass
+                    color = "ffffff"
                 case "Red":
-                    pass
+                    color = "cc0000"
+                case "Yellow":
+                    color = "ffff00"
+                case "Purple":
+                    color = "a957e3"
                 case "Blue":
-                    pass
+                    color = "3299ff"
+                case "Orange":
+                    color = "ffa500"
+                case "Green":
+                    color = "4ca64c"
                 case "Brown":
-                    pass
+                    color = "4c3100"
+            conf.set("stats_settings", "barcolor", color)
+            with open('config.ini', 'w') as config:
+                conf.write(config)
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.graph_color,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsColor()
+            )
+        elif call_data == "statsSettingsBorderWidth":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.border_width,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsBorderWidth()
+            )
+        elif call_data.startswith("statsSettingsBorderWidth"):
+            match call_data[24:]:
+                case "Default":
+                    value = 1
+                case "Add":
+                    value = int(conf["stats_settings"]["linewidth"]) + 1
+                case "Reduce":
+                    value = int(conf["stats_settings"]["linewidth"]) - 1
+            conf.set("stats_settings", "linewidth", str(value))
+            with open('config.ini', 'w') as config:
+                conf.write(config)
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.border_width,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsBorderWidth()
+            )
             
     # User calls
     else:
