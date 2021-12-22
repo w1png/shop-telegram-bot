@@ -558,7 +558,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                     value = int(settings.get_borderwidth()) + 1
                 case "Reduce":
                     value = int(settings.get_borderwidth()) - 1
-            settings.set_borderwidth("stats_settings", "border_width", str(value))
+            settings.set_borderwidth(str(value))
             await bot.delete_message(
                 message_id=callback_query.message.message_id,
                 chat_id=chat_id
@@ -568,6 +568,36 @@ async def process_callback(callback_query: types.CallbackQuery):
                 caption=tt.border_width,
                 photo=stats.get_random_graph(),
                 reply_markup=markups.get_markup_statsSettingsBorderWidth()
+            )
+        elif call_data == "statsSettingsTitleFontSize":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.title_font_size,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsTitleFontSize()
+            )
+        elif call_data.startswith("statsSettingsTitleFontSize"):
+            match call_data[26:]:
+                case "Default":
+                    value = 16
+                case "Add":
+                    value = int(settings.get_titlefontsize()) + 2
+                case "Reduce":
+                    value = int(settings.get_titlefontsize()) - 2
+            settings.set_titlefontsize(str(value))
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.title_font_size,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsTitleFontSize()
             )
             
     # User calls

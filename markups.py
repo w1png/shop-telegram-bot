@@ -397,6 +397,11 @@ def get_markup_statsSettingsBorderWidth():
     markup.add(btnBackStatsSettings)
     return markup
 
+def get_markup_statsSettingsTitleFontSize():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.unavailable if settings.get_titlefontsize() == "2" else tt.minus, callback_data="None" if settings.get_titlefontsize() else "admin_statsSettingsTitleFontSizeReduce"), types.InlineKeyboardButton(text=settings.get_titlefontsize(), callback_data="admin_statsSettingsTitleFontSizeDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsTitleFontSizeAdd"))
+    markup.add(btnBackStatsSettings)
+    return markup
 
 # userStatsMarkup = types.InlineKeyboardMarkup()
 # userStatsMarkup.add(types.InlineKeyboardButton(text='За всё время', callback_data='userStatsAllTime'))
