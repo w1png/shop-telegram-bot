@@ -6,7 +6,6 @@ from random import choice, randint
 from aiogram.dispatcher import FSMContext
 from string import ascii_letters, digits
 from aiogram.types import message, message_entity, message_id, user
-from configparser import ConfigParser
 from aiogram.types.callback_query import CallbackQuery
 
 import markups
@@ -15,6 +14,7 @@ import user as usr
 import stats
 import item as itm
 import text_templates as tt
+from settings import Settings
 
 
 conn = sqlite3.connect('data.db')
@@ -22,11 +22,10 @@ c = conn.cursor()
 
 DEBUG = True
 
-conf = ConfigParser()
-conf.read('config.ini', encoding='utf8')
+settings = Settings()
 
 storage = MemoryStorage()
-bot = Bot(token=conf['main']['token'])
+bot = Bot(token=settings.get_token())
 dp = Dispatcher(bot, storage=storage)
 
 
@@ -34,9 +33,6 @@ dp = Dispatcher(bot, storage=storage)
 async def welcome(message: types.Message):
     if DEBUG:
         print(f"DEBUG: COMMAND [{message.chat.id}] {message.text}")
-
-    conf = ConfigParser()
-    conf.read('config.ini', encoding='utf8')
     user = usr.User(message.chat.id)
 
     markupMain = markups.get_markup_main()
@@ -45,13 +41,13 @@ async def welcome(message: types.Message):
     if user.is_support():
         markupMain.row(markups.btnSupportMenu)
 
-    if conf["shop_settings"]["enable_sticker"] == "1":
+    if settings.is_sticker_enabled():
         sti = open('AnimatedSticker.tgs', 'rb')
         await bot.send_sticker(message.chat.id, sti)
         sti.close()
     await bot.send_message(
         chat_id=message.chat.id,
-        text=conf["shop_settings"]["shop_greeting"],
+        text=settings.get_shop_greeting(),
         reply_markup=markupMain,
     )
 
@@ -60,10 +56,7 @@ async def welcome(message: types.Message):
 async def handle_text(message):
     if DEBUG:
         print(f"DEBUG: MESSAGE [{message.chat.id}] {message.text}")
-    
     user = usr.User(message.chat.id)
-    conf = ConfigParser()
-    conf.read('config.ini', encoding='utf8')
     
     if message.text == tt.admin_panel:
         if user.is_admin():
@@ -75,7 +68,7 @@ async def handle_text(message):
     elif message.text == tt.faq:
         await bot.send_message(
             chat_id=message.chat.id,
-            text=tt.get_faq_template(conf["shop_settings"]["shop_name"]),
+            text=tt.get_faq_template(settings.get_shop_name()),
             reply_markup=markups.get_markup_faq(),
         )
     elif message.text == tt.profile:
@@ -98,14 +91,9 @@ async def handle_text(message):
 async def process_callback(callback_query: types.CallbackQuery):
     chat_id = callback_query.message.chat.id
     call_data = callback_query.data
-    conf = ConfigParser()
-    conf.read('config.ini', encoding='utf8')
     
     if DEBUG:
         print(f"DEBUG: CALL [{chat_id}] {call_data}")
-
-    conf = ConfigParser()
-    conf.read('config.ini', encoding='utf8')
     user = usr.User(chat_id)
     
     # Admin calls
@@ -540,9 +528,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                     color = "4ca64c"
                 case "Brown":
                     color = "4c3100"
-            conf.set("stats_settings", "barcolor", color)
-            with open('config.ini', 'w') as config:
-                conf.write(config)
+            settings.set_barcolor(color)
             await bot.delete_message(
                 message_id=callback_query.message.message_id,
                 chat_id=chat_id
@@ -569,12 +555,10 @@ async def process_callback(callback_query: types.CallbackQuery):
                 case "Default":
                     value = 1
                 case "Add":
-                    value = int(conf["stats_settings"]["linewidth"]) + 1
+                    value = int(settings.get_borderwidth()) + 1
                 case "Reduce":
-                    value = int(conf["stats_settings"]["linewidth"]) - 1
-            conf.set("stats_settings", "linewidth", str(value))
-            with open('config.ini', 'w') as config:
-                conf.write(config)
+                    value = int(settings.get_borderwidth()) - 1
+            settings.set_borderwidth("stats_settings", "border_width", str(value))
             await bot.delete_message(
                 message_id=callback_query.message.message_id,
                 chat_id=chat_id
@@ -593,21 +577,21 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=tt.get_faq_template(conf["shop_settings"]["shop_name"]),
+                text=tt.get_faq_template(settings.get_shop_name()),
                 reply_markup=markups.get_markup_faq(),
             )
         elif call_data == "contacts":
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=conf["shop_settings"]["shop_contacts"],
+                text=settings.get_shop_contacts(),
                 reply_markup=markups.single_button(markups.btnBackFaq),
             )
         elif call_data == "refund":
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=conf["shop_settings"]["refund_policy"],
+                text=settings.get_refund_policy(),
                 reply_markup=markups.single_button(markups.btnBackFaq),
             )
 

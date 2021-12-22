@@ -5,9 +5,9 @@ from configparser import ConfigParser
 import user as usr
 import text_templates as tt
 import item
+from settings import Settings
 
-conf = ConfigParser()
-conf.read('config.ini', encoding='utf8')
+settings = Settings()
 
 # Назад
 btnCatBack = types.InlineKeyboardButton(text='🔙Назад', callback_data='backCat')
@@ -392,10 +392,8 @@ def get_markup_statsSettingsColor():
     return markup
 
 def get_markup_statsSettingsBorderWidth():
-    conf = ConfigParser()
-    conf.read('config.ini', encoding='utf8')
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.unavailable if conf["stats_settings"]["linewidth"] == "0" else tt.minus, callback_data="None" if conf["stats_settings"]["linewidth"] == "0" else "admin_statsSettingsBorderWidthReduce"), types.InlineKeyboardButton(text=conf["stats_settings"]["linewidth"], callback_data="admin_statsSettingsBorderWidthDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsBorderWidthAdd"))
+    markup.add(types.InlineKeyboardButton(text=tt.unavailable if settings.get_borderwidth() == "0" else tt.minus, callback_data="None" if settings.get_borderwidth() == "0" else "admin_statsSettingsBorderWidthReduce"), types.InlineKeyboardButton(text=settings.get_borderwidth(), callback_data="admin_statsSettingsBorderWidthDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsBorderWidthAdd"))
     markup.add(btnBackStatsSettings)
     return markup
 
