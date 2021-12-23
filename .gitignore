@@ -6,4 +6,5 @@ AnimatedSticker.tgs
 seedb.sh
 config.ini
 test.py
-.gitignore
+aws.sh
+KP.pem

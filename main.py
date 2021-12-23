@@ -1,10 +1,7 @@
 import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-import datetime
-from random import choice, randint
 from aiogram.dispatcher import FSMContext
-from string import ascii_letters, digits
 from aiogram.types import message, message_entity, message_id, user
 from aiogram.types.callback_query import CallbackQuery
 
@@ -558,7 +555,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                     value = int(settings.get_borderwidth()) + 1
                 case "Reduce":
                     value = int(settings.get_borderwidth()) - 1
-            settings.set_borderwidth(str(value))
+            settings.set_borderwidth(value)
             await bot.delete_message(
                 message_id=callback_query.message.message_id,
                 chat_id=chat_id
@@ -588,7 +585,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                     value = int(settings.get_titlefontsize()) + 2
                 case "Reduce":
                     value = int(settings.get_titlefontsize()) - 2
-            settings.set_titlefontsize(str(value))
+            settings.set_titlefontsize(value)
             await bot.delete_message(
                 message_id=callback_query.message.message_id,
                 chat_id=chat_id
