@@ -17,6 +17,12 @@ class Settings:
     
     def set_token(self, value):
         self.set_setting("main_settings", "token", value)
+        
+    def is_debug(self):
+        return self.__get_config()["main_settings"]["debug"] == "True"
+        
+    def set_debug(self, value):
+        self.set_setting("main_settings", "debug", value)
     
     def get_main_admin_id(self):
         return self.__get_config()["main_settings"]["mainadminid"]

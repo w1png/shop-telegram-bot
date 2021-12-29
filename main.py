@@ -17,9 +17,9 @@ from settings import Settings
 conn = sqlite3.connect('data.db')
 c = conn.cursor()
 
-DEBUG = True
-
 settings = Settings()
+
+DEBUG = settings.is_debug()
 
 storage = MemoryStorage()
 bot = Bot(token=settings.get_token())
