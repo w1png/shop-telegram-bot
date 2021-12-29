@@ -166,6 +166,7 @@ def get_markup_editItem(item):
     markup.add(types.InlineKeyboardButton(text=tt.change_desc, callback_data=f"admin_editItemDesc{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_price, callback_data=f"admin_editItemPrice{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_item_cat, callback_data=f"admin_editItemCat{itemid}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_stock, callback_data=f"admin_editItemStock{itemid}"))
     markup.add(types.InlineKeyboardButton(text=(tt.hide if item.is_active() else tt.show), callback_data=f"admin_editItemHide{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.delete, callback_data=f"admin_editItemDelete{itemid}"))
     markup.add(btnBackEditItemChooseItem(item.get_cat_id()))

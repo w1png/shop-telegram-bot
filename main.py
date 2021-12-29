@@ -4,6 +4,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.types import message, message_entity, message_id, user
 from aiogram.types.callback_query import CallbackQuery
+from numpy import single
 
 import markups
 import state_handler
@@ -234,6 +235,18 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state_handler.changeItemCat.cat.set()
             state = Dispatcher.get_current().current_state()
             await state.update_data(item_id=item.get_id())
+        elif call_data.startswith("editItemStock"):
+            item = itm.Item(call_data[13:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новое количество товара для \"{item.get_name()}\" или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+            )
+            await state_handler.changeItemStock.stock.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(item_id=item.get_id())
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemHide"):
             item = itm.Item(call_data[12:])
             cat = itm.Category(item.get_id())
@@ -889,7 +902,29 @@ async def editItemSetDesc(message: types.Message, state: FSMContext):
         text=text,
         reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
     )
-
+    
+@dp.message_handler(state=state_handler.changeItemStock.stock)
+async def editItemStockSetStock(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    item = itm.Item(data["item_id"])
+    
+    try:
+        if not message.text.isalnum():
+            raise Exception(TypeError)
+        text = f"Количество товара для \"{item.get_name()}\" было изменено с {item.get_amount()} шт. на {message.text} шт."
+        item.set_amount(int(message.text))
+    except:
+        text = tt.error
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
+    )
 
 # User management
 @dp.message_handler(state=state_handler.notifyEveryone.message)

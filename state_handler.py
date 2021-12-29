@@ -35,6 +35,11 @@ class changeItemName(StatesGroup):
 class changeItemCat(StatesGroup):
     item_id = State()
     cat = State()
+    
+class changeItemStock(StatesGroup):
+    item_id = State()
+    state_message = State()
+    stock = State()
 
 # User management
 class notifyEveryone(StatesGroup):
