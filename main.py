@@ -596,6 +596,69 @@ async def process_callback(callback_query: types.CallbackQuery):
                 photo=stats.get_random_graph(),
                 reply_markup=markups.get_markup_statsSettingsTitleFontSize()
             )
+        elif call_data == "statsSettingsAxisFontSize":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.axis_font_size,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsAxisFontSize()
+            )
+    
+        elif call_data.startswith("statsSettingsAxisFontSize"):
+            match call_data[25:]:
+                case "Default":
+                    value = 16
+                case "Add":
+                    value = int(settings.get_axisfontsize()) + 2
+                case "Reduce":
+                    value = int(settings.get_axisfontsize()) - 2
+            settings.set_axisfontsize(value)
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.axis_font_size,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsAxisFontSize()
+            )
+            
+        elif call_data == "statsSettingsTickFontSize":
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.tick_font_size,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsTickFontSize()
+            )
+            
+        elif call_data.startswith("statsSettingsTickFontSize"):
+            match call_data[25:]:
+                case "Default":
+                    value = 10
+                case "Add":
+                    value = int(settings.get_tickfontsize()) + 2
+                case "Reduce":
+                    value = int(settings.get_tickfontsize()) - 2
+            settings.set_tickfontsize(value)
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=tt.tick_font_size,
+                photo=stats.get_random_graph(),
+                reply_markup=markups.get_markup_statsSettingsTickFontSize()
+            )
             
     # User calls
     else:

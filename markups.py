@@ -54,6 +54,7 @@ def single_button(btn):
 def get_markup_main():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add(types.KeyboardButton(tt.catalogue))
+    markup.add(types.KeyboardButton(tt.cart))
     markup.add(types.KeyboardButton(tt.profile), types.KeyboardButton(tt.faq))
     return markup
 
@@ -249,7 +250,7 @@ def get_markup_statsSettings():
     markup.add(types.InlineKeyboardButton(text=tt.border_width, callback_data="admin_statsSettingsBorderWidth"))
     markup.add(types.InlineKeyboardButton(text=tt.title_font_size, callback_data="admin_statsSettingsTitleFontSize"))
     markup.add(types.InlineKeyboardButton(text=tt.axis_font_size, callback_data="admin_statsSettingsAxisFontSize"))
-    markup.add(types.InlineKeyboardButton(text=tt.tick_font_size, callback_data="admin_statsSettingsTicksFontSize"))
+    markup.add(types.InlineKeyboardButton(text=tt.tick_font_size, callback_data="admin_statsSettingsTickFontSize"))
     markup.add(btnBackShopSettingsDel)
     return markup
 
@@ -269,6 +270,18 @@ def get_markup_statsSettingsBorderWidth():
 
 def get_markup_statsSettingsTitleFontSize():
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.unavailable if settings.get_titlefontsize() == "2" else tt.minus, callback_data="None" if settings.get_titlefontsize() else "admin_statsSettingsTitleFontSizeReduce"), types.InlineKeyboardButton(text=settings.get_titlefontsize(), callback_data="admin_statsSettingsTitleFontSizeDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsTitleFontSizeAdd"))
+    markup.add(types.InlineKeyboardButton(text=tt.unavailable if settings.get_titlefontsize() == "2" else tt.minus, callback_data="None" if settings.get_titlefontsize() == "2" else "admin_statsSettingsTitleFontSizeReduce"), types.InlineKeyboardButton(text=settings.get_titlefontsize(), callback_data="admin_statsSettingsTitleFontSizeDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsTitleFontSizeAdd"))
+    markup.add(btnBackStatsSettings)
+    return markup
+
+def get_markup_statsSettingsAxisFontSize():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.unavailable if settings.get_axisfontsize() == "2" else tt.minus, callback_data="None" if settings.get_axisfontsize() == "2" else "admin_statsSettingsAxisFontSizeReduce"), types.InlineKeyboardButton(text=settings.get_axisfontsize(), callback_data="admin_statsSettingsAxisFontSizeDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsAxisFontSizeAdd"))
+    markup.add(btnBackStatsSettings)
+    return markup
+
+def get_markup_statsSettingsTickFontSize():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.unavailable if settings.get_tickfontsize() == "2" else tt.minus, callback_data="None" if settings.get_tickfontsize() == "2" else "admin_statsSettingsTickFontSizeReduce"), types.InlineKeyboardButton(text=settings.get_tickfontsize(), callback_data="admin_statsSettingsTickFontSizeDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsTickFontSizeAdd"))
     markup.add(btnBackStatsSettings)
     return markup
