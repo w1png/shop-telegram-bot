@@ -89,6 +89,13 @@ def get_markup_myOrders(order_list):
     markup.add(btnBackProfile)
     return markup
 
+def get_markup_cart(user):
+    markup = types.InlineKeyboardMarkup()
+    for item in user.get_cart():
+        markup.add(types.InlineKeyboardButton(text=tt.minus, callback_data=f"cartRemove{item.get_id()}") ,types.InlineKeyboardButton(text=item.get_name(), callback_data=f"viewItem{item.get_id()}"), types.InlineKeyboardButton(text=tt.plus, callback_data=f"cartAdd{item.get_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.cart_checkout, callback_data="cartCheckout"))   
+    return markup
+
 # Catalogue
 def get_markup_catalogue(cat_list):
     markup = types.InlineKeyboardMarkup()

@@ -73,13 +73,25 @@ async def handle_text(message):
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.get_profile_template(user),
-            reply_markup=markups.get_markup_profile(user_id=user.get_id()),
+            reply_markup=markups.get_markup_profile(user),
         )
     elif message.text == tt.catalogue: 
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.catalogue,
             reply_markup=markups.get_markup_catalogue(itm.get_cat_list()),
+        )
+    elif message.text == tt.cart:
+        if user.get_cart():
+            text = tt.cart
+            markup = markups.get_markup_cart(user)
+        else:
+            text = "Корзина пуста."
+            markup = types.InlineKeyboardMarkup()
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=text,
+            reply_markup=markup
         )
     else:
         await bot.send_message(message.chat.id, 'Не могу понять команду :(')
@@ -756,7 +768,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=text,
                 reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
-            )                
+            )      
             
         
 # State handlers

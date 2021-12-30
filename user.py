@@ -72,6 +72,15 @@ class User:
         else:
             cart_text = item_id
         c.execute(f"UPDATE users SET cart=\"{cart_text}\" WHERE user_id=?", [self.get_id()])
+        conn.commit()
+        
+    def remove_from_cart(self, item_id):
+        cart = [item.get_id() for item in self.get_cart()]
+        cart.remove(item_id)
+        cart_text = ",".join(cart)
+        c.execute(f"UPDATE users SET cart=\"{cart_text}\" WHERE user_id=?", [self.get_id()])
+        conn.commit()
+        
         
 
 def does_user_exist(user_id):
@@ -100,4 +109,10 @@ if __name__ == "__main__":
     user.add_to_cart(2)
     print([item.get_name() for item in user.get_cart()])
     user.clear_cart()
-    print(user.get_cart())
+    user.add_to_cart(2)
+    user.add_to_cart(2)
+    user.add_to_cart(1)
+    user.add_to_cart(2)
+    user.add_to_cart(1)
+    user.add_to_cart(2)
+    print(user.get_cart_amount())
