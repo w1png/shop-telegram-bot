@@ -743,6 +743,20 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.get_item_card(item=item),
                 reply_markup=markups.get_markup_viewItem(item),
             )
+        
+        elif call_data.startswith("addToCart"):
+            item = itm.Item(call_data[9:])
+            if item.get_amount() == 0:
+                text = f"Товара \"{item.get_name()}\" нет в наличии."
+            else:
+                user.add_to_cart(item.get_id())
+                text = f"Товар \"{item.get_name()}\" был добавлен в корзину."
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
+            )                
             
         
 # State handlers
@@ -832,7 +846,7 @@ async def addItemSetDesc(message: types.Message, state: FSMContext):
     data = await state.get_data()
     
     cat = itm.Category(data["cat_id"])
-    text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"]) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"
+    text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"], amount=0) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"
     await bot.send_message(
         chat_id=message.chat.id,
         text=text,
@@ -925,6 +939,8 @@ async def editItemStockSetStock(message: types.Message, state: FSMContext):
         text=text,
         reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
     )
+    await state.finish()
+
 
 # User management
 @dp.message_handler(state=state_handler.notifyEveryone.message)

@@ -37,7 +37,7 @@ btnBackFaq = types.InlineKeyboardButton(text=tt.back, callback_data="faq")
 btnBackProfile = types.InlineKeyboardButton(text=tt.back, callback_data="profile")
 btnBackCatalogue = types.InlineKeyboardButton(text=tt.back, callback_data="catalogue")
 def btnBackViewCat(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"viewCat{cat_id}")
-
+def btnBackViewItem(item_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"viewItem{item_id}")
 
 # Single buttons
 btnAdminPanel = types.KeyboardButton(tt.admin_panel)

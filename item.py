@@ -10,8 +10,8 @@ def does_item_exist(item_id):
 
 
 class Item:
-    def __init__(self, itemid):
-        self.item_id = itemid
+    def __init__(self, item_id):
+        self.item_id = item_id
 
     def get_id(self):
         return self.item_id
@@ -56,10 +56,11 @@ class Item:
         conn.commit()
 
     def get_amount(self):
-        return self.__clist()[6]
+        return int(self.__clist()[6])
     
     def set_amount(self, value):
         c.execute(f"UPDATE items SET amount={value} WHERE id={self.get_id()}")
+        conn.commit()
 
     def delete(self):
         c.execute(f"DELETE FROM items WHERE id={self.get_id()}")
@@ -72,7 +73,7 @@ def get_item_list():
 
 
 def create_item(name, price, cat_id, desc):
-    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active) VALUES(?, ?, ?, ?, 1, 0)", [name, price, cat_id, desc])
+    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active, amount) VALUES(?, ?, ?, ?, 1, 0)", [name, price, cat_id, desc])
     conn.commit()
 
 

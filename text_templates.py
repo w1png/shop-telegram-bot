@@ -19,12 +19,14 @@ def get_category_was_created_successfuly(cat_name):
 def get_category_data(cat):
     return f"{line_separator}\nID: {cat.get_id()}\nНазвание: {cat.get_name()}\n{line_separator}"
 
-def get_item_card(item=None, name=None, price=None, desc=None):
+def get_item_card(item=None, name=None, price=None, desc=None, amount=None):
     if item:
         name = item.get_name()
         price = item.get_price()
         desc = item.get_desc()
-    return f"{line_separator}\n{name} - {'{:.2f}'.format(price)} руб.\nВ наличии: {item.get_amount()} шт.\n{line_separator}\n{desc}"
+        amount = item.get_amount()
+        
+    return f"{line_separator}\n{name} - {'{:.2f}'.format(price)} руб.\nВ наличии: {amount} шт.\n{line_separator}\n{desc}"
 
 # Single phrases
 # /start
