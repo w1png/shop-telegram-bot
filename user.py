@@ -54,7 +54,25 @@ class User:
     def get_orders(self):
         c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
         return list(map(itm.Order, [order[0] for order in list(c)]))
-
+    
+    def get_cart(self):
+        cart = self.__clist()[5]
+        if cart == "None":
+            return []
+        return list(map(itm.Item, cart.split(",")))
+    
+    def clear_cart(self):
+        c.execute(f"UPDATE users SET cart=\"None\" WHERE user_id=?", [self.get_id()])
+        conn.commit()
+        
+    def add_to_cart(self, item_id):
+        cart = self.get_cart()
+        if cart:
+            cart_text = ",".join([str(item.get_id()) for item in cart + [itm.Item(item_id)]])
+        else:
+            cart_text = item_id
+        c.execute(f"UPDATE users SET cart=\"{cart_text}\" WHERE user_id=?", [self.get_id()])
+        
 
 def does_user_exist(user_id):
     c.execute(f"SELECT * FROM users WHERE user_id=\"{user_id}\"")
@@ -73,3 +91,13 @@ def get_user_login(message):
 def get_user_list():
     c.execute("SELECT * FROM users")
     return map(User, [user[0] for user in list(c)])
+
+
+if __name__ == "__main__":
+    user = User(772316661)
+    print(user.get_cart())
+    user.add_to_cart(1)
+    user.add_to_cart(2)
+    print([item.get_name() for item in user.get_cart()])
+    user.clear_cart()
+    print(user.get_cart())
