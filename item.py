@@ -12,6 +12,12 @@ def does_item_exist(item_id):
 class Item:
     def __init__(self, item_id):
         self.item_id = item_id
+        
+    def __eq__(self, __o: object):
+        return self.get_id() == __o.get_id()
+    
+    def __repr__(self):
+        return f"[{self.get_id()}] {self.get_name()}"
 
     def get_id(self):
         return self.item_id

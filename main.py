@@ -86,7 +86,7 @@ async def handle_text(message):
             text = tt.cart
             markup = markups.get_markup_cart(user)
         else:
-            text = "Корзина пуста."
+            text = tt.cart_is_empty
             markup = types.InlineKeyboardMarkup()
         await bot.send_message(
             chat_id=message.chat.id,
@@ -754,6 +754,34 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=tt.get_item_card(item=item),
                 reply_markup=markups.get_markup_viewItem(item),
+            )   
+            
+        # Cart
+        elif call_data == "clearCart":
+            user.clear_cart()
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.cart_is_empty,
+                reply_markup=types.InlineKeyboardMarkup(),
+            )
+        
+        elif call_data.startswith("addToCartFromCart"):
+            user.add_to_cart(call_data[17:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.cart,
+                reply_markup=markups.get_markup_cart(user),
+            )
+        
+        elif call_data.startswith("removeFromCartFromCart"):
+            user.remove_from_cart(call_data[22:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.cart,
+                reply_markup=markups.get_markup_cart(user),
             )
         
         elif call_data.startswith("addToCart"):
@@ -768,7 +796,9 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=text,
                 reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
-            )      
+            )   
+            
+            
             
         
 # State handlers

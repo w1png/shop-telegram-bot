@@ -61,6 +61,17 @@ class User:
             return []
         return list(map(itm.Item, cart.split(",")))
     
+    # TODO: remake
+    def get_cart_amount(self):
+        cart = [item.get_id() for item in self.get_cart()]
+        amounts = dict()
+        for item_id in cart:
+            if item_id in amounts:
+                amounts[item_id] += 1
+            else:
+                amounts[item_id] = 1
+        return [[itm.Item(item_id), amounts[item_id]] for item_id in amounts.keys()]
+    
     def clear_cart(self):
         c.execute(f"UPDATE users SET cart=\"None\" WHERE user_id=?", [self.get_id()])
         conn.commit()
@@ -105,14 +116,5 @@ def get_user_list():
 if __name__ == "__main__":
     user = User(772316661)
     print(user.get_cart())
-    user.add_to_cart(1)
-    user.add_to_cart(2)
-    print([item.get_name() for item in user.get_cart()])
-    user.clear_cart()
-    user.add_to_cart(2)
-    user.add_to_cart(2)
-    user.add_to_cart(1)
-    user.add_to_cart(2)
-    user.add_to_cart(1)
-    user.add_to_cart(2)
+    print()
     print(user.get_cart_amount())
