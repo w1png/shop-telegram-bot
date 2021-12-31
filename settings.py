@@ -74,11 +74,11 @@ class Settings:
     def set_enable_home_adress(self, value):
         self.set_setting("shop_settings", "enablehomeadress", value)
         
-    def is_capcha_enabled(self):
-        return self.__get_config()["shop_settings"]["enablecapcha"] == "1"
+    def is_captcha_enabled(self):
+        return self.__get_config()["shop_settings"]["enablecaptcha"] == "1"
     
-    def set_capcha(self, value):
-        self.set_setting("shop_settings", "enablecapcha", value)
+    def set_captcha(self, value):
+        self.set_setting("shop_settings", "enablecaptcha", value)
         
     # stats_settings
     def get_barcolor(self):
