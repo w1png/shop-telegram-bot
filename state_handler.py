@@ -50,11 +50,10 @@ class notifyEveryone(StatesGroup):
 class seeUserProfile(StatesGroup):
     state_message = State()
     user_id = State()
-
-
-
-
-
-
-
-
+    
+class checkoutCart(StatesGroup):
+    state_message = State()
+    email = State()
+    phone_number = State()
+    additional_message = State()
+    captcha = State()

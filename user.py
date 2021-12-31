@@ -32,12 +32,12 @@ class User:
         c.execute(f"UPDATE users SET is_admin={value} WHERE user_id={self.get_id()}")
         conn.commit()
 
-    def is_support(self):
-        return self.__clist()[2] == 1
+    # def is_support(self):
+    #     return self.__clist()[2] == 1
 
-    def set_support(self, value):
-        c.execute(f"UPDATE users SET is_support={value} WHERE user_id={self.get_id()}")
-        conn.commit()
+    # def set_support(self, value):
+    #     c.execute(f"UPDATE users SET is_support={value} WHERE user_id={self.get_id()}")
+    #     conn.commit()
 
     def get_register_date(self):
         return self.__clist()[4]
@@ -71,6 +71,13 @@ class User:
             else:
                 amounts[item_id] = 1
         return [[itm.Item(item_id), amounts[item_id]] for item_id in amounts.keys()]
+    
+    def get_cart_price(self):
+        cart = self.get_cart_amount()
+        total = 0
+        for item_and_price in cart:
+            total += item_and_price[0].get_price() * item_and_price[1]
+        return total
     
     def clear_cart(self):
         c.execute(f"UPDATE users SET cart=\"None\" WHERE user_id=?", [self.get_id()])
@@ -115,6 +122,4 @@ def get_user_list():
 
 if __name__ == "__main__":
     user = User(772316661)
-    print(user.get_cart())
-    print()
-    print(user.get_cart_amount())
+    user.add_to_cart(2)

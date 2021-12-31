@@ -36,8 +36,8 @@ async def welcome(message: types.Message):
     markupMain = markups.get_markup_main()
     if user.is_admin():
         markupMain.row(markups.btnAdminPanel)
-    if user.is_support():
-        markupMain.row(markups.btnSupportMenu)
+    # if user.is_support():
+    #     markupMain.row(markups.btnSupportMenu)
 
     if settings.is_sticker_enabled():
         sti = open('AnimatedSticker.tgs', 'rb')
@@ -355,21 +355,21 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=text,
                 reply_markup=markup,
             )
-        elif call_data.startswith("changeUserSupport"):
-            editUser = usr.User(int(call_data[17:]))
-            try:
-                editUser.set_support(0 if editUser.is_support() else 1)
-                markup = markups.get_markup_seeUserProfile(editUser)
-                text = tt.get_profile_template(editUser)
-            except:
-                text = tt.error
-                markup = markups.single_button(markups.btnBackSeeUserProfile(editUser.get_id()))
-            await bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                text=text,
-                reply_markup=markup,
-            )
+        # elif call_data.startswith("changeUserSupport"):
+        #     editUser = usr.User(int(call_data[17:]))
+        #     try:
+        #         editUser.set_support(0 if editUser.is_support() else 1)
+        #         markup = markups.get_markup_seeUserProfile(editUser)
+        #         text = tt.get_profile_template(editUser)
+        #     except:
+        #         text = tt.error
+        #         markup = markups.single_button(markups.btnBackSeeUserProfile(editUser.get_id()))
+        #     await bot.edit_message_text(
+        #         chat_id=chat_id,
+        #         message_id=callback_query.message.message_id,
+        #         text=text,
+        #         reply_markup=markup,
+        #     )
         elif call_data == "notifyEveryone":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -728,8 +728,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             )
         elif call_data.startswith("seeMyOrder"):
             pass
-        elif call_data == "mySupportTickets":
-            pass
 
         # Catalogue
         elif call_data == "catalogue":
@@ -796,11 +794,11 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=text,
                 reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
-            )   
-            
-            
+            ) 
             
         
+            
+
 # State handlers
 # Item management
 @dp.message_handler(state=state_handler.addCat.name)

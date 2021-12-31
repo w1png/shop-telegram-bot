@@ -41,7 +41,7 @@ def btnBackViewItem(item_id): return types.InlineKeyboardButton(text=tt.back, ca
 
 # Single buttons
 btnAdminPanel = types.KeyboardButton(tt.admin_panel)
-btnSupportMenu = types.KeyboardButton(tt.support_menu)
+# btnSupportMenu = types.KeyboardButton(tt.support_menu)
 
 def single_button(btn):
     markup = types.InlineKeyboardMarkup()
@@ -75,7 +75,7 @@ def get_markup_faq():
 def get_markup_profile(user_id):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.my_orders, callback_data="myOrders"))
-    markup.add(types.InlineKeyboardButton(text=tt.my_support_tickets, callback_data="mySupportTickets"))
+    # markup.add(types.InlineKeyboardButton(text=tt.my_support_tickets, callback_data="mySupportTickets"))
 
     user = usr.User(user_id)
     if user.is_admin():
@@ -92,9 +92,11 @@ def get_markup_myOrders(order_list):
 def get_markup_cart(user):
     markup = types.InlineKeyboardMarkup()
     for item_and_amount in user.get_cart_amount():
-        markup.add(types.InlineKeyboardButton(text=f"[{item_and_amount[1]}] {item_and_amount[0].get_name()}", callback_data=f"viewItem{item_and_amount[0].get_id()}"), types.InlineKeyboardButton(text=tt.plus, callback_data=f"addToCartFromCart{item_and_amount[0].get_id()}"), types.InlineKeyboardButton(text=tt.minus, callback_data=f"removeFromCartFromCart{item_and_amount[0].get_id()}"))
+        markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_name()} - {item_and_amount[0].get_price()}руб. - {item_and_amount[1]}шт.", callback_data=f"viewItem{item_and_amount[0].get_id()}"))
+        markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_price() * item_and_amount[1]}руб.", callback_data="None"), types.InlineKeyboardButton(text=tt.plus, callback_data=f"addToCartFromCart{item_and_amount[0].get_id()}"), types.InlineKeyboardButton(text=tt.minus, callback_data=f"removeFromCartFromCart{item_and_amount[0].get_id()}"))
     markup.add(types.InlineKeyboardButton(text=tt.clear_cart, callback_data="clearCart"))
-    markup.add(types.InlineKeyboardButton(text=tt.cart_checkout, callback_data="cartCheckout"))   
+    markup.add(types.InlineKeyboardButton(text=f"Всего: {user.get_cart_price()}руб.", callback_data="None"))
+    markup.add(types.InlineKeyboardButton(text=tt.cart_checkout, callback_data="checkoutCart"))   
     return markup
 
 # Catalogue
@@ -204,7 +206,7 @@ def get_markup_seeUserProfile(user):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.orders, callback_data=f"admin_seeUserOrders{user.get_id()}"))
     markup.add(types.InlineKeyboardButton(text=tt.remove_admin_role if user.is_admin() else tt.add_admin_role, callback_data=f"admin_changeUserAdmin{user.get_id()}"))
-    markup.add(types.InlineKeyboardButton(text=tt.remove_support_role if user.is_support() else tt.add_support_role, callback_data=f"admin_changeUserSupport{user.get_id()}"))
+    # markup.add(types.InlineKeyboardButton(text=tt.remove_support_role if user.is_support() else tt.add_support_role, callback_data=f"admin_changeUserSupport{user.get_id()}"))
     
     markup.add(btnBackUserManagement)
     return markup
