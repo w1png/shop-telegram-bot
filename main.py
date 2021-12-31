@@ -4,7 +4,9 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.types import message, message_entity, message_id, user
 from aiogram.types.callback_query import CallbackQuery
-from numpy import single
+from random import choice
+from string import ascii_uppercase, digits
+from captcha.image import ImageCaptcha
 
 import markups
 import state_handler
@@ -25,6 +27,14 @@ DEBUG = settings.is_debug()
 storage = MemoryStorage()
 bot = Bot(token=settings.get_token())
 dp = Dispatcher(bot, storage=storage)
+
+
+def generate_captcha():
+    image = ImageCaptcha(width = 280, height = 90)
+    captcha = ''.join([choice(ascii_uppercase + digits) for i in range(5)])
+    image.generate(captcha)
+    image.write(captcha, "captcha.png") 
+    return captcha
 
 
 @dp.message_handler(commands=['start'])
@@ -795,9 +805,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=text,
                 reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
             ) 
-            
-        
-            
 
 # State handlers
 # Item management
