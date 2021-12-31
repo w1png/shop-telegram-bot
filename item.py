@@ -124,15 +124,55 @@ class Order:
     def __init__(self, id):
         self.id = id
     
-    def get_id(self):
+    def get_order_id(self):
         return self.id
     
     def __clist(self):
-        c.execute(f"SELECT * FROM orders WHERE order_id=?", [self.get_id()])
+        c.execute(f"SELECT * FROM orders WHERE order_id=?", [self.get_order_id()])
         return list(c)[0]
     
     def get_user_id(self):
         return self.__clist()[1]
     
-    def get_data(self):
-        return self.__clist()[-1]
+    def get_item_list(self):
+        return list(map(Item, [item_id for item_id in self.__clist()[2].split(",")]))
+    
+    def set_item_list(self, value):
+        c.execute(f"UPDATE orders SET item_list=? WHERE order_id=?", [value, self.get_order_id()])
+        conn.commit()
+    
+    def get_email_adress(self):
+        return self.__clist()[3]
+    
+    def set_email_adress(self, value):
+        c.execute(f"UPDATE orders SET email_adress=? WHERE order_id=?", [value, self.get_order_id()])
+        conn.commit()
+    
+    def get_phone_number(self):
+        return self.__clist()[4]
+    
+    def set_phone_number(self, value):
+        c.execute(f"UPDATE orders SET phone_number=? WHERE order_id=?", [value, self.get_order_id()])
+        conn.commit()
+    
+    def get_home_adress(self):
+        return self.__clist()[5]
+    
+    def set_home_adress(self, value):
+        c.execute(f"UPDATE orders SET home_adress=? WHERE order_id=?", [value, self.get_order_id()])
+        conn.commit()
+    
+    def get_additional_message(self):
+        return self.__clist()[6]
+    
+    def get_date(self):
+        return self.__clist()[7]
+    
+    def get_status(self):
+        return self.__clist()[8]
+    
+    def set_status(self, value):
+        c.execute(f"UPDATE orders SET status=? WHERE order_id=?", [value, self.get_order_id()])
+        conn.commit()
+    
+    
