@@ -52,8 +52,16 @@ class seeUserProfile(StatesGroup):
     user_id = State()
     
 class checkoutCart(StatesGroup):
+    # Data
     state_message = State()
+    user_id = State()
+    item_list_comma = State()
+    
+    # Required
     email = State()
-    phone_number = State()
     additional_message = State()
+
+    # Additional
+    phone_number = State()
+    home_adress = State()
     captcha = State()

@@ -55,8 +55,11 @@ class User:
         c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
         return list(map(itm.Order, [order[0] for order in list(c)]))
     
+    def get_cart_comma(self):
+        return self.__clist()[5]
+    
     def get_cart(self):
-        cart = self.__clist()[5]
+        cart = self.get_cart_comma()
         if cart == "None":
             return []
         return list(map(itm.Item, cart.split(",")))

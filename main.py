@@ -33,7 +33,7 @@ def generate_captcha():
     image = ImageCaptcha(width = 280, height = 90)
     captcha = ''.join([choice(ascii_uppercase + digits) for i in range(5)])
     image.generate(captcha)
-    image.write(captcha, "captcha.png") 
+    image.write(captcha, "images/captcha.png")
     return captcha
 
 
@@ -111,6 +111,7 @@ async def handle_text(message):
 async def process_callback(callback_query: types.CallbackQuery):
     chat_id = callback_query.message.chat.id
     call_data = callback_query.data
+    settings = Settings()
     
     if DEBUG:
         print(f"DEBUG: CALL [{chat_id}] {call_data}")
@@ -765,6 +766,19 @@ async def process_callback(callback_query: types.CallbackQuery):
             )   
             
         # Cart
+        elif call_data == "cart":
+            if user.get_cart():
+                text = tt.cart
+                markup = markups.get_markup_cart(user)
+            else:
+                text = tt.cart_is_empty
+                markup = types.InlineKeyboardMarkup()
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text=text,
+                reply_markup=markup
+            )
+        
         elif call_data == "clearCart":
             user.clear_cart()
             await bot.edit_message_text(
@@ -805,6 +819,24 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=text,
                 reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
             ) 
+            
+        elif call_data == "checkoutCart":
+            await bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите ваш Email адрес или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackCart),
+            )
+            if settings.is_phone_number_enabled():
+                await state_handler.checkoutCart.phone_number.set()
+            elif settings.is_home_adress_enabled():
+                await state_handler.checkoutCart.home_adress.set()
+            else:
+                await state_handler.checkoutCart.additional_message.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
+            await state.update_data(user_id=chat_id)
+            await state.update_data(item_list_comma=user.get_cart_comma())
 
 # State handlers
 # Item management
