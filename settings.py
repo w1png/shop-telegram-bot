@@ -12,6 +12,7 @@ class Settings:
         with open("config.ini", 'w') as config:
             conf.write(config)
     
+    # main_settings
     def get_token(self):
         return self.__get_config()["main_settings"]["token"]
     
@@ -30,6 +31,7 @@ class Settings:
     def set_main_admin_id(self, value):
         self.set_setting("main_settings", "mainadminid", value)
     
+    # shop_settings
     def get_shop_name(self):
         return self.__get_config()["shop_settings"]["name"]
     
@@ -60,12 +62,25 @@ class Settings:
     def set_shop_contacts(self, value):
         self.set_setting("shop_settings", "contacts", value)
         
+    def is_phone_number_enabled(self):
+        return self.__get_config()["shop_settings"]["enablephonenumber"] == "1"
+    
+    def set_enable_phone_number(self, value):
+        self.set_setting("shop_settings", "enablephonenumber", value)
+        
+    def is_home_adress_enabled(self):
+        return self.__get_config()["shop_settings"]["enablehomeadress"] == "1"
+    
+    def set_enable_home_adress(self, value):
+        self.set_setting("shop_settings", "enablehomeadress", value)
+        
     def is_capcha_enabled(self):
         return self.__get_config()["shop_settings"]["enablecapcha"] == "1"
     
     def set_capcha(self, value):
         self.set_setting("shop_settings", "enablecapcha", value)
         
+    # stats_settings
     def get_barcolor(self):
         return self.__get_config()["stats_settings"]["barcolor"]
     
