@@ -512,10 +512,38 @@ async def process_callback(callback_query: types.CallbackQuery):
 
         elif call_data == "mainSettings":
             await bot.edit_message_text(
-                chat_id=message.chat.id,
+                chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text=tt.main_settings,
                 reply_markup=markups.get_markup_mainSettings(),
+            )            
+        elif call_data == "changeShopName":
+            pass
+        elif call_data == "changeShopGreeting":
+            pass
+        elif call_data == "changeShopRefund":
+            pass
+        elif call_data.startswith("changeEnable"):
+            try:
+                match call_data[12:]:
+                    case "Sticker":
+                        settings.set_enable_sticker("0" if settings.is_sticker_enabled() else "1")
+                    case "PhoneNumber":
+                        settings.set_enable_phone_number("0" if settings.is_phone_number_enabled() else "1")
+                    case "HomeAdress":
+                        settings.set_enable_home_adress("0" if settings.is_home_adress_enabled() else "1")
+                    case "Captcha":
+                        settings.set_enable_captcha("0" if settings.is_captcha_enabled() else "1")
+                text = tt.main_settings
+                markup = markups.get_markup_mainSettings()
+            except:
+                text = tt.error
+                markup = markups.single_button(markups.btnBackMainSettings)
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markup,
             )
 
         elif call_data == "statsSettings":

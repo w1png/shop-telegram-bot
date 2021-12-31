@@ -47,7 +47,7 @@ class Settings:
     def is_sticker_enabled(self):
         return self.__get_config()["shop_settings"]["enablesticker"] == "1"
     
-    def set_sticker(self, value):
+    def set_enable_sticker(self, value):
         self.set_setting("shop_settings", "enablesticker", value)
     
     def get_refund_policy(self):
@@ -77,7 +77,7 @@ class Settings:
     def is_captcha_enabled(self):
         return self.__get_config()["shop_settings"]["enablecaptcha"] == "1"
     
-    def set_captcha(self, value):
+    def set_enable_captcha(self, value):
         self.set_setting("shop_settings", "enablecaptcha", value)
         
     # stats_settings
