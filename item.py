@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
@@ -168,6 +169,12 @@ class Order:
     def get_date(self):
         return self.__clist()[7]
     
+    # Order status codes:
+    # 0 - Processing
+    # 1 - Delievery
+    # 2 - Done
+    # -1 - Canceled
+    
     def get_status(self):
         return self.__clist()[8]
     
@@ -175,4 +182,11 @@ class Order:
         c.execute(f"UPDATE orders SET status=? WHERE order_id=?", [value, self.get_order_id()])
         conn.commit()
     
+def does_order_exist(order_id):
+    c.execute(f"SELECT * FROM orders WHERE order_id=?", [order_id])
+    return len(list(c)) == 1
     
+def create_order(order_id, user_id, item_list, email_adress, additional_message, phone_number="None", home_adress="None"):
+    c.execute(f"INSERT INTO orders VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", [order_id, user_id, item_list, email_adress, phone_number, home_adress, additional_message, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 0])
+    conn.commit()
+    return Order(order_id)

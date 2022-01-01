@@ -55,13 +55,14 @@ class seeUserProfile(StatesGroup):
 # Checkout
 class checkoutCart(StatesGroup):
     # Data
-    state_message = State()
     user_id = State()
     item_list_comma = State()
+    order_id = State()
     
     # Required
     email = State()
     additional_message = State()
+    confirmation = State()
 
     # Additional
     phone_number = State()

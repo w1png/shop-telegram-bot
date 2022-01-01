@@ -41,6 +41,7 @@ btnBackCatalogue = types.InlineKeyboardButton(text=tt.back, callback_data="catal
 def btnBackViewCat(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"viewCat{cat_id}")
 def btnBackViewItem(item_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"viewItem{item_id}")
 btnBackCart = types.InlineKeyboardButton(text=tt.back, callback_data="cart")
+btnBackCartDel = types.InlineKeyboardButton(text=tt.back, callback_data="cartDel")
 
 # Single buttons
 btnAdminPanel = types.KeyboardButton(tt.admin_panel)
@@ -100,6 +101,17 @@ def get_markup_cart(user):
     markup.add(types.InlineKeyboardButton(text=tt.clear_cart, callback_data="clearCart"))
     markup.add(types.InlineKeyboardButton(text=f"Всего: {user.get_cart_price()}руб.", callback_data="None"))
     markup.add(types.InlineKeyboardButton(text=tt.cart_checkout, callback_data="checkoutCart"))   
+    return markup
+
+def get_markup_captcha():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text="Новая CAPTCHA", callback_data="refreshCaptcha"))
+    markup.add(btnBackCartDel)
+    return markup
+
+def get_markup_checkoutCartConfirmation():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.confirm, callback_data=f"checkoutCartConfirm"), types.InlineKeyboardButton(text=tt.deny, callback_data="cart"))
     return markup
 
 # Catalogue

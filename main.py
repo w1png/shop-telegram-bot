@@ -4,9 +4,12 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.types import message, message_entity, message_id, user
 from aiogram.types.callback_query import CallbackQuery
-from random import choice
-from string import ascii_uppercase, digits
+from random import choice, randint
+from string import ascii_lowercase, ascii_uppercase, digits
 from captcha.image import ImageCaptcha
+from re import match as matchre
+from phonenumbers import parse as phoneparse
+from phonenumbers import is_possible_number
 
 import markups
 import state_handler
@@ -29,12 +32,13 @@ bot = Bot(token=settings.get_token())
 dp = Dispatcher(bot, storage=storage)
 
 
-def generate_captcha():
+def get_captcha_text(): return ''.join([choice(ascii_uppercase + digits) for i in range(5)])
+
+def generate_captcha(captcha_text):
     image = ImageCaptcha(width = 280, height = 90)
-    captcha = ''.join([choice(ascii_uppercase + digits) for i in range(5)])
-    image.generate(captcha)
-    image.write(captcha, "images/captcha.png")
-    return captcha
+    image.generate(captcha_text)
+    image.write(captcha_text, "images/captcha.png")
+    return open("images/captcha.png", "rb")
 
 
 @dp.message_handler(commands=['start'])
@@ -834,11 +838,31 @@ async def process_callback(callback_query: types.CallbackQuery):
             else:
                 text = tt.cart_is_empty
                 markup = types.InlineKeyboardMarkup()
-            await bot.send_message(
-                chat_id=message.chat.id,
+            
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
                 text=text,
-                reply_markup=markup
+                reply_markup=markup,
             )
+        
+        elif call_data == "cartDel":
+            if user.get_cart():
+                text = tt.cart
+                markup = markups.get_markup_cart(user)
+            else:
+                text = tt.cart_is_empty
+                markup = types.InlineKeyboardMarkup()
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_message(
+                chat_id=chat_id,
+                text=text,
+                reply_markup=markup,
+            )
+        
         
         elif call_data == "clearCart":
             user.clear_cart()
@@ -883,17 +907,12 @@ async def process_callback(callback_query: types.CallbackQuery):
             
         elif call_data == "checkoutCart":
             await bot.edit_message_text(
-                chat_id=message.chat.id,
+                chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text=f"Введите ваш Email адрес или нажмите на кнопку \"Назад\".",
                 reply_markup=markups.single_button(markups.btnBackCart),
             )
-            if settings.is_phone_number_enabled():
-                await state_handler.checkoutCart.phone_number.set()
-            elif settings.is_home_adress_enabled():
-                await state_handler.checkoutCart.home_adress.set()
-            else:
-                await state_handler.checkoutCart.additional_message.set()
+            await state_handler.checkoutCart.email.set()
             state = Dispatcher.get_current().current_state()
             await state.update_data(state_message=callback_query.message.message_id)
             await state.update_data(user_id=chat_id)
@@ -1208,6 +1227,111 @@ async def changeShopContactsSetContacts(message: types.Message, state: FSMContex
     )
     await state.finish()
 
+# Cart checkout
+# Required
+@dp.message_handler(state=state_handler.checkoutCart.email)
+async def checkoutCartSetEmail(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    if matchre(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", message.text): # I am not familiar with how re package works. Taken from here: https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address
+        await state.update_data(email=message.text)
+        if settings.is_phone_number_enabled():
+            text = f"Введите ваш номер телефона или нажмите на кнопку \"Назад\"."
+            await state_handler.checkoutCart.phone_number.set()
+        elif settings.is_home_adress_enabled():
+            text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
+            await state_handler.checkoutCart.home_adress.set()
+        else:
+            text = f"Введите комментарий к заказу или нажмите на кнопку \"Назад\"."
+            await state_handler.checkoutCart.additional_message.set()
+    else:
+        text = f"\"{message.text}\" не является действительным Email адресом."
+        await state.finish()
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackCart),
+    )
+    
+@dp.message_handler(state=state_handler.checkoutCart.phone_number)
+async def checkoutCartSetPhoneNumber(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    if is_possible_number(phoneparse(message.text, "RU")):
+        await state.update_data(phone_number=message.text)
+        if settings.is_home_adress_enabled():
+            text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
+            await state_handler.checkoutCart.home_adress.set()
+        else:
+            text = f"Введите комментарий к заказу или нажмите на кнопку \"Назад\"."
+            await state_handler.checkoutCart.additional_message.set()
+    else:
+        text = f"\"{message.text}\" не является действительным номером телефона."
+        await state.finish()
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackCart),
+    )
+       
+@dp.message_handler(state=state_handler.checkoutCart.home_adress)
+async def checkoutCartSetHomeAdress(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    await state.update_data(home_adress=message.text)
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=f"Введите комментарий к заказу или нажмите на кнопку \"Назад\".",
+        reply_markup=markups.single_button(markups.btnBackCart),
+    )
+    await state_handler.checkoutCart.additional_message.set()
+        
+@dp.message_handler(state=state_handler.checkoutCart.additional_message)
+async def checkoutCartSetAdditionalMessage(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    await state.update_data(additional_message=message.text)
+    if settings.is_captcha_enabled():
+        captcha_text = get_captcha_text()
+        await state.update_data(captcha=captcha_text)
+        await bot.send_photo(
+            chat_id=message.chat.id,
+            caption=f"Введите текст с картинки для подтверждения заказа.",
+            photo=generate_captcha(captcha_text),
+            reply_markup=markups.get_markup_captcha()
+        )
+        await state_handler.checkoutCart.captcha.set()
+    else:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text="da?",
+            reply_markup=markups.get_markup_checkoutCartConfirmation(),
+        )
+        await state_handler.checkoutCart.confirmation.set()
+        
+@dp.message_handler(state=state_handler.checkoutCart.captcha)
+async def checkoutCartCheckCaptcha(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    user = usr.User(data["user_id"])
+    if message.text.lower() == data["captcha"].lower():
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=data["additional_message"], phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_home_adress_enabled() else None),
+            reply_markup=markups.get_markup_checkoutCartConfirmation(),
+        )
+        await state_handler.checkoutCart.confirmation.set()
+    else:
+        captcha_text = get_captcha_text()
+        await state.update_data(captcha=captcha_text)
+        await bot.send_photo(
+            chat_id=message.chat.id,
+            caption=f"Введите текст с картинки для подтверждения заказа.",
+            photo=generate_captcha(captcha_text),
+            reply_markup=markups.get_markup_captcha()
+        )
+        await state_handler.checkoutCart.captcha.set() 
+
 # State callbacks
 @dp.callback_query_handler(state='*')
 async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
@@ -1215,6 +1339,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
     call_data = callback_query.data
     state = Dispatcher.get_current().current_state()
     data = await state.get_data()
+    user = usr.User(callback_query.message.chat.id)
 
     if DEBUG:
         print(f"DEBUG: CALL [{chat_id}] {call_data} (STATE)")
@@ -1346,7 +1471,59 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             await state.finish()
         else:
             await state.finish()
-
+    else:
+        if call_data == "cart":
+            if user.get_cart():
+                text = tt.cart
+                markup = markups.get_markup_cart(user)
+            else:
+                text = tt.cart_is_empty
+                markup = types.InlineKeyboardMarkup()
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markup,
+            )
+        elif call_data == "refreshCaptcha":
+            captcha_text = get_captcha_text()
+            await state.update_data(captcha=captcha_text)
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_photo(
+                chat_id=chat_id,
+                caption=f"Введите текст с картинки для подтверждения заказа.",
+                photo=generate_captcha(captcha_text),
+                reply_markup=markups.get_markup_captcha()
+            )
+            await state_handler.checkoutCart.captcha.set() 
+        elif call_data == "checkoutCartConfirm":
+            while True:
+                order_id = randint(100000, 999999)
+                if not itm.does_order_exist(order_id):
+                    break
+            user_id = data["user_id"]
+            item_list_comma = user.get_cart_comma()
+            email = data["email"]
+            additional_message = data["additional_message"]
+            phone_number = data["phone_number"] if settings.is_phone_number_enabled() else None
+            home_adress = data["home_adress"] if settings.is_home_adress_enabled() else None
+            
+            # TODO: error handling
+            order = itm.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)
+            user.clear_cart()
+            await bot.delete_message(
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
+            )
+            await bot.send_message(
+                chat_id=chat_id,
+                text=f"Заказ с ID {order.get_order_id()} был успешно создан.",
+                reply_markup=markups.single_button(markups.btnBackCart),
+            )
+            await state.finish()
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
