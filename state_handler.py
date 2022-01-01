@@ -50,7 +50,9 @@ class notifyEveryone(StatesGroup):
 class seeUserProfile(StatesGroup):
     state_message = State()
     user_id = State()
-    
+
+
+# Checkout
 class checkoutCart(StatesGroup):
     # Data
     state_message = State()
@@ -65,3 +67,20 @@ class checkoutCart(StatesGroup):
     phone_number = State()
     home_adress = State()
     captcha = State()
+
+# Main settings
+class changeShopName(StatesGroup):
+    state_message = State()
+    name = State()
+    
+class changeShopGreeting(StatesGroup):
+    state_message = State()
+    greeting = State()
+    
+class changeShopRefundPolicy(StatesGroup):
+    state_message = State()
+    refund_policy = State()
+    
+class changeShopContacts(StatesGroup):
+    state_message = State()
+    contacts = State()

@@ -111,7 +111,6 @@ async def handle_text(message):
 async def process_callback(callback_query: types.CallbackQuery):
     chat_id = callback_query.message.chat.id
     call_data = callback_query.data
-    settings = Settings()
     
     if DEBUG:
         print(f"DEBUG: CALL [{chat_id}] {call_data}")
@@ -518,11 +517,45 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_mainSettings(),
             )            
         elif call_data == "changeShopName":
-            pass
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новое название магазина или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackMainSettings),
+            )
+            await state_handler.changeShopName.name.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data == "changeShopGreeting":
-            pass
-        elif call_data == "changeShopRefund":
-            pass
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новое приветствие магазина или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackMainSettings),
+            )
+            await state_handler.changeShopGreeting.greeting.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
+        elif call_data == "changeShopRefundPolicy":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новую политику возврата магазина или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackMainSettings),
+            )
+            await state_handler.changeShopRefundPolicy.refund_policy.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
+        elif call_data == "changeShopContacts":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новый текст для вкладки \"Контакты\" возврата магазина или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackMainSettings),
+            )
+            await state_handler.changeShopContacts.contacts.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("changeEnable"):
             try:
                 match call_data[12:]:
@@ -1094,6 +1127,87 @@ async def seeUserProfileSetUserID(message: types.Message, state: FSMContext):
     )
     await state.finish()
 
+# Main settings
+@dp.message_handler(state=state_handler.changeShopName.name)
+async def changeShopNameSetName(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    try:
+        text = f"Название магазина было изменено с \"{settings.get_shop_name()}\" на \"{message.text}\"."
+        settings.set_shop_name(message.text)
+    except:
+        text = tt.error
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackMainSettings),
+    )
+    await state.finish()
+    
+@dp.message_handler(state=state_handler.changeShopGreeting.greeting)
+async def changeShopGreetingSetGreeting(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    try:
+        text = f"Приветствие магазина было изменено с \"{settings.get_shop_name()}\" на \"{message.text}\"."
+        settings.set_shop_greeting(message.text)
+    except:
+        text = tt.error
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackMainSettings),
+    )
+    await state.finish()
+    
+@dp.message_handler(state=state_handler.changeShopRefundPolicy.refund_policy)
+async def changeShopContactsSetContacts(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    try:
+        text = f"Политика возврата магазина была изменена с \"{settings.get_shop_name()}\" на \"{message.text}\"."
+        settings.set_refund_policy(message.text)
+    except:
+        text = tt.error
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackMainSettings),
+    )
+    await state.finish()
+    
+@dp.message_handler(state=state_handler.changeShopContacts.contacts)
+async def changeShopContactsSetContacts(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    try:
+        text = f"Текст для вкладки \"Контакты\" был изменен с \"{settings.get_shop_name()}\" на \"{message.text}\"."
+        settings.set_shop_contacts(message.text)
+    except:
+        text = tt.error
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackMainSettings),
+    )
+    await state.finish()
+
 # State callbacks
 @dp.callback_query_handler(state='*')
 async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
@@ -1220,6 +1334,14 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 message_id=callback_query.message.message_id,
                 text=tt.get_profile_template(user),
                 reply_markup=markups.get_markup_seeUserProfile(user),
+            )
+            await state.finish()
+        elif call_data == "mainSettings":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.main_settings,
+                reply_markup=markups.get_markup_mainSettings(),
             )
             await state.finish()
         else:
