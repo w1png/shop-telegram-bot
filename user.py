@@ -46,11 +46,9 @@ class User:
     def notif_on(self):
         return self.__clist()[3] == 1
 
-    def enable_notif(self):
-        c.execute(f"UPDATE users SET notification=1 WHERE user_id={self.get_id()}")
-
-    def disable_notif(self):
-        c.execute(f"UPDATE users SET notification=0 WHERE user_id={self.get_id()}")
+    def set_notif_enable(self, value):
+        c.execute(f"UPDATE users SET notification=? WHERE user_id=?", [value, self.get_id()])
+        conn.commit()
 
     def get_orders(self):
         c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")

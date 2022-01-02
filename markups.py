@@ -78,14 +78,12 @@ def get_markup_faq():
     markup.add(types.InlineKeyboardButton(text=tt.refund, callback_data="refund"))
     return markup
 
-def get_markup_profile(user_id):
+def get_markup_profile(user):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.my_orders, callback_data="myOrders"))
     # markup.add(types.InlineKeyboardButton(text=tt.my_support_tickets, callback_data="mySupportTickets"))
-
-    user = usr.User(user_id)
     if user.is_admin():
-        markup.add(types.InlineKeyboardButton(text=tt.disable_notif if user.notif_on() else tt.enable_notif, callback_data="disableNotif" if user.notif_on() else "enableNotif"))
+        markup.add(types.InlineKeyboardButton(text=tt.disable_notif if user.notif_on() else tt.enable_notif, callback_data="changeEnableNotif"))
     return markup
 
 def get_markup_myOrders(order_list):

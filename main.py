@@ -87,7 +87,7 @@ async def handle_text(message):
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.get_profile_template(user),
-            reply_markup=markups.get_markup_profile(user.get_id()),
+            reply_markup=markups.get_markup_profile(user),
         )
     elif message.text == tt.catalogue: 
         await bot.send_message(
@@ -802,7 +802,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text=tt.get_profile_template(user),
-                reply_markup=markups.get_markup_profile(user_id=user.get_id()),
+                reply_markup=markups.get_markup_profile(user),
             )
         elif call_data == "myOrders":
             user = usr.User(chat_id)
@@ -837,6 +837,14 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=tt.get_order_template(order),
                 reply_markup=markups.get_markup_viewMyOrder(order),
+            )
+        elif call_data == "changeEnableNotif":
+            user.set_notif_enable(0 if user.notif_on() else 1)
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_profile_template(user),
+                reply_markup=markups.get_markup_profile(user),
             )
 
         # Catalogue
