@@ -87,7 +87,7 @@ async def handle_text(message):
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.get_profile_template(user),
-            reply_markup=markups.get_markup_profile(user),
+            reply_markup=markups.get_markup_profile(user.get_id()),
         )
     elif message.text == tt.catalogue: 
         await bot.send_message(
@@ -571,6 +571,8 @@ async def process_callback(callback_query: types.CallbackQuery):
                         settings.set_enable_home_adress("0" if settings.is_home_adress_enabled() else "1")
                     case "Captcha":
                         settings.set_enable_captcha("0" if settings.is_captcha_enabled() else "1")
+                    case "Debug": 
+                        settings.set_debug("0" if settings.is_debug() else "1")
                 text = tt.main_settings
                 markup = markups.get_markup_mainSettings()
             except:

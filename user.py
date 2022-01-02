@@ -13,9 +13,10 @@ class User:
         self.user_id = user_id
 
         if not does_user_exist(self.get_id()):
+            print(self.get_id())
             conf = ConfigParser()
             conf.read('config.ini', encoding='utf8')
-            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)", [self.get_id(), 0, 1 if str(self.get_id()) == conf["main"]["main_admin_id"] else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)", [self.get_id(), 0, 1 if str(self.get_id()) == conf["main_settings"]["mainadminid"] else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
             conn.commit()
 
     def get_id(self):

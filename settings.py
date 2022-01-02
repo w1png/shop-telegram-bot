@@ -20,7 +20,7 @@ class Settings:
         self.set_setting("main_settings", "token", value)
         
     def is_debug(self):
-        return self.__get_config()["main_settings"]["debug"] == "True"
+        return self.__get_config()["main_settings"]["debug"] == "1"
         
     def set_debug(self, value):
         self.set_setting("main_settings", "debug", value)
