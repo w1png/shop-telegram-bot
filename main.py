@@ -1553,16 +1553,19 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             phone_number = data["phone_number"] if settings.is_phone_number_enabled() else None
             home_adress = data["home_adress"] if settings.is_home_adress_enabled() else None
             
-            # TODO: error handling
-            order = itm.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)
-            user.clear_cart()
+            try:
+                order = itm.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)
+                user.clear_cart()
+                text = f"Заказ с ID {order.get_order_id()} был успешно создан."
+            except:
+                text = tt.error
             await bot.delete_message(
                 message_id=callback_query.message.message_id,
                 chat_id=chat_id
             )
             await bot.send_message(
                 chat_id=chat_id,
-                text=f"Заказ с ID {order.get_order_id()} был успешно создан.",
+                text=text,
                 reply_markup=markups.single_button(markups.btnBackCart),
             )
             await state.finish()
