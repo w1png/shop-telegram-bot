@@ -560,6 +560,14 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state_handler.changeShopContacts.contacts.set()
             state = Dispatcher.get_current().current_state()
             await state.update_data(state_message=callback_query.message.message_id)
+            
+        elif call_data == "checkoutSettings":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.checkout_settings,
+                reply_markup=markups.get_markup_checkoutSettings(),
+            )
         elif call_data.startswith("changeEnable"):
             try:
                 match call_data[12:]:
@@ -573,18 +581,18 @@ async def process_callback(callback_query: types.CallbackQuery):
                         settings.set_enable_captcha("0" if settings.is_captcha_enabled() else "1")
                     case "Debug": 
                         settings.set_debug("0" if settings.is_debug() else "1")
-                text = tt.main_settings
-                markup = markups.get_markup_mainSettings()
+                text = tt.checkout_settings
+                markup = markups.get_markup_checkoutSettings()
             except:
                 text = tt.error
-                markup = markups.single_button(markups.btnBackMainSettings)
+                markup = markups.single_button(markups.btnBackCheckoutSettings)
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text=text,
                 reply_markup=markup,
             )
-
+            
         elif call_data == "statsSettings":
             await bot.delete_message(
                 message_id=callback_query.message.message_id,

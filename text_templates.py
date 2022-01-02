@@ -99,6 +99,7 @@ daily = "За последние 24 часа"
 
 # Shop settings
 main_settings = "🛠️ Основные настройки"
+checkout_settings = "💳 Настройки оформления заказа"
 stats_settings = "📈 Настройки статистики"
 graph_color = "🌈 Цвет графика"
 border_width = "🔲 Ширина обводки"
