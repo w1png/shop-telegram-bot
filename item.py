@@ -146,21 +146,11 @@ class Order:
         return list(map(Item, [item_id for item_id in self.get_item_list_comma().split(",")]))
     
     def get_item_list_amount(self):
-        item_list = [item.get_id() for item in self.get_item_list()]
-        amounts = dict()
-        for item_id in item_list:
-            if item_id in amounts:
-                amounts[item_id] += 1
-            else:
-                amounts[item_id] = 1
-        return [[Item(item_id), amounts[item_id]] for item_id in amounts.keys()]
+        cart = [item.get_id() for item in self.get_item_list()]
+        return [[Item(item_id), cart.count(item_id)] for item_id in set(cart)]
     
     def get_item_list_price(self):
-        item_list = self.get_item_list_amount()
-        total = 0
-        for item_and_price in item_list:
-            total += item_and_price[0].get_price() * item_and_price[1]
-        return total
+        return sum([item_and_price[0].get_price() * item_and_price[1] for item_and_price in self.get_item_list_amount()])
     
     def set_item_list(self, value):
         c.execute(f"UPDATE orders SET item_list=? WHERE order_id=?", [value, self.get_order_id()])
