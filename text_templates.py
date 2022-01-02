@@ -1,3 +1,7 @@
+from settings import Settings
+
+settings = Settings()
+
 line_separator = "➖➖➖➖➖➖➖➖➖➖"
 
 
@@ -27,13 +31,16 @@ def get_item_card(item=None, name=None, price=None, desc=None, amount=None):
     return f"{line_separator}\n{name} - {'{:.2f}'.format(price)} руб.\nВ наличии: {amount} шт.\n{line_separator}\n{desc}"
 
 def get_order_confirmation_template(item_amount_dict, cart_price, email_adress, additional_message, phone_number=None, home_adress=None):
-    item_amount_dict_formatted = '\n'.join([f'{item[0].get_name()} - {item[1]} шт.' for item in item_amount_dict])
+    item_amount_dict_formatted = '\n'.join([f'\t· {item[0].get_name()} - {item[1]} шт.' for item in item_amount_dict])
     phone_number = f"Номер телефона: {phone_number}\n" if phone_number else ""
     home_adress = f"Адрес доставки: {home_adress}\n" if home_adress else ""
-    return f"{line_separator}\nТовары: {item_amount_dict_formatted}\nСумма: {cart_price}руб.\nEmail: {email_adress}\n{phone_number}{home_adress}Комментарий к заказу: {additional_message}\n{line_separator}\nВы уверены, что хотите оформить заказ?"
+    return f"{line_separator}\nТовары:\n{item_amount_dict_formatted}\nСумма: {cart_price}руб.\nEmail: {email_adress}\n{phone_number}{home_adress}Комментарий к заказу: {additional_message}\n{line_separator}\nВы уверены, что хотите оформить заказ?"
     
 def get_order_template(order):
-    pass
+    item_list_amount_formatted = '\n'.join([f'\t· {item[0].get_name()} - {item[1]} шт.' for item in order.get_item_list_amount()])
+    phone_number = f"Номер телефона: {order.get_phone_number()}\n" if settings.is_phone_number_enabled() else ""
+    home_adress = f"Адрес доставки: {order.get_home_adress()}\n" if settings.is_home_adress_enabled() else ""
+    return f"{line_separator}\nТовары:\n{item_list_amount_formatted}\nСумма: {order.get_item_list_price()}руб.\nEmail: {order.get_email_adress()}\n{phone_number}{home_adress}Комментарий к заказу: {order.get_additional_message()}\nСтатус заказа: {order.get_status_string()}\n{line_separator}"
 
 # Single phrases
 # /start
@@ -56,6 +63,8 @@ refund = "🎫 Политика возврата"
 
 # Profile
 my_orders = "📂 Мои заказы"
+cancel_order = "❌ Отменить заказ"
+restore_order = "✅ Восстановить заказ"
 my_support_tickets = "🙋 Мои тикеты в тех. поддержку"
 enable_notif = "🔔Включить ововещения о кол-ве товара"
 disable_notif = "🔕Выключить ововещения о кол-ве товара"
@@ -65,6 +74,10 @@ add_to_cart = "🛒 Добавить в корзину"
 cart_is_empty = "Корзина пуста."
 cart_checkout = "Оформить заказ"
 clear_cart = "Отчистить корзину"
+processing = "Обрабатывается"
+delievery = "Ожидает доставки"
+done = "Готов"
+cancelled = "Отменён"
 
 # Item management
 add_cat = "🛍️ Добавить категорию"

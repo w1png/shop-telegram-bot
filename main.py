@@ -812,8 +812,32 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.my_orders,
                 reply_markup=markups.get_markup_myOrders(user.get_orders()),
             )
-        elif call_data.startswith("seeMyOrder"):
-            pass
+        elif call_data.startswith("viewMyOrder"):
+            order = itm.Order(call_data[11:])
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_order_template(order),
+                reply_markup=markups.get_markup_viewMyOrder(order),
+            )
+        elif call_data.startswith("cancelOrder"):
+            order = itm.Order(call_data[11:])
+            order.set_status(-1)
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_order_template(order),
+                reply_markup=markups.get_markup_viewMyOrder(order),
+            )
+        elif call_data.startswith("restoreOrder"):
+            order = itm.Order(call_data[12:])
+            order.set_status(0)
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_order_template(order),
+                reply_markup=markups.get_markup_viewMyOrder(order),
+            )
 
         # Catalogue
         elif call_data == "catalogue":

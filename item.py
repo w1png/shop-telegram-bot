@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+import text_templates as tt
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
@@ -124,6 +125,9 @@ def create_cat(cat_name):
 class Order:
     def __init__(self, id):
         self.id = id
+        
+    def __repr__(self):
+        return f"{self.get_id()}"
     
     def get_order_id(self):
         return self.id
@@ -135,8 +139,28 @@ class Order:
     def get_user_id(self):
         return self.__clist()[1]
     
+    def get_item_list_comma(self):
+        return self.__clist()[2]
+    
     def get_item_list(self):
-        return list(map(Item, [item_id for item_id in self.__clist()[2].split(",")]))
+        return list(map(Item, [item_id for item_id in self.get_item_list_comma().split(",")]))
+    
+    def get_item_list_amount(self):
+        item_list = [item.get_id() for item in self.get_item_list()]
+        amounts = dict()
+        for item_id in item_list:
+            if item_id in amounts:
+                amounts[item_id] += 1
+            else:
+                amounts[item_id] = 1
+        return [[Item(item_id), amounts[item_id]] for item_id in amounts.keys()]
+    
+    def get_item_list_price(self):
+        item_list = self.get_item_list_amount()
+        total = 0
+        for item_and_price in item_list:
+            total += item_and_price[0].get_price() * item_and_price[1]
+        return total
     
     def set_item_list(self, value):
         c.execute(f"UPDATE orders SET item_list=? WHERE order_id=?", [value, self.get_order_id()])
@@ -177,6 +201,14 @@ class Order:
     
     def get_status(self):
         return self.__clist()[8]
+    
+    def get_status_string(self):
+        return {
+            0: tt.processing,
+            1: tt.delievery,
+            2: tt.done,
+            -1: tt.cancelled,
+        }[self.get_status()]
     
     def set_status(self, value):
         c.execute(f"UPDATE orders SET status=? WHERE order_id=?", [value, self.get_order_id()])

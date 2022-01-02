@@ -38,6 +38,7 @@ btnBackCheckoutSettings = types.InlineKeyboardButton(text=tt.back, callback_data
 # /start menu
 btnBackFaq = types.InlineKeyboardButton(text=tt.back, callback_data="faq")
 btnBackProfile = types.InlineKeyboardButton(text=tt.back, callback_data="profile")
+btnBackMyOrder = types.InlineKeyboardButton(text=tt.back, callback_data="myOrders")
 btnBackCatalogue = types.InlineKeyboardButton(text=tt.back, callback_data="catalogue")
 def btnBackViewCat(cat_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"viewCat{cat_id}")
 def btnBackViewItem(item_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"viewItem{item_id}")
@@ -89,7 +90,19 @@ def get_markup_profile(user_id):
 
 def get_markup_myOrders(order_list):
     markup = types.InlineKeyboardMarkup()
-    
+    for order in order_list:
+        markup.add(types.InlineKeyboardButton(text=order.get_order_id(), callback_data=f"viewMyOrder{order.get_order_id()}"))
+    markup.add(btnBackProfile)
+    return markup
+
+def get_markup_viewMyOrder(order):
+    markup = types.InlineKeyboardMarkup()
+    match order.get_status():
+        case 0:
+            markup.add(types.InlineKeyboardButton(text=tt.cancel_order, callback_data=f"cancelOrder{order.get_order_id()}"))
+        case -1:
+            markup.add(types.InlineKeyboardButton(text=tt.restore_order, callback_data=f"restoreOrder{order.get_order_id()}"))
+    markup.add(btnBackMyOrder)
     return markup
 
 def get_markup_cart(user):
