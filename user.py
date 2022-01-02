@@ -63,23 +63,12 @@ class User:
             return []
         return list(map(itm.Item, cart.split(",")))
     
-    # TODO: remake
     def get_cart_amount(self):
         cart = [item.get_id() for item in self.get_cart()]
-        amounts = dict()
-        for item_id in cart:
-            if item_id in amounts:
-                amounts[item_id] += 1
-            else:
-                amounts[item_id] = 1
-        return [[itm.Item(item_id), amounts[item_id]] for item_id in amounts.keys()]
+        return [[itm.Item(item_id), cart.count(item_id)] for item_id in set(cart)]
     
     def get_cart_price(self):
-        cart = self.get_cart_amount()
-        total = 0
-        for item_and_price in cart:
-            total += item_and_price[0].get_price() * item_and_price[1]
-        return total
+        return sum([item_and_price[0].get_price() * item_and_price[1] for item_and_price in self.get_cart_amount()])
     
     def clear_cart(self):
         c.execute(f"UPDATE users SET cart=\"None\" WHERE user_id=?", [self.get_id()])
@@ -87,11 +76,7 @@ class User:
         
     def add_to_cart(self, item_id):
         cart = self.get_cart()
-        if cart:
-            cart_text = ",".join([str(item.get_id()) for item in cart + [itm.Item(item_id)]])
-        else:
-            cart_text = item_id
-        c.execute(f"UPDATE users SET cart=\"{cart_text}\" WHERE user_id=?", [self.get_id()])
+        c.execute(f"UPDATE users SET cart=? WHERE user_id=?", [",".join([str(item.get_id()) for item in cart + [itm.Item(item_id)]]) if cart else item_id, self.get_id()])
         conn.commit()
         
     def remove_from_cart(self, item_id):
@@ -100,7 +85,6 @@ class User:
         cart_text = ",".join(cart)
         c.execute(f"UPDATE users SET cart=\"{cart_text}\" WHERE user_id=?", [self.get_id()])
         conn.commit()
-        
         
 
 def does_user_exist(user_id):
