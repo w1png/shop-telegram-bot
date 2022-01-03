@@ -5,7 +5,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import message, message_entity, message_id, user
 from aiogram.types.callback_query import CallbackQuery
 from random import choice, randint
-from string import ascii_lowercase, ascii_uppercase, digits
+from string import ascii_uppercase, digits
 from captcha.image import ImageCaptcha
 from re import match as matchre
 from phonenumbers import parse as phoneparse
@@ -570,9 +570,13 @@ async def process_callback(callback_query: types.CallbackQuery):
             )
         elif call_data.startswith("changeEnable"):
             try:
+                text = tt.checkout_settings
+                markup = markups.get_markup_checkoutSettings()
                 match call_data[12:]:
                     case "Sticker":
                         settings.set_enable_sticker("0" if settings.is_sticker_enabled() else "1")
+                        text = tt.main_settings
+                        markup = markups.get_markup_mainSettings()
                     case "PhoneNumber":
                         settings.set_enable_phone_number("0" if settings.is_phone_number_enabled() else "1")
                     case "HomeAdress":
@@ -581,8 +585,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                         settings.set_enable_captcha("0" if settings.is_captcha_enabled() else "1")
                     case "Debug": 
                         settings.set_debug("0" if settings.is_debug() else "1")
-                text = tt.checkout_settings
-                markup = markups.get_markup_checkoutSettings()
             except:
                 text = tt.error
                 markup = markups.single_button(markups.btnBackCheckoutSettings)
