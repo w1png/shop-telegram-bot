@@ -282,13 +282,13 @@ def get_markup_mainSettings():
     markup.add(types.InlineKeyboardButton(text=f"Приветствие: {settings.get_shop_greeting()}", callback_data="admin_changeShopGreeting"))
     markup.add(types.InlineKeyboardButton(text=f"Политика возврата: {settings.get_refund_policy()}", callback_data="admin_changeShopRefundPolicy"))
     markup.add(types.InlineKeyboardButton(text=f"Контакты: {settings.get_shop_contacts()}", callback_data="admin_changeShopContacts"))
+    markup.add(types.InlineKeyboardButton(text=tt.disable_sticker if settings.is_sticker_enabled() else tt.enable_sticker, callback_data="admin_changeEnableSticker"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_debug if settings.is_debug() else tt.enable_debug, callback_data="admin_changeEnableDebug"))
     markup.add(btnBackShopSettings)
     return markup
 
 def get_markup_checkoutSettings():
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.disable_sticker if settings.is_sticker_enabled() else tt.enable_sticker, callback_data="admin_changeEnableSticker"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_phone_number if settings.is_phone_number_enabled() else tt.enable_phone_number, callback_data="admin_changeEnablePhoneNumber"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_home_adress if settings.is_home_adress_enabled() else tt.enable_home_adress, callback_data="admin_changeEnableHomeAdress"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_captcha if settings.is_captcha_enabled() else tt.enable_captcha, callback_data="admin_changeEnableCaptcha"))

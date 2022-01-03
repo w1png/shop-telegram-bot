@@ -13,7 +13,7 @@ def does_item_exist(item_id):
 
 class Item:
     def __init__(self, item_id):
-        self.item_id = item_id
+        self.__item_id = item_id
         
     def __eq__(self, __o: object):
         return self.get_id() == __o.get_id()
@@ -22,7 +22,7 @@ class Item:
         return f"[{self.get_id()}] {self.get_name()}"
 
     def get_id(self):
-        return self.item_id
+        return self.__item_id
     
     def __clist(self):
         c.execute(f"SELECT * FROM items WHERE id={self.get_id()}")
@@ -183,26 +183,23 @@ class Order:
     def get_date(self):
         return self.__clist()[7]
     
-    # Order status codes:
-    # 0 - Processing
-    # 1 - Delievery
-    # 2 - Done
-    # -1 - Canceled
-    
     def get_status(self):
         return self.__clist()[8]
     
     def get_status_string(self):
-        return {
-            0: tt.processing,
-            1: tt.delievery,
-            2: tt.done,
-            -1: tt.cancelled,
-        }[self.get_status()]
+        return get_status_dict()[self.__clist()[8]]
     
     def set_status(self, value):
         c.execute(f"UPDATE orders SET status=? WHERE order_id=?", [value, self.get_order_id()])
         conn.commit()
+    
+def get_status_dict():
+    return {
+            0: tt.processing,
+            1: tt.delievery,
+            2: tt.done,
+            -1: tt.cancelled,
+        }
     
 def does_order_exist(order_id):
     c.execute(f"SELECT * FROM orders WHERE order_id=?", [order_id])

@@ -1,26 +1,22 @@
-from configparser import ConfigParser
 import sqlite3
-from configparser import ConfigParser
 from datetime import datetime
 import item as itm
+from settings import Settings
 
 conn = sqlite3.connect('data.db')
 c = conn.cursor()
-
+settings = Settings()
 
 class User:
     def __init__(self, user_id):
-        self.user_id = user_id
+        self.__user_id = user_id
 
         if not does_user_exist(self.get_id()):
-            print(self.get_id())
-            conf = ConfigParser()
-            conf.read('config.ini', encoding='utf8')
-            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)", [self.get_id(), 0, 1 if str(self.get_id()) == conf["main_settings"]["mainadminid"] else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)", [self.get_id(), 0, 1 if str(self.get_id()) == settings.get_main_admin_id() else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
             conn.commit()
 
     def get_id(self):
-        return self.user_id
+        return self.__user_id
 
     def __clist(self):
         c.execute(f"SELECT * FROM users WHERE user_id={self.get_id()}")
@@ -59,9 +55,7 @@ class User:
     
     def get_cart(self):
         cart = self.get_cart_comma()
-        if cart == "None":
-            return []
-        return list(map(itm.Item, cart.split(",")))
+        return [] if cart == "None" else list(map(itm.Item, cart.split(",")))
     
     def get_cart_amount(self):
         cart = [item.get_id() for item in self.get_cart()]
@@ -81,9 +75,8 @@ class User:
         
     def remove_from_cart(self, item_id):
         cart = [item.get_id() for item in self.get_cart()]
-        cart.remove(item_id)
-        cart_text = ",".join(cart)
-        c.execute(f"UPDATE users SET cart=\"{cart_text}\" WHERE user_id=?", [self.get_id()])
+        cart.remove(str(item_id))
+        c.execute(f"UPDATE users SET cart=? WHERE user_id=?", [",".join(cart), self.get_id()])
         conn.commit()
         
 
@@ -109,3 +102,5 @@ def get_user_list():
 if __name__ == "__main__":
     user = User(772316661)
     user.add_to_cart(2)
+    user.remove_from_cart(2)
+    user.get_cart()
