@@ -109,7 +109,7 @@ def get_markup_cart(user):
         markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_name()} - {item_and_amount[0].get_price()}руб. - {item_and_amount[1]}шт.", callback_data=f"viewItem{item_and_amount[0].get_id()}"))
         markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_price() * item_and_amount[1]}руб.", callback_data="None"), types.InlineKeyboardButton(text=tt.plus, callback_data=f"addToCartFromCart{item_and_amount[0].get_id()}"), types.InlineKeyboardButton(text=tt.minus, callback_data=f"removeFromCartFromCart{item_and_amount[0].get_id()}"))
     if settings.is_delivery_enabled():
-        markup.add(types.InlineKeyboardButton(text=tt.delivery_off if user.is_cart_delivery() else tt.delivery_on, callback_data="changeCartDelivery"))
+        markup.add(types.InlineKeyboardButton(text=tt.delivery_on if user.is_cart_delivery() else tt.delivery_off, callback_data="changeCartDelivery"))
     else:
         markup.add(types.InlineKeyboardButton(text=tt.pickup, callback_data="None"))
         
@@ -303,8 +303,9 @@ def get_markup_itemSettings():
 
 def get_markup_checkoutSettings():
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.disable_phone_number if settings.is_phone_number_enabled() else tt.enable_phone_number, callback_data="admin_changeEnablePhoneNumber"))
+    markup.add(types.InlineKeyboardButton(text=tt.delivery_price, callback_data="admin_changeDeliveryPrice"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_delivery if settings.is_delivery_enabled() else tt.enable_delivery, callback_data="admin_changeEnableDelivery"))
+    markup.add(types.InlineKeyboardButton(text=tt.disable_phone_number if settings.is_phone_number_enabled() else tt.enable_phone_number, callback_data="admin_changeEnablePhoneNumber"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_captcha if settings.is_captcha_enabled() else tt.enable_captcha, callback_data="admin_changeEnableCaptcha"))
     markup.add(btnBackShopSettings)
     return markup
@@ -349,4 +350,13 @@ def get_markup_statsSettingsTickFontSize():
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.unavailable if settings.get_tickfontsize() == "2" else tt.minus, callback_data="None" if settings.get_tickfontsize() == "2" else "admin_statsSettingsTickFontSizeReduce"), types.InlineKeyboardButton(text=settings.get_tickfontsize(), callback_data="admin_statsSettingsTickFontSizeDefault"), types.InlineKeyboardButton(text=tt.plus, callback_data="admin_statsSettingsTickFontSizeAdd"))
     markup.add(btnBackStatsSettings)
+    return markup
+
+# Manager tab
+def btnViewOrder(order_id): return types.InlineKeyboardButton(text=tt.view_order, callback_data=f"admin_manageOrder{order_id}")
+
+def get_markup_manageOrder(order):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.change_status, callback_data=f"admin_changeOrderStatus{order.get_id()}"))
+    # TODO: manageOrder markup
     return markup

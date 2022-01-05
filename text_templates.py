@@ -39,8 +39,8 @@ def get_order_confirmation_template(item_amount_dict, cart_price, email_adress, 
 def get_order_template(order):
     item_list_amount_formatted = '\n'.join([f'\t· {item[0].get_name()} - {item[1]} шт.' for item in order.get_item_list_amount()])
     phone_number = f"Номер телефона: {order.get_phone_number()}\n" if settings.is_phone_number_enabled() else ""
-    home_adress = f"Адрес доставки: {order.get_home_adress()}\n" if settings.is_home_adress_enabled() else ""
-    return f"{line_separator}\nТовары:\n{item_list_amount_formatted}\nСумма: {order.get_item_list_price()}руб.\nEmail: {order.get_email_adress()}\n{phone_number}{home_adress}Комментарий к заказу: {order.get_additional_message()}\nСтатус заказа: {order.get_status_string()}\n{line_separator}"
+    home_adress = f"Адрес доставки: {order.get_home_adress()}\n" if settings.is_delivery_enabled() else f"Самовывоз\n"
+    return f"{line_separator}\nТовары:\n{item_list_amount_formatted}\nСумма: {order.get_item_list_price()}руб.\nEmail: {order.get_email_adress()}\n{phone_number}{home_adress}Комментарий к заказу: {order.get_additional_message()}\nСтатус заказа: {order.get_status_string()}\nДата: {order.get_date()}\n{line_separator}"
 
 # Single phrases
 # /start
@@ -66,8 +66,8 @@ my_orders = "📂 Мои заказы"
 cancel_order = "❌ Отменить заказ"
 restore_order = "✅ Восстановить заказ"
 my_support_tickets = "🙋 Мои тикеты в тех. поддержку"
-enable_notif = "🔔Включить ововещения о кол-ве товара"
-disable_notif = "🔕Выключить ововещения о кол-ве товара"
+enable_notif = "🔔Включить ововещения о заказах"
+disable_notif = "🔕Выключить ововещения о заказах"
 
 # Catalogue / Item / Cart
 add_to_cart = "🛒 Добавить в корзину"
@@ -134,10 +134,14 @@ enable_phone_number = "✅ Включить номер телефона при �
 disable_phone_number = "❌ Выключить номер телефона при заказе"
 enable_delivery = "✅ Включить доставку"
 disable_delivery = "❌ Выключить доставку"
+delivery_price = f"🚚 Стоимость доставки: {'{:.2f}'.format(settings.get_delivery_price())}руб."
 enable_captcha = "✅ Включить CAPTCHA при заказе"
 disable_captcha = "❌ Выключить CAPTCHA при заказе"
 enable_debug = "✅ Включить режим отладки"
 disable_debug = "❌ Выключить режим отладки"
+
+# Manager tab
+view_order = "📂 Посмотреть заказ"
 
 # Misc buttons
 skip = "⏭ Пропустить"

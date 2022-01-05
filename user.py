@@ -48,7 +48,7 @@ class User:
 
     def get_orders(self):
         c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
-        return list(map(itm.Order, [order[0] for order in list(c)]))
+        return list(map(itm.Order, [order[0] for order in list(c)]))[::-1]
     
     def get_cart_comma(self):
         return self.__clist()[5]

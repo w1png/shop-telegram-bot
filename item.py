@@ -1,10 +1,11 @@
 import sqlite3
+from settings import Settings
 from datetime import datetime
 import text_templates as tt
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
-
+settings = Settings()
 
 def does_item_exist(item_id):
     c.execute(f"SELECT * FROM items WHERE id={item_id}")
@@ -159,7 +160,7 @@ class Order:
         return [[Item(item_id), cart.count(item_id)] for item_id in set(cart)]
     
     def get_item_list_price(self):
-        return sum([item_and_price[0].get_price() * item_and_price[1] for item_and_price in self.get_item_list_amount()])
+        return sum([item_and_price[0].get_price() * item_and_price[1] for item_and_price in self.get_item_list_amount()]) + (float(settings.get_delivery_price()) if self.get_home_adress() != None else 0)
     
     def set_item_list(self, value):
         c.execute(f"UPDATE orders SET item_list=? WHERE order_id=?", [value, self.get_order_id()])

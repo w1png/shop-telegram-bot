@@ -32,7 +32,6 @@ storage = MemoryStorage()
 bot = Bot(token=settings.get_token())
 dp = Dispatcher(bot, storage=storage)
 
-
 def get_captcha_text(): return ''.join([choice(ascii_uppercase + digits) for i in range(5)])
 
 def generate_captcha(captcha_text):
@@ -360,8 +359,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=f"Заказы пользователя с ID {edit_user.get_id()}.",
                 reply_markup=markups.get_markup_seeUserOrders(edit_user),
             )
-        elif call_data.startswith("seeUserOrder"):
-            pass
         elif call_data.startswith("changeUserAdmin"):
             editUser = usr.User(int(call_data[15:]))
             if editUser.get_id() == user.get_id():
@@ -588,6 +585,16 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.checkout_settings,
                 reply_markup=markups.get_markup_checkoutSettings(),
             )
+        elif call_data == "changeDeliveryPrice":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите новую цену доставки или нажмите на кнопку \"Назад\".",
+                reply_markup=markups.single_button(markups.btnBackCheckoutSettings),
+            )
+            await state_handler.changeDeliveryPrice.price.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("changeEnable"):
             try:
                 # Checkout
@@ -799,6 +806,16 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_statsSettingsTickFontSize()
             )
             
+        # Manager tab
+        elif call_data.startswith("manageOrder"):
+            order = itm.Order(call_data[11:])
+            await bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_order_template(order),
+                reply_markup=markups.get_markup_manageOrder(order),
+            )
+
     # User calls
     else:
         # FAQ
@@ -1372,18 +1389,39 @@ async def changeShopContactsSetContacts(message: types.Message, state: FSMContex
     )
     await state.finish()
 
+# Checkout Settings
+@dp.message_handler(state=state_handler.changeDeliveryPrice.price)
+async def changeDeliveryPriceSetPrice(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    try:
+        text = f"Стоимость доставки была изменена с {'{:.2f}'.format(float(settings.get_delivery_price()))}руб. на {'{:.2f}'.format(float(message.text))}руб."
+        settings.set_delivery_price(float(message.text))
+    except:
+        text = tt.error
+    await bot.delete_message(
+        message_id=data["state_message"],
+        chat_id=message.chat.id
+    )
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackCheckoutSettings),
+    )
+    await state.finish()
+
 # Cart checkout
 # Required
 @dp.message_handler(state=state_handler.checkoutCart.email)
 async def checkoutCartSetEmail(message: types.Message, state: FSMContext):
     state = Dispatcher.get_current().current_state()
-    data = await state.get_data()
+    user = usr.User(message.chat.id)
     if matchre(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", message.text): # I am not familiar with how re package works. Taken from here: https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address
         await state.update_data(email=message.text)
         if settings.is_phone_number_enabled():
             text = f"Введите ваш номер телефона или нажмите на кнопку \"Назад\"."
             await state_handler.checkoutCart.phone_number.set()
-        elif settings.is_delivery_enabled():
+        elif settings.is_delivery_enabled() and user.is_cart_delivery():
             text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
             await state_handler.checkoutCart.home_adress.set()
         else:
@@ -1401,10 +1439,10 @@ async def checkoutCartSetEmail(message: types.Message, state: FSMContext):
 @dp.message_handler(state=state_handler.checkoutCart.phone_number)
 async def checkoutCartSetPhoneNumber(message: types.Message, state: FSMContext):
     state = Dispatcher.get_current().current_state()
-    data = await state.get_data()
+    user = usr.User(message.chat.id)
     if is_possible_number(phoneparse(message.text, "RU")):
         await state.update_data(phone_number=message.text)
-        if settings.is_delivery_enabled():
+        if settings.is_delivery_enabled() and user.is_cart_delivery():
             text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
             await state_handler.checkoutCart.home_adress.set()
         else:
@@ -1462,7 +1500,7 @@ async def checkoutCartCheckCaptcha(message: types.Message, state: FSMContext):
     if message.text.lower() == data["captcha"].lower():
         await bot.send_message(
             chat_id=message.chat.id,
-            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=data["additional_message"], phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_delivery_enabled() else None),
+            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=data["additional_message"], phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_delivery_enabled() and user.is_cart_delivery() else None),
             reply_markup=markups.get_markup_checkoutCartConfirmation(),
         )
         await state_handler.checkoutCart.confirmation.set()
@@ -1635,6 +1673,14 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 reply_markup=markups.get_markup_mainSettings(),
             )
             await state.finish()
+        elif call_data == "checkoutSettings":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.checkout_settings,
+                reply_markup=markups.get_markup_checkoutSettings(),
+            )
+            await state.finish()
         else:
             await state.finish()
     else:
@@ -1675,12 +1721,22 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             email = data["email"]
             additional_message = data["additional_message"]
             phone_number = data["phone_number"] if settings.is_phone_number_enabled() else None
-            home_adress = data["home_adress"] if settings.is_delivery_enabled() else None
+            home_adress = data["home_adress"] if settings.is_delivery_enabled() and user.is_cart_delivery() else None
             
             try:
                 order = itm.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)
                 user.clear_cart()
                 text = f"Заказ с ID {order.get_order_id()} был успешно создан."
+                for user in usr.get_notif_list():
+                    try:
+                        await bot.send_message(
+                            chat_id=user.get_id(),
+                            text=f"Новый заказ:\n\n{tt.get_order_template(order)}",
+                            reply_markup=markups.single_button(markups.btnViewOrder(order.get_order_id()))
+                        )
+                    except:
+                        if settings.is_debug():
+                            print(f"DEBUG: FAIL MESSAGE TO [{user.get_id()}]")
             except:
                 text = tt.error
             await bot.delete_message(

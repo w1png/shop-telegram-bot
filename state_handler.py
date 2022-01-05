@@ -89,3 +89,9 @@ class changeShopRefundPolicy(StatesGroup):
 class changeShopContacts(StatesGroup):
     state_message = State()
     contacts = State()
+    
+class changeDeliveryPrice(StatesGroup):
+    state_message = State()
+    price = State()
+    
+    
