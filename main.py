@@ -1125,7 +1125,6 @@ async def addItemSetDesc(message: types.Message, state: FSMContext):
 @dp.message_handler(content_types=['photo'], state=state_handler.addItem.image)
 async def addItemSetImage(message: types.Message, state: FSMContext):
     state = Dispatcher.get_current().current_state()
-    await state.update_data(desc=message.text)
     data = await state.get_data()
     
     while True:
@@ -1133,7 +1132,7 @@ async def addItemSetImage(message: types.Message, state: FSMContext):
         if image_id not in listdir("images/"):
             break
     
-    await message.photo[-1].download(f"images/{image_id}")
+    await message.photo[-1].download(destination_file=f"images/{image_id}")
     await state.update_data(image=image_id)
     
     cat = itm.Category(data["cat_id"])
@@ -1508,8 +1507,8 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             cat = itm.Category(data["cat_id"])
             text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"], amount=0) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"    
             await bot.edit_message_text(
-                chat_id=message.chat.id,
-                message_id=message.message_id,
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
                 text=text,
                 reply_markup=markups.get_markup_addItemConfirmation()
             )
