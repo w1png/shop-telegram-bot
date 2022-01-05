@@ -11,11 +11,15 @@ class changeCatName(StatesGroup):
     name = State()
 
 class addItem(StatesGroup):
+    # Required
     name = State()
     price = State()
     cat_id = State()
     desc = State()
     confirmation = State()
+    
+    # Additional
+    image = State()
 
 class changeItemPrice(StatesGroup):
     state_message = State()

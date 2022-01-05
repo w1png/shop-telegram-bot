@@ -180,6 +180,8 @@ def get_markup_addItemSetCat(cat_list):
     markup.add(btnBackItemManagement)    
     return markup
 
+btnSkipAddItemSetImage = types.InlineKeyboardButton(text=tt.skip, callback_data="admin_skipSetAddItemSetImage")
+
 def get_markup_addItemConfirmation():
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.confirm, callback_data="admin_addItemConfirm"), types.InlineKeyboardButton(text=tt.deny, callback_data="admin_itemManagement"))
@@ -276,6 +278,7 @@ def get_markup_orderStats():
 def get_markup_shopSettings():
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.main_settings, callback_data="admin_mainSettings"))
+    markup.add(types.InlineKeyboardButton(text=tt.item_settings, callback_data="admin_itemSettings"))
     markup.add(types.InlineKeyboardButton(text=tt.checkout_settings, callback_data="admin_checkoutSettings"))
     markup.add(types.InlineKeyboardButton(text=tt.stats_settings, callback_data="admin_statsSettings"))
     markup.add(btnBackAdmin)
@@ -289,6 +292,12 @@ def get_markup_mainSettings():
     markup.add(types.InlineKeyboardButton(text=f"Контакты: {settings.get_shop_contacts()}", callback_data="admin_changeShopContacts"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_sticker if settings.is_sticker_enabled() else tt.enable_sticker, callback_data="admin_changeEnableSticker"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_debug if settings.is_debug() else tt.enable_debug, callback_data="admin_changeEnableDebug"))
+    markup.add(btnBackShopSettings)
+    return markup
+
+def get_markup_itemSettings():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.disable_item_image if settings.is_item_image_enabled() else tt.enable_item_image, callback_data="admin_changeEnableItemImage"))
     markup.add(btnBackShopSettings)
     return markup
 

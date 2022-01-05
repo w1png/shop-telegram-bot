@@ -69,6 +69,15 @@ class Item:
     def set_amount(self, value):
         c.execute(f"UPDATE items SET amount={value} WHERE id={self.get_id()}")
         conn.commit()
+        
+    def get_image_id(self):
+        return self.__clist()[7]
+    
+    def get_image(self):
+        return open("images/" + self.get_image_id(), "rb")
+    
+    def set_image_id(self, value):
+        c.execute(f"UPDATE items SET image_id=? WHERE id=?", [value, self.get_id()])
 
     def delete(self):
         c.execute(f"DELETE FROM items WHERE id={self.get_id()}")
@@ -80,8 +89,8 @@ def get_item_list():
     return map(Item, [item[0] for item in list(c)])
 
 
-def create_item(name, price, cat_id, desc):
-    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active, amount) VALUES(?, ?, ?, ?, 1, 0)", [name, price, cat_id, desc])
+def create_item(name, price, cat_id, desc, image_id="None"):
+    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active, amount, image_id) VALUES(?, ?, ?, ?, 1, 0, ?)", [name, price, cat_id, desc, image_id])
     conn.commit()
 
 

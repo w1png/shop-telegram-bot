@@ -61,6 +61,12 @@ class Settings:
     
     def set_shop_contacts(self, value):
         self.__set_setting("shop_settings", "contacts", value)
+    
+    def is_item_image_enabled(self):
+        return self.__get_config()["shop_settings"]["enableimage"] == "1"
+    
+    def set_item_image(self, value):
+        self.__set_setting("shop_settings", "enableimage", value)    
         
     def is_phone_number_enabled(self):
         return self.__get_config()["shop_settings"]["enablephonenumber"] == "1"
