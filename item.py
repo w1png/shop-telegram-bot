@@ -196,7 +196,7 @@ class Order:
 def get_status_dict():
     return {
             0: tt.processing,
-            1: tt.delievery,
+            1: tt.delivery,
             2: tt.done,
             -1: tt.cancelled,
         }

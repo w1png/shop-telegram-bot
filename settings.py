@@ -68,11 +68,17 @@ class Settings:
     def set_enable_phone_number(self, value):
         self.__set_setting("shop_settings", "enablephonenumber", value)
         
-    def is_home_adress_enabled(self):
-        return self.__get_config()["shop_settings"]["enablehomeadress"] == "1"
+    def is_delivery_enabled(self):
+        return self.__get_config()["shop_settings"]["enabledelivery"] == "1"
     
-    def set_enable_home_adress(self, value):
-        self.__set_setting("shop_settings", "enablehomeadress", value)
+    def set_delivery(self, value):
+        self.__set_setting("shop_settings", "enabledelivery", value)
+        
+    def get_delivery_price(self):
+        return float(self.__get_config()["shop_settings"]["delivery_price"])
+    
+    def set_delivery_price(self, value):
+        self.__set_setting("shop_settings", "delivery_price", value)
         
     def is_captcha_enabled(self):
         return self.__get_config()["shop_settings"]["enablecaptcha"] == "1"

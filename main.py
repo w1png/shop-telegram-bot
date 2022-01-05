@@ -343,7 +343,7 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("seeUserOrders"):
             edit_user = usr.User(int(call_data[13:]))
             await bot.edit_message_text( 
-                chat_id=message.chat.id,
+                chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text=f"Заказы пользователя с ID {edit_user.get_id()}.",
                 reply_markup=markups.get_markup_seeUserOrders(edit_user),
@@ -570,8 +570,6 @@ async def process_callback(callback_query: types.CallbackQuery):
             )
         elif call_data.startswith("changeEnable"):
             try:
-                text = tt.checkout_settings
-                markup = markups.get_markup_checkoutSettings()
                 match call_data[12:]:
                     case "Sticker":
                         settings.set_enable_sticker("0" if settings.is_sticker_enabled() else "1")
@@ -579,12 +577,14 @@ async def process_callback(callback_query: types.CallbackQuery):
                         markup = markups.get_markup_mainSettings()
                     case "PhoneNumber":
                         settings.set_enable_phone_number("0" if settings.is_phone_number_enabled() else "1")
-                    case "HomeAdress":
-                        settings.set_enable_home_adress("0" if settings.is_home_adress_enabled() else "1")
+                    case "Delivery":
+                        settings.set_delivery("0" if settings.is_delivery_enabled() else "1")
                     case "Captcha":
                         settings.set_enable_captcha("0" if settings.is_captcha_enabled() else "1")
                     case "Debug": 
                         settings.set_debug("0" if settings.is_debug() else "1")
+                text = tt.checkout_settings
+                markup = markups.get_markup_checkoutSettings()
             except:
                 text = tt.error
                 markup = markups.single_button(markups.btnBackCheckoutSettings)
@@ -907,7 +907,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markup,
             )
         
-        
         elif call_data == "clearCart":
             user.clear_cart()
             await bot.edit_message_text(
@@ -947,7 +946,16 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=text,
                 reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
-            ) 
+            )
+             
+        elif call_data == "changeCartDelivery":
+            user.set_cart_delivery(0 if user.is_cart_delivery() else 1)
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.cart,
+                reply_markup=markups.get_markup_cart(user),
+            )
             
         elif call_data == "checkoutCart":
             await bot.edit_message_text(
@@ -1282,7 +1290,7 @@ async def checkoutCartSetEmail(message: types.Message, state: FSMContext):
         if settings.is_phone_number_enabled():
             text = f"Введите ваш номер телефона или нажмите на кнопку \"Назад\"."
             await state_handler.checkoutCart.phone_number.set()
-        elif settings.is_home_adress_enabled():
+        elif settings.is_delivery_enabled():
             text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
             await state_handler.checkoutCart.home_adress.set()
         else:
@@ -1303,7 +1311,7 @@ async def checkoutCartSetPhoneNumber(message: types.Message, state: FSMContext):
     data = await state.get_data()
     if is_possible_number(phoneparse(message.text, "RU")):
         await state.update_data(phone_number=message.text)
-        if settings.is_home_adress_enabled():
+        if settings.is_delivery_enabled():
             text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
             await state_handler.checkoutCart.home_adress.set()
         else:
@@ -1361,7 +1369,7 @@ async def checkoutCartCheckCaptcha(message: types.Message, state: FSMContext):
     if message.text.lower() == data["captcha"].lower():
         await bot.send_message(
             chat_id=message.chat.id,
-            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=data["additional_message"], phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_home_adress_enabled() else None),
+            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=data["additional_message"], phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_delivery_enabled() else None),
             reply_markup=markups.get_markup_checkoutCartConfirmation(),
         )
         await state_handler.checkoutCart.confirmation.set()
@@ -1553,7 +1561,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             email = data["email"]
             additional_message = data["additional_message"]
             phone_number = data["phone_number"] if settings.is_phone_number_enabled() else None
-            home_adress = data["home_adress"] if settings.is_home_adress_enabled() else None
+            home_adress = data["home_adress"] if settings.is_delivery_enabled() else None
             
             try:
                 order = itm.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)

@@ -108,8 +108,13 @@ def get_markup_cart(user):
     for item_and_amount in user.get_cart_amount():
         markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_name()} - {item_and_amount[0].get_price()}руб. - {item_and_amount[1]}шт.", callback_data=f"viewItem{item_and_amount[0].get_id()}"))
         markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_price() * item_and_amount[1]}руб.", callback_data="None"), types.InlineKeyboardButton(text=tt.plus, callback_data=f"addToCartFromCart{item_and_amount[0].get_id()}"), types.InlineKeyboardButton(text=tt.minus, callback_data=f"removeFromCartFromCart{item_and_amount[0].get_id()}"))
+    if settings.is_delivery_enabled():
+        markup.add(types.InlineKeyboardButton(text=tt.delivery_off if user.is_cart_delivery() else tt.delivery_on, callback_data="changeCartDelivery"))
+    else:
+        markup.add(types.InlineKeyboardButton(text=tt.pickup, callback_data="None"))
+        
     markup.add(types.InlineKeyboardButton(text=tt.clear_cart, callback_data="clearCart"))
-    markup.add(types.InlineKeyboardButton(text=f"Всего: {user.get_cart_price()}руб.", callback_data="None"))
+    markup.add(types.InlineKeyboardButton(text=f"Всего: {'{:.2f}'.format(user.get_cart_price())}руб.", callback_data="None"))
     markup.add(types.InlineKeyboardButton(text=tt.cart_checkout, callback_data="checkoutCart"))   
     return markup
 
@@ -290,7 +295,7 @@ def get_markup_mainSettings():
 def get_markup_checkoutSettings():
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.disable_phone_number if settings.is_phone_number_enabled() else tt.enable_phone_number, callback_data="admin_changeEnablePhoneNumber"))
-    markup.add(types.InlineKeyboardButton(text=tt.disable_home_adress if settings.is_home_adress_enabled() else tt.enable_home_adress, callback_data="admin_changeEnableHomeAdress"))
+    markup.add(types.InlineKeyboardButton(text=tt.disable_delivery if settings.is_delivery_enabled() else tt.enable_delivery, callback_data="admin_changeEnableDelivery"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_captcha if settings.is_captcha_enabled() else tt.enable_captcha, callback_data="admin_changeEnableCaptcha"))
     markup.add(btnBackShopSettings)
     return markup

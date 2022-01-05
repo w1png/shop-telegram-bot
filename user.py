@@ -12,7 +12,7 @@ class User:
         self.__user_id = user_id
 
         if not does_user_exist(self.get_id()):
-            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)", [self.get_id(), 0, 1 if str(self.get_id()) == settings.get_main_admin_id() else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?)", [self.get_id(), 0, 1 if str(self.get_id()) == settings.get_main_admin_id() else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S")], 1)
             conn.commit()
 
     def get_id(self):
@@ -62,10 +62,11 @@ class User:
         return [[itm.Item(item_id), cart.count(item_id)] for item_id in set(cart)]
     
     def get_cart_price(self):
-        return sum([item_and_price[0].get_price() * item_and_price[1] for item_and_price in self.get_cart_amount()])
+        return sum([item_and_price[0].get_price() * item_and_price[1] for item_and_price in self.get_cart_amount()]) + (settings.get_delivery_price() if self.is_cart_delivery() else 0)
     
     def clear_cart(self):
         c.execute(f"UPDATE users SET cart=\"None\" WHERE user_id=?", [self.get_id()])
+        self.set_cart_delivery(1)
         conn.commit()
         
     def add_to_cart(self, item_id):
@@ -77,6 +78,13 @@ class User:
         cart = [item.get_id() for item in self.get_cart()]
         cart.remove(str(item_id))
         c.execute(f"UPDATE users SET cart=? WHERE user_id=?", [",".join(cart), self.get_id()])
+        conn.commit()
+        
+    def is_cart_delivery(self):
+        return self.__clist()[6] == 1
+
+    def set_cart_delivery(self, value):
+        c.execute(f"UPDATE users SET cart_delivery=? WHERE user_id=?", [value, self.get_id()])
         conn.commit()
         
 
