@@ -1006,7 +1006,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             item = itm.Item(call_data[8:])
             text = tt.get_item_card(item=item)
             markup = markups.get_markup_viewItem(item)
-            if item.get_image_id() == "None":
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -1078,11 +1078,17 @@ async def process_callback(callback_query: types.CallbackQuery):
         
         elif call_data.startswith("removeFromCartFromCart"):
             user.remove_from_cart(call_data[22:])
+            if user.get_cart():
+                text = tt.cart
+                markup = markups.get_markup_cart(user)
+            else:
+                text = tt.cart_is_empty
+                markup = types.InlineKeyboardMarkup()
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=tt.cart,
-                reply_markup=markups.get_markup_cart(user),
+                text=text,
+                reply_markup=markup,
             )
         
         elif call_data.startswith("addToCart"):

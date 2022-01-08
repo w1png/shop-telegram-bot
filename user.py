@@ -77,7 +77,7 @@ class User:
     def remove_from_cart(self, item_id):
         cart = [item.get_id() for item in self.get_cart()]
         cart.remove(str(item_id))
-        c.execute(f"UPDATE users SET cart=? WHERE user_id=?", [",".join(cart), self.get_id()])
+        c.execute(f"UPDATE users SET cart=? WHERE user_id=?", [",".join(cart) if cart else "None", self.get_id()])
         conn.commit()
         
     def is_cart_delivery(self):
