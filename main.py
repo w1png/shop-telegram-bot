@@ -1664,11 +1664,11 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                     fail += 1
 
             await bot.delete_message(
-                message_id=data["state_message"],
-                chat_id=message.chat.id
+                message_id=callback_query.message.message_id,
+                chat_id=chat_id
             )
             await bot.send_message(
-                chat_id=message.chat.id,
+                chat_id=chat_id,
                 text=f"Сообщение было отправлено {total - fail} из {total} пользователям.",
                 reply_markup=markups.single_button(markups.btnBackUserManagement),
             )
