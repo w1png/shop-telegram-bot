@@ -48,9 +48,11 @@ async def welcome(message: types.Message):
     user = usr.User(message.chat.id)
 
     markupMain = markups.get_markup_main()
+    if user.is_manager():
+        markupMain.row(markups.btnOrders)
     if user.is_admin():
         markupMain.row(markups.btnAdminPanel)
-        
+
     if settings.is_sticker_enabled():
         with open('AnimatedSticker.tgs', 'rb') as sti:
             await bot.send_sticker(message.chat.id, sti)
@@ -358,7 +360,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=f"Заказы пользователя с ID {edit_user.get_id()}.",
                 reply_markup=markups.get_markup_seeUserOrders(edit_user),
             )
-        elif call_data.startswith("seeUserOrder"):
+        elif call_data.startswith("seeOrder"):
             order = itm.Order(call_data[12:])
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
@@ -401,6 +403,15 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 reply_markup=markups.get_markup_seeUserOrder(order)
+            )
+        elif call_data.startswith("changeUserManager"):
+            editUser = usr.User(call_data[17:])
+            editUser.set_manager(0 if editUser.is_manager() else 1)
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.get_profile_template(editUser),
+                reply_markup=markups.get_markup_seeUserProfile(editUser),
             )
         elif call_data.startswith("changeUserAdmin"):
             editUser = usr.User(int(call_data[15:]))
@@ -858,6 +869,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.get_order_template(order),
                 reply_markup=markups.get_markup_manageOrder(order),
             )
+    
 
     # User calls
     else:

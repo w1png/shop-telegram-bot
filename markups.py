@@ -48,7 +48,7 @@ btnBackCartDel = types.InlineKeyboardButton(text=tt.back, callback_data="cartDel
 
 # Single buttons
 btnAdminPanel = types.KeyboardButton(tt.admin_panel)
-# btnSupportMenu = types.KeyboardButton(tt.support_menu)
+btnOrders = types.KeyboardButton(tt.orders)
 
 def single_button(btn):
     markup = types.InlineKeyboardMarkup()
@@ -238,6 +238,7 @@ def get_markup_notifyEveryoneConfirmation():
 def get_markup_seeUserProfile(user):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.orders, callback_data=f"admin_seeUserOrders{user.get_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.remove_manager_role if user.is_manager() else tt.add_manager_role, callback_data=f"admin_changeUserManager{user.get_id()}"))
     markup.add(types.InlineKeyboardButton(text=tt.remove_admin_role if user.is_admin() else tt.add_admin_role, callback_data=f"admin_changeUserAdmin{user.get_id()}"))    
     markup.add(btnBackUserManagement)
     return markup

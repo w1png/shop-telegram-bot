@@ -28,6 +28,13 @@ class User:
     def set_admin(self, value):
         c.execute(f"UPDATE users SET is_admin={value} WHERE user_id={self.get_id()}")
         conn.commit()
+
+    def is_manager(self):
+        return self.__clist()[2] == 1
+
+    def set_manager(self, value):
+        c.execute(f"UPDATE users SET is_manager=? WHERE user_id=?", [value, self.get_id()])
+        conn.commit() 
         
     def get_register_date(self):
         return self.__clist()[4]
