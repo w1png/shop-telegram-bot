@@ -76,6 +76,13 @@ async def handle_text(message):
                 text=tt.admin_panel,
                 reply_markup=markups.get_markup_admin(),
             )
+    elif message.text == tt.orders:
+        if user.is_manager():
+            await bot.send_message(
+                chat_id=message.chat.id,
+                text=tt.orders,
+                reply_markup=markups.get_markup_orders()
+            )
     elif message.text == tt.faq:
         await bot.send_message(
             chat_id=message.chat.id,
@@ -360,49 +367,13 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=f"Заказы пользователя с ID {edit_user.get_id()}.",
                 reply_markup=markups.get_markup_seeUserOrders(edit_user),
             )
-        elif call_data.startswith("seeOrder"):
+        elif call_data.startswith("seeUserOrder"):
             order = itm.Order(call_data[12:])
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                reply_markup=markups.get_markup_seeUserOrder(order)
-            )
-        elif call_data.startswith("changeOrderStatusProcessing"):
-            order = itm.Order(call_data[27:])
-            order.set_status(0)
-            await bot.edit_message_text(
-                text=tt.get_order_template(order),
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_markup_seeUserOrder(order)
-            )
-        elif call_data.startswith("changeOrderStatusDelivery"):
-            order = itm.Order(call_data[25:])
-            order.set_status(1)
-            await bot.edit_message_text(
-                text=tt.get_order_template(order),
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_markup_seeUserOrder(order)
-            )
-        elif call_data.startswith("changeOrderStatusDone"):
-            order = itm.Order(call_data[21:])
-            order.set_status(2)
-            await bot.edit_message_text(
-                text=tt.get_order_template(order),
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_markup_seeUserOrder(order)
-            )
-        elif call_data.startswith("changeOrderStatusCancel"):
-            order = itm.Order(call_data[23:])
-            order.set_status(-1)
-            await bot.edit_message_text(
-                text=tt.get_order_template(order),
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                reply_markup=markups.get_markup_seeUserOrder(order)
+                reply_markup=markups.get_markup_seeOrder(order, user_id=order.get_user_id())
             )
         elif call_data.startswith("changeUserManager"):
             editUser = usr.User(call_data[17:])
@@ -432,21 +403,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=text,
                 reply_markup=markup,
             )
-        # elif call_data.startswith("changeUserSupport"):
-        #     editUser = usr.User(int(call_data[17:]))
-        #     try:
-        #         editUser.set_support(0 if editUser.is_support() else 1)
-        #         markup = markups.get_markup_seeUserProfile(editUser)
-        #         text = tt.get_profile_template(editUser)
-        #     except:
-        #         text = tt.error
-        #         markup = markups.single_button(markups.btnBackSeeUserProfile(editUser.get_id()))
-        #     await bot.edit_message_text(
-        #         chat_id=chat_id,
-        #         message_id=callback_query.message.message_id,
-        #         text=text,
-        #         reply_markup=markup,
-        #     )
         elif call_data == "notifyEveryone":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -869,7 +825,79 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.get_order_template(order),
                 reply_markup=markups.get_markup_manageOrder(order),
             )
-    
+    elif call_data.startswith("manager_") and (user.is_admin() or user.is_manager()):
+        call_data = call_data[8:]
+        if call_data == "orders":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.orders,
+                reply_markup=markups.get_markup_orders()
+            )
+        elif call_data.startswith("orders"):
+            match call_data[6:]:
+                case "Processing":
+                    order_list = itm.get_order_list_processing()
+                    text = tt.processing
+                case "Delivery":
+                    order_list = itm.get_order_list_delivery()
+                    text = tt.delivery
+                case "Done":
+                    order_list = itm.get_order_list_done()
+                    text = tt.done
+                case "Cancelled":
+                    order_list = itm.get_order_list_cancelled()
+                    text = tt.cancelled
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markups.get_markup_ordersByOrderList(order_list)
+            )
+        elif call_data.startswith("seeOrder"):
+            order = itm.Order(call_data[8:])
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusProcessing"):
+            order = itm.Order(call_data[27:])
+            order.set_status(0)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusDelivery"):
+            order = itm.Order(call_data[25:])
+            order.set_status(1)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusDone"):
+            order = itm.Order(call_data[21:])
+            order.set_status(2)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusCancel"):
+            order = itm.Order(call_data[23:])
+            order.set_status(-1)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeOrder(order)
+            )
 
     # User calls
     else:

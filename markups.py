@@ -1,7 +1,6 @@
 from aiogram import types
 from aiogram.types.callback_query import CallbackQuery
 
-import user as usr
 import text_templates as tt
 from settings import Settings
 
@@ -45,6 +44,7 @@ def btnBackViewCat(cat_id): return types.InlineKeyboardButton(text=tt.back, call
 def btnBackViewItem(item_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"viewItem{item_id}")
 btnBackCart = types.InlineKeyboardButton(text=tt.back, callback_data="cart")
 btnBackCartDel = types.InlineKeyboardButton(text=tt.back, callback_data="cartDel")
+btnBackOrders = types.InlineKeyboardButton(text=tt.back, callback_data="manager_orders")
 
 # Single buttons
 btnAdminPanel = types.KeyboardButton(tt.admin_panel)
@@ -364,4 +364,26 @@ def get_markup_statsSettingsTickFontSize():
     return markup
 
 # Manager tab
-def btnViewOrder(order_id): return types.InlineKeyboardButton(text=tt.view_order, callback_data=f"admin_manageOrder{order_id}")
+def get_markup_seeOrder(order, user_id=None):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.processing), callback_data=f"manager_changeOrderStatusProcessing{order.get_order_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.delivery), callback_data=f"manager_changeOrderStatusDelivery{order.get_order_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.done), callback_data=f"manager_changeOrderStatusDone{order.get_order_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.cancelled), callback_data=f"manager_changeOrderStatusCancel{order.get_order_id()}"))
+    markup.add(btnBackSeeUserOrders(user_id) if user_id else btnBackOrders)
+    return markup
+
+def get_markup_orders():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.processing, callback_data="manager_ordersProcessing"))
+    markup.add(types.InlineKeyboardButton(text=tt.delivery, callback_data="manager_ordersDelivery"))
+    markup.add(types.InlineKeyboardButton(text=tt.done, callback_data="manager_ordersDone"))
+    markup.add(types.InlineKeyboardButton(text=tt.cancelled, callback_data="manager_ordersCancelled"))
+    return markup
+
+def get_markup_ordersByOrderList(order_list):
+    markup = types.InlineKeyboardMarkup()
+    for order in order_list:
+        markup.add(types.InlineKeyboardButton(text=f"[{order.get_order_id()}]", callback_data=f"manager_seeOrder{order.get_order_id()}"))
+    markup.add(btnBackOrders)
+    return markup

@@ -211,6 +211,26 @@ def get_status_dict():
             -1: tt.cancelled,
         }
     
+def get_order_list():
+    c.execute(f"SELECT * FROM orders")
+    return map(Order, [order[0] for order in list(c)])
+
+def get_order_list_processing():
+    c.execute(f"SELECT * FROM orders WHERE status=0")
+    return map(Order, [order[0] for order in list(c)])
+
+def get_order_list_delivery():
+    c.execute(f"SELECT * FROM orders WHERE status=1")
+    return map(Order, [order[0] for order in list(c)])
+
+def get_order_list_done():
+    c.execute(f"SELECT * FROM orders WHERE status=2")
+    return map(Order, [order[0] for order in list(c)])
+
+def get_order_list_cancelled():
+    c.execute(f"SELECT * FROM orders WHERE status=-1")
+    return map(Order, [order[0] for order in list(c)])
+
 def does_order_exist(order_id):
     c.execute(f"SELECT * FROM orders WHERE order_id=?", [order_id])
     return len(list(c)) == 1
