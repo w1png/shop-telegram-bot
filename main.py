@@ -50,13 +50,10 @@ async def welcome(message: types.Message):
     markupMain = markups.get_markup_main()
     if user.is_admin():
         markupMain.row(markups.btnAdminPanel)
-    # if user.is_support():
-    #     markupMain.row(markups.btnSupportMenu)
-
+        
     if settings.is_sticker_enabled():
-        sti = open('AnimatedSticker.tgs', 'rb')
-        await bot.send_sticker(message.chat.id, sti)
-        sti.close()
+        with open('AnimatedSticker.tgs', 'rb') as sti:
+            await bot.send_sticker(message.chat.id, sti)
     await bot.send_message(
         chat_id=message.chat.id,
         text=settings.get_shop_greeting(),
@@ -115,10 +112,10 @@ async def handle_text(message):
 async def process_callback(callback_query: types.CallbackQuery):
     chat_id = callback_query.message.chat.id
     call_data = callback_query.data
+    user = usr.User(chat_id)
     
     if DEBUG:
         print(f"DEBUG: CALL [{chat_id}] {call_data}")
-    user = usr.User(chat_id)
     
     # Admin calls
     if call_data.startswith("admin_") and user.is_admin():
@@ -315,6 +312,8 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=text,
                 reply_markup=markup,
             )
+        elif call_data.startswith("editItemImage"):
+            pass
         elif call_data.startswith("editItem"):
             item = itm.Item(call_data[8:])
             cat = itm.Category(item.get_cat_id())
@@ -352,12 +351,56 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_seeUserProfile(user),
             )
         elif call_data.startswith("seeUserOrders"):
-            edit_user = usr.User(int(call_data[13:]))
+            edit_user = usr.User(call_data[13:])
             await bot.edit_message_text( 
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text=f"Заказы пользователя с ID {edit_user.get_id()}.",
                 reply_markup=markups.get_markup_seeUserOrders(edit_user),
+            )
+        elif call_data.startswith("seeUserOrder"):
+            order = itm.Order(call_data[12:])
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeUserOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusProcessing"):
+            order = itm.Order(call_data[27:])
+            order.set_status(0)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeUserOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusDelivery"):
+            order = itm.Order(call_data[25:])
+            order.set_status(1)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeUserOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusDone"):
+            order = itm.Order(call_data[21:])
+            order.set_status(2)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeUserOrder(order)
+            )
+        elif call_data.startswith("changeOrderStatusCancel"):
+            order = itm.Order(call_data[23:])
+            order.set_status(-1)
+            await bot.edit_message_text(
+                text=tt.get_order_template(order),
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                reply_markup=markups.get_markup_seeUserOrder(order)
             )
         elif call_data.startswith("changeUserAdmin"):
             editUser = usr.User(int(call_data[15:]))

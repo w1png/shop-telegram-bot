@@ -28,14 +28,7 @@ class User:
     def set_admin(self, value):
         c.execute(f"UPDATE users SET is_admin={value} WHERE user_id={self.get_id()}")
         conn.commit()
-
-    # def is_support(self):
-    #     return self.__clist()[2] == 1
-
-    # def set_support(self, value):
-    #     c.execute(f"UPDATE users SET is_support={value} WHERE user_id={self.get_id()}")
-    #     conn.commit()
-
+        
     def get_register_date(self):
         return self.__clist()[4]
 
@@ -108,7 +101,4 @@ def get_user_list():
 
 
 if __name__ == "__main__":
-    user = User(772316661)
-    user.add_to_cart(2)
-    user.remove_from_cart(2)
-    user.get_cart()
+    pass

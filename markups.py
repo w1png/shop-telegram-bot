@@ -22,6 +22,7 @@ def btnBackEditItem(item_id): return types.InlineKeyboardButton(text=tt.back, ca
 # User management
 btnBackUserManagement = types.InlineKeyboardButton(text=tt.back, callback_data="admin_userManagement")
 def btnBackSeeUserProfile(user_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_seeUserProfile{user_id}")
+def btnBackSeeUserOrders(user_id): return types.InlineKeyboardButton(text=tt.back, callback_data=f"admin_seeUserOrders{user_id}")
 
 # Stats
 btnBackShopStats = types.InlineKeyboardButton(text=tt.back, callback_data="admin_shopStats")
@@ -237,16 +238,25 @@ def get_markup_notifyEveryoneConfirmation():
 def get_markup_seeUserProfile(user):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.orders, callback_data=f"admin_seeUserOrders{user.get_id()}"))
-    markup.add(types.InlineKeyboardButton(text=tt.remove_admin_role if user.is_admin() else tt.add_admin_role, callback_data=f"admin_changeUserAdmin{user.get_id()}"))
-    # markup.add(types.InlineKeyboardButton(text=tt.remove_support_role if user.is_support() else tt.add_support_role, callback_data=f"admin_changeUserSupport{user.get_id()}"))
-    
+    markup.add(types.InlineKeyboardButton(text=tt.remove_admin_role if user.is_admin() else tt.add_admin_role, callback_data=f"admin_changeUserAdmin{user.get_id()}"))    
     markup.add(btnBackUserManagement)
     return markup
 
 def get_markup_seeUserOrders(user):
     markup = types.InlineKeyboardMarkup()
     for order in user.get_orders():
-        markup.add(types.InlineKeyboardButton(text=order[0], callback_data=f"seeUserOrder{order[0]}"))
+        markup.add(types.InlineKeyboardButton(text=f"[{order.get_order_id()}]", callback_data=f"admin_seeUserOrder{order.get_order_id()}"))
+    markup.add(btnBackSeeUserProfile(user.get_id()))
+    return markup
+
+def get_markup_seeUserOrder(order):
+    markup = markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.processing), callback_data=f"admin_changeOrderStatusProcessing{order.get_order_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.delivery), callback_data=f"admin_changeOrderStatusDelivery{order.get_order_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.done), callback_data=f"admin_changeOrderStatusDone{order.get_order_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.change_order_status(tt.cancelled), callback_data=f"admin_changeOrderStatusCancel{order.get_order_id()}"))
+    markup.add(btnBackSeeUserOrders(order.get_user_id()))
+    return markup
 
 # Shop stats
 def get_markup_shopStats():
@@ -354,9 +364,3 @@ def get_markup_statsSettingsTickFontSize():
 
 # Manager tab
 def btnViewOrder(order_id): return types.InlineKeyboardButton(text=tt.view_order, callback_data=f"admin_manageOrder{order_id}")
-
-def get_markup_manageOrder(order):
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.change_status, callback_data=f"admin_changeOrderStatus{order.get_id()}"))
-    # TODO: manageOrder markup
-    return markup
