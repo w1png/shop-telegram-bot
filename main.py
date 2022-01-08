@@ -1423,7 +1423,7 @@ async def changeShopGreetingSetGreeting(message: types.Message, state: FSMContex
     state = Dispatcher.get_current().current_state()
     data = await state.get_data()
     try:
-        text = f"Приветствие магазина было изменено с \"{settings.get_shop_name()}\" на \"{message.text}\"."
+        text = f"Приветствие магазина было изменено с \"{settings.get_shop_greeting()}\" на \"{message.text}\"."
         settings.set_shop_greeting(message.text)
     except:
         text = tt.error
