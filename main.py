@@ -1780,6 +1780,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 text=text,
                 reply_markup=markup,
             )
+            await state.finish()
         elif call_data == "refreshCaptcha":
             captcha_text = get_captcha_text()
             await state.update_data(captcha=captcha_text)
