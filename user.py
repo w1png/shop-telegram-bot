@@ -12,7 +12,7 @@ class User:
         self.__user_id = user_id
 
         if not does_user_exist(self.get_id()):
-            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?)", [self.get_id(), 0, 1 if str(self.get_id()) == settings.get_main_admin_id() else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S")], 1)
+            c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?)", [self.get_id(), 1 if str(self.get_id()) == settings.get_main_admin_id() else 0, 0, 0, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "None", 1])
             conn.commit()
 
     def get_id(self):
@@ -104,7 +104,7 @@ def get_user_login(message):
 
 def get_user_list():
     c.execute("SELECT * FROM users")
-    return map(User, [user[0] for user in list(c)])
+    return list(map(User, [user[0] for user in list(c)]))
 
 
 if __name__ == "__main__":
