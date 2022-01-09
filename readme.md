@@ -23,7 +23,7 @@
 
 ## Установка необходимых Python-пакетов
 
-    python3 -m pip install requirements.txt
+    python3 -m pip install -r requirements.txt
 
 ## Запуск установщика
 Перед запуском установщика требуется [создать токен](https://youtu.be/fyISLEvzIec) для телеграм бота и [получить ваш ID](https://badcode.ru/kak-v-telegram-uznat-svoi-id/).
