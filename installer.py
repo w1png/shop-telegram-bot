@@ -1,4 +1,4 @@
-from os import system, name, remove
+from os import system, name, remove, mkdir, rmdir, listdir
 from os.path import exists
 
 import sqlite3
@@ -92,7 +92,7 @@ def create_db():
     conn.close()    
 
 clearConsole()
-if exists("data.db") or exists("config.ini"):
+if any(list(map(exists, ["config.ini", "images", "data.db"]))):
     while True:
         confirmation = input("Вы уверены, что хотите повторно запустить процесс установки? Все данные будут утеряны! (y/N) ")
         if confirmation.lower() in ["y", "yes", "n", "no", ""]:
@@ -117,6 +117,13 @@ if confirmation.lower() in ["y", "yes"]:
             print("Файл настроек был удален.")
         create_config(token, main_admin_id)
         print("Файл настроек был создан.")
+        if exists("images"):
+            for file in listdir("images"):
+                remove("images/" + file)
+            rmdir("images")
+            print("Папка \"images\" была удалена.")
+        mkdir("images")
+        print("Папка \"images\" была создана.")
     else:
         print("Неверный ID главного администратора.")
 else:
