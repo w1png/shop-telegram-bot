@@ -615,8 +615,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                         settings.set_delivery("0" if settings.is_delivery_enabled() else "1")
                     case "Captcha":
                         settings.set_enable_captcha("0" if settings.is_captcha_enabled() else "1")
-                    case "Debug": 
-                        settings.set_debug("0" if settings.is_debug() else "1")
                 text = tt.checkout_settings
                 markup = markups.get_markup_checkoutSettings()
                 
@@ -628,6 +626,11 @@ async def process_callback(callback_query: types.CallbackQuery):
                     settings.set_item_image("0" if settings.is_item_image_enabled() else "1")
                     text = tt.item_settings
                     markup = markups.get_markup_itemSettings()
+                elif call_data[12:] == "Debug":
+                    settings.set_debug("0" if settings.is_debug() else "1")
+                    text = tt.main_settings
+                    markup = markups.get_markup_mainSettings()
+
             except:
                 text = tt.error
                 markup = markups.single_button(markups.btnBackCheckoutSettings)
