@@ -21,12 +21,10 @@ import text_templates as tt
 from settings import Settings
 
 
-conn = sqlite3.connect('data.db')
+conn = sqlite3.connect("data.db")
 c = conn.cursor()
 
 settings = Settings()
-
-DEBUG = settings.is_debug()
 
 storage = MemoryStorage()
 bot = Bot(token=settings.get_token())
@@ -43,7 +41,7 @@ def generate_captcha(captcha_text):
 
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
-    if DEBUG:
+    if settings.is_debug():
         print(f"DEBUG: COMMAND [{message.chat.id}] {message.text}")
     user = usr.User(message.chat.id)
 
@@ -65,7 +63,7 @@ async def welcome(message: types.Message):
 
 @dp.message_handler()
 async def handle_text(message):
-    if DEBUG:
+    if settings.is_debug():
         print(f"DEBUG: MESSAGE [{message.chat.id}] {message.text}")
     user = usr.User(message.chat.id)
     
@@ -123,7 +121,7 @@ async def process_callback(callback_query: types.CallbackQuery):
     call_data = callback_query.data
     user = usr.User(chat_id)
     
-    if DEBUG:
+    if settings.is_debug():
         print(f"DEBUG: CALL [{chat_id}] {call_data}")
     
     # Admin calls
@@ -243,6 +241,8 @@ async def process_callback(callback_query: types.CallbackQuery):
             state = Dispatcher.get_current().current_state()
             await state.update_data(item_id=item.get_id())
             await state.update_data(state_message=callback_query.message.message_id)
+        # elif call_data.startswith(""):
+        #     pass
         elif call_data.startswith("editItemDesc"):
             item = itm.Item(call_data[12:])
             await bot.edit_message_text(
@@ -827,6 +827,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             )
     elif call_data.startswith("manager_") and (user.is_admin() or user.is_manager()):
         call_data = call_data[8:]
+
         if call_data == "orders":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -1098,13 +1099,24 @@ async def process_callback(callback_query: types.CallbackQuery):
             else:
                 user.add_to_cart(item.get_id())
                 text = f"Товар \"{item.get_name()}\" был добавлен в корзину."
-            await bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                text=text,
-                reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
-            )
-             
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+                await bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=callback_query.message.message_id,
+                    text=text,
+                    reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id())),
+                )
+            else:
+                await bot.delete_message(
+                    chat_id=chat_id,
+                    message_id=callback_query.message.message_id
+                )
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    reply_markup=markups.single_button(markups.btnBackViewItem(item.get_id()))
+                )
+                
         elif call_data == "changeCartDelivery":
             user.set_cart_delivery(0 if user.is_cart_delivery() else 1)
             await bot.edit_message_text(
@@ -1576,7 +1588,7 @@ async def checkoutCartSetAdditionalMessage(message: types.Message, state: FSMCon
     else:
         await bot.send_message(
             chat_id=message.chat.id,
-            text="da?",
+            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=data["additional_message"], phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_delivery_enabled() and user.is_cart_delivery() else None),
             reply_markup=markups.get_markup_checkoutCartConfirmation(),
         )
         await state_handler.checkoutCart.confirmation.set()
@@ -1613,11 +1625,12 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     user = usr.User(callback_query.message.chat.id)
 
-    if DEBUG:
+    if settings.is_debug():
         print(f"DEBUG: CALL [{chat_id}] {call_data} (STATE)")
 
     if call_data[:6] == "admin_":
         call_data = call_data[6:]
+        print(call_data)
         
         # Callbacks
         if call_data.startswith("addItemSetCat"):
@@ -1822,7 +1835,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                         await bot.send_message(
                             chat_id=user.get_id(),
                             text=f"Новый заказ:\n\n{tt.get_order_template(order)}",
-                            reply_markup=markups.single_button(markups.btnViewOrder(order.get_order_id()))
+                            reply_markup=markups.single_button(markups.get_markup_seeOrder(order.get_order_id()))
                         )
                     except:
                         if settings.is_debug():
