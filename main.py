@@ -2063,8 +2063,8 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                     try:
                         await bot.send_message(
                             chat_id=user.get_id(),
-                            text=f"Новый заказ:\n\n{tt.get_order_template(order)}",
-                            reply_markup=markups.single_button(markups.get_markup_seeOrder(order.get_order_id()))
+                            text=f"Новый заказ:\n{tt.get_order_template(order)}",
+                            reply_markup=markups.get_markup_seeOrder(order)
                         )
                     except:
                         if settings.is_debug():
