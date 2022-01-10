@@ -46,7 +46,7 @@ async def welcome(message: types.Message):
     user = usr.User(message.chat.id)
 
     markupMain = markups.get_markup_main()
-    if user.is_manager():
+    if user.is_manager() or user.is_admin():
         markupMain.row(markups.btnOrders)
     if user.is_admin():
         markupMain.row(markups.btnAdminPanel)
@@ -534,6 +534,22 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("changeUserManager"):
             editUser = usr.User(call_data[17:])
             editUser.set_manager(0 if editUser.is_manager() else 1)
+
+            try:
+                markupMain = markups.get_markup_main()
+                if user.is_manager() or user.is_admin():
+                    markupMain.row(markups.btnOrders)
+                if user.is_admin():
+                    markupMain.row(markups.btnAdminPanel)
+                await bot.send_message(
+                    chat_id=editUser.get_id(),
+                    text=f"Ваша роль менеджера была обновлена.",
+                    reply_markup=markupMain
+                )
+            except:
+                if settings.is_debug():
+                    print(f"DEBUG [{user.get_id()}] FAILED TO SEND MESSAGE TO [{editUser.get_id()}]")
+
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
@@ -550,6 +566,22 @@ async def process_callback(callback_query: types.CallbackQuery):
                     editUser.set_admin(0 if editUser.is_admin() else 1)
                     markup = markups.get_markup_seeUserProfile(editUser)
                     text = tt.get_profile_template(editUser)
+
+                    try:
+                        markupMain = markups.get_markup_main()
+                        if user.is_manager() or user.is_admin():
+                            markupMain.row(markups.btnOrders)
+                        if user.is_admin():
+                            markupMain.row(markups.btnAdminPanel)
+                        await bot.send_message(
+                            chat_id=message.chat.id,
+                            text=f"Ваша роль администратора была обновлена.",
+                            reply_markup=markupMain
+                        )
+                    except:
+                        if settings.is_debug():
+                            print(f"DEBUG [{user.get_id()}] FAILED TO SEND MESSAGE TO [{editUser.get_id()}]")
+
                 except:
                     text = tt.error
                     markup = markups.single_button(markups.btnBackSeeUserProfile(editUser.get_id()))
