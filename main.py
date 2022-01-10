@@ -379,7 +379,7 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("editItemHide"):
             item = itm.Item(call_data[12:])
             cat = itm.Category(item.get_cat_id())
-            
+
             try:
                 item.set_active(0 if item.is_active() else 1)
                 text = tt.get_item_card(item) + f"\nКатегория: {cat.get_name()}"
@@ -437,7 +437,33 @@ async def process_callback(callback_query: types.CallbackQuery):
                 )
                 
         elif call_data.startswith("editItemImage"):
-            pass
+            item = itm.Item(call_data[13:])
+            text = f"Отправьте изображение для товара или нажмите на кнопку \"Назад\"."
+            markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
+            
+            await state_handler.changeItemImage.image.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(item_id=item.get_id())
+
+            try:
+                await bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=callback_query.message.message_id,
+                    text=text,
+                    reply_markup=markup,
+                )
+                await state.update_data(state_message=callback_query.message.message_id)
+            except:
+                await bot.delete_message(
+                    message_id=callback_query.message.message_id,
+                    chat_id=chat_id
+                )
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=text,
+                    reply_markup=markup
+                )
+
         elif call_data.startswith("editItem"):
             item = itm.Item(call_data[8:])
             cat = itm.Category(item.get_cat_id())
@@ -462,7 +488,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                     photo=item.get_image(),
                     reply_markup=markup
                 )
-        
+
         # User management
         elif call_data == "userManagement":
             await bot.edit_message_text(
@@ -1433,6 +1459,46 @@ async def editItemSetPrice(message: types.Message, state: FSMContext):
         text=text,
         reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id())),
     )
+
+@dp.message_handler(content_types=['photo'], state=state_handler.changeItemImage.image)
+async def editItemSetImage(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    item = itm.Item(data["item_id"])
+
+    while True:
+        image_id = "".join([choice(ascii_lowercase + digits) for _ in range(6)]) + ".png"
+        if image_id not in listdir("images/"):
+            break
+    
+    try:
+        await message.photo[-1].download(destination_file=f"images/{image_id}")
+        item.set_image_id(image_id)
+        text = f"Изображение для \"{item.get_name()}\" было обновлено."
+    except:
+        text = tt.error
+    
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackEditItem(item.get_id()))
+    )
+    await state.finish()
+    
+
+@dp.message_handler(state=state_handler.changeItemImage.image)
+async def editItemSetImage(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=tt.error,
+        reply_markup=markups.single_button(markups.btnBackEditItem(data["item_id"]))
+    )
+
+    await state.finish()
+
 
 @dp.message_handler(state=state_handler.changeItemDesc.desc)
 async def editItemSetDesc(message: types.Message, state: FSMContext):

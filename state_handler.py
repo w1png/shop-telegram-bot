@@ -26,6 +26,11 @@ class changeItemPrice(StatesGroup):
     item_id = State()
     price = State()
 
+class changeItemImage(StatesGroup):
+    state_message = State()
+    item_id = State()
+    image = State()
+
 class changeItemDesc(StatesGroup):
     state_message = State()
     item_id = State()
