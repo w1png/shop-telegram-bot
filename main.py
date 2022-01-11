@@ -79,7 +79,7 @@ async def handle_text(message):
                 reply_markup=markups.get_markup_admin(),
             )
     elif message.text == tt.orders:
-        if user.is_manager():
+        if user.is_manager() or user.is_admin():
             await bot.send_message(
                 chat_id=message.chat.id,
                 text=tt.orders,
