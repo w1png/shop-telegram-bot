@@ -137,7 +137,7 @@ class Order:
         self.id = id
         
     def __repr__(self):
-        return f"{self.get_id()}"
+        return f"{self.get_order_id()}"
     
     def get_order_id(self):
         return self.id
@@ -216,23 +216,23 @@ def get_status_dict():
     
 def get_order_list():
     c.execute(f"SELECT * FROM orders")
-    return map(Order, [order[0] for order in list(c)])
+    return list(map(Order, [order[0] for order in list(c)]))
 
 def get_order_list_processing():
     c.execute(f"SELECT * FROM orders WHERE status=0")
-    return map(Order, [order[0] for order in list(c)])
+    return list(map(Order, [order[0] for order in list(c)]))
 
 def get_order_list_delivery():
     c.execute(f"SELECT * FROM orders WHERE status=1")
-    return map(Order, [order[0] for order in list(c)])
+    return list(map(Order, [order[0] for order in list(c)]))
 
 def get_order_list_done():
     c.execute(f"SELECT * FROM orders WHERE status=2")
-    return map(Order, [order[0] for order in list(c)])
+    return list(map(Order, [order[0] for order in list(c)]))
 
 def get_order_list_cancelled():
     c.execute(f"SELECT * FROM orders WHERE status=-1")
-    return map(Order, [order[0] for order in list(c)])
+    return list(map(Order, [order[0] for order in list(c)]))
 
 def does_order_exist(order_id):
     c.execute(f"SELECT * FROM orders WHERE order_id=?", [order_id])
