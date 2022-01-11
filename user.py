@@ -37,6 +37,9 @@ class User:
         conn.commit() 
         
     def get_register_date(self):
+        return datetime.strptime(self.__clist()[4], "%Y-%m-%d %H:%M:%S")
+
+    def get_register_date_string(self):
         return self.__clist()[4]
 
     def notif_on(self):

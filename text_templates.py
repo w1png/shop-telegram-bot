@@ -7,7 +7,7 @@ line_separator = "➖➖➖➖➖➖➖➖➖➖"
 
 # Multiple lines
 def get_profile_template(user):
-    return f"{line_separator}\n📝 id: {user.get_id()}\n📈 Кол-во заказов: {len(user.get_orders())}\n📅 Дата регистрации: {user.get_register_date()}\n{line_separator}"
+    return f"{line_separator}\n📝 id: {user.get_id()}\n📈 Кол-во заказов: {len(user.get_orders())}\n📅 Дата регистрации: {user.get_register_date_string()}\n{line_separator}"
 
 def get_faq_template(shop_name):
     return f"{line_separator}\nℹ️ FAQ магазина {shop_name}\n{line_separator}"
