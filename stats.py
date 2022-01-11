@@ -1,123 +1,28 @@
 import datetime
 import matplotlib.pyplot as plt
-import sqlite3
+import item as itm
+import user as usr
 from random import randint
 from settings import Settings
 
 settings = Settings()
 
-class RegistrationCharts:
-    def __init__(self):
-        self.conn = sqlite3.connect("data.db")
-        self.c = self.conn.cursor()
-
-    def clist(self):
-        self.c.execute("SELECT * FROM users")
-        return list(self.c)
-
-    def saveplot(self, data, filename, title):
-        plt.autoscale()
-        plt.figure(figsize=(10, 10))
-        plt.title(title, fontsize=settings.get_titlefontsize())
-        plt.xlabel("Дата", fontsize=settings.get_axisfontsize())
-        plt.ylabel("Кол-во регистраций", fontsize=settings.get_axisfontsize())
-        plt.tick_params(labelsize=settings.get_tickfontsize()) 
-        plt.bar(range(len(data)), list(data.values()), color="#" + settings.get_barcolor(), edgecolor="black", linewidth=settings.get_borderwidth())
-        plt.xticks(range(len(data)), list(data.keys()), rotation=90)
-        plt.savefig(f'images/{filename}.png')
-        plt.close()
-        return open(f'images/{filename}.png', 'rb')
-
-    # TODO: maybe remake
-    def all_time(self):
-        registrations = {datetime.datetime.strptime(user[4], "%Y-%m-%d %H:%M:%S").date(): 0 for user in self.clist()}
-        for user in self.clist():
-            registrations[datetime.datetime.strptime(user[4], "%Y-%m-%d %H:%M:%S").date()] += 1
-        registrations = {f"{date.day:02}.{date.month:02}.{date.year}": registrations[date] for date in list(registrations.keys())} # reverse for better visuals
-        return self.saveplot(registrations, "registrations_all_time", "Регистрации за все время")
-
-    def monthly(self):
-        registrations = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(30)}
-        for user in self.clist():
-            date = datetime.datetime.strptime(user[4], "%Y-%m-%d %H:%M:%S").date()
-            if date in registrations:
-                registrations[date] += 1
-        registrations = {f"{date.day:02}.{date.month:02}": registrations[date] for date in list(registrations.keys())[::-1]}
-        return self.saveplot(registrations, "registrations_monthly", "Регистрации за последние 30 дней")
-
-    def weekly(self):
-        registrations = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(7)}
-        for user in self.clist():
-            date = datetime.datetime.strptime(user[4], "%Y-%m-%d %H:%M:%S").date()
-            if date in registrations:
-                registrations[date] += 1
-        registrations = {f"{date.day:02}.{date.month:02}": registrations[date] for date in list(registrations.keys())[::-1]}
-        return self.saveplot(registrations, "registrations_weekly", "Регистрации за последние 7 дней")
-    
-    def daily(self):
-        registrations = {hour: 0 for hour in range(datetime.datetime.now().hour + 1)}
-        for user in self.clist():
-            if datetime.datetime.strptime(user[4], "%Y-%m-%d %H:%M:%S").date() == datetime.date.today():
-                registrations[datetime.datetime.strptime(user[4], "%Y-%m-%d %H:%M:%S").hour] += 1
-        registrations = {f"{hour:02}:00": registrations[hour] for hour in list(registrations.keys())}
-        return self.saveplot(registrations, "registrations_daily", "Регистрации за сегодня")
+def saveplot(data, title, ylabel):
+    plt.autoscale()
+    plt.figure(figsize=(10, 10))
+    plt.title(title, fontsize=settings.get_titlefontsize())
+    plt.xlabel("Дата", fontsize=settings.get_axisfontsize())
+    plt.ylabel(ylabel, fontsize=settings.get_axisfontsize())
+    plt.tick_params(labelsize=settings.get_tickfontsize()) 
+    plt.bar(range(len(data)), list(data.values()), color="#" + settings.get_barcolor(), edgecolor="black", linewidth=settings.get_borderwidth())
+    plt.xticks(range(len(data)), list(data.keys()), rotation=90)
+    plt.savefig(f'images/stats.png')
+    plt.close()
+    return open(f'images/stats.png', 'rb')
 
 
-class OrderCharts:
-    def __init__(self):
-        self.conn = sqlite3.connect("data.db")
-        self.c = self.conn.cursor()
-
-    def clist(self):
-        self.c.execute("SELECT * FROM orders")
-        return list(self.c)
-
-    def saveplot(self, data, filename, title):
-        plt.autoscale()
-        plt.figure(figsize=(10, 10))
-        plt.title(title, fontsize=settings.get_titlefontsize())
-        plt.xlabel("Дата", fontsize=settings.get_axisfontsize())
-        plt.ylabel("Кол-во заказов", fontsize=settings.get_axisfontsize())
-        plt.tick_params(labelsize=settings.get_tickfontsize()) 
-        plt.bar(range(len(data)), list(data.values()), color="#" + settings.get_barcolor(), edgecolor="black", linewidth=settings.get_borderwidth())
-        plt.xticks(range(len(data)), list(data.keys()), rotation=90)
-        plt.savefig(f'images/{filename}.png')
-        plt.close()
-        return open(f'images/{filename}.png', 'rb')
-
-    # TODO: maybe remake
-    def all_time(self):
-        orders = {datetime.datetime.strptime(order[7], "%Y-%m-%d %H:%M:%S").date(): 0 for order in self.clist()}
-        for order in self.clist():
-            orders[datetime.datetime.strptime(order[7], "%Y-%m-%d %H:%M:%S").date()] += 1
-        orders = {f"{date.day:02}.{date.month:02}.{date.year}": orders[date] for date in list(orders.keys())}
-        return self.saveplot(orders, "orders_all_time", "Заказы за все время")
-
-    def monthly(self):
-        orders = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(30)}
-        for order in self.clist():
-            date = datetime.datetime.strptime(order[7], "%Y-%m-%d %H:%M:%S").date()
-            if date in orders:
-                orders[date] += 1
-        orders = {f"{date.day:02}.{date.month:02}": orders[date] for date in list(orders.keys())[::-1]}
-        return self.saveplot(orders, "orders_monthly", "Заказы за последние 30 дней")
-
-    def weekly(self):
-        orders = {datetime.date.today() - datetime.timedelta(days=i): 0 for i in range(7)}
-        for order in self.clist():
-            date = datetime.datetime.strptime(order[7], "%Y-%m-%d %H:%M:%S").date()
-            if date in orders:
-                orders[date] += 1
-        orders = {f"{date.day:02}.{date.month:02}": orders[date] for date in list(orders.keys())[::-1]}
-        return self.saveplot(orders, "orders_weekly", "Заказы за последние 7 дней")
-    
-    def daily(self):
-        orders = {hour: 0 for hour in range(datetime.datetime.now().hour + 1)}
-        for order in self.clist():
-            if datetime.datetime.strptime(order[7], "%Y-%m-%d %H:%M:%S").date() == datetime.date.today():
-                orders[datetime.datetime.strptime(order[5], "%Y-%m-%d %H:%M:%S").hour] += 1
-        orders = {f"{hour:02}:00": orders[hour] for hour in list(orders.keys())}
-        return self.saveplot(orders, "orders_daily", "Заказы за сегодня")
+def get_random_data():
+    return {f"{randint(1, 30):02}.{randint(1, 12):02}.{randint(2010, 2030)}": randint(5, 100) for _ in range(randint(2, 30))}
 
 
 def get_random_graph():
@@ -127,9 +32,68 @@ def get_random_graph():
     plt.xlabel("Ось Х", fontsize=settings.get_axisfontsize())
     plt.ylabel("Ось У", fontsize=settings.get_axisfontsize())
     plt.tick_params(labelsize=settings.get_tickfontsize()) 
-    data = {f"{randint(1, 30):02}.{randint(1, 12):02}.{randint(2010, 2030)}": randint(5, 100) for _ in range(randint(2, 30))}
+    data = get_random_data()
     plt.bar(range(len(data)), list(data.values()), color="#" + settings.get_barcolor(), edgecolor="black", linewidth=settings.get_borderwidth())
     plt.xticks(range(len(data)), list(data.keys()), rotation=90)
     plt.savefig(f'images/random_graph.png')
     plt.close()
     return open(f'images/random_graph.png', 'rb')
+
+
+# TODO: make RegistrationCharts and OrderCharts inherit from Charts?
+# class Charts:
+#     def __init__(self, data=get_random_data(), ylabel="Количество"):
+#         self.data = data
+#         self.ylabel = ylabel
+        
+#         self.all_time_text = "За всё время"
+#         self.today_text = "За сегодня"
+#         self.last_x_days_text = lambda x: f"За последние {x} дней."
+#         self.last_x_hours_text = lambda x: f"За последние {x} часов."
+
+#     def saveplot(self, data, title):
+#         return saveplot(data, title, self.ylabel)
+
+#     def all_time(self):
+#         return self.saveplot({f"{date.day:02}.{date.month:02}.{date.year}": [user.get_register_date().date() for user in self.user_list].count(date) for date in dict.fromkeys([user.get_register_date().date() for user in self.data])}, self.all_time)
+
+#     def last_x_days(self, days):
+#         return self.saveplot({f"{(datetime.date.today() - datetime.timedelta(days=i)).day:02}.{(datetime.date.today() - datetime.timedelta(days=i)).month:02}": len(list(filter(lambda user: user.get_register_date() == datetime.date.today() - datetime.timedelta(days=i), self.user_list))) for i in range(days, -1, -1)}, self.last_x_days_text(days))
+
+#     def last_x_hours(self, hours):
+#         print(self.today_text if hours == (datetime.datetime.now().hour + 1) else self.last_x_days_text(hours))
+#         return self.saveplot({f"{(datetime.datetime.today() - datetime.timedelta(hours=i)).hour:02}:00": len(list(filter(lambda user: user.get_register_date().date() == datetime.date.today() and user.get_register_date().hour == (datetime.datetime.today() - datetime.timedelta(hours=i)).hour, self.user_list))) for i in range(hours, -1, -1)}, self.today_text if hours == (datetime.datetime.now().hour + 1) else self.last_x_days_text(hours))
+
+
+class RegistrationCharts:
+    def __init__(self):
+        self.user_list = usr.get_user_list()
+
+    def saveplot(self, data, title):
+        return saveplot(data, title, "Количество регистраций")
+
+    def all_time(self):
+        return self.saveplot({f"{date.day:02}.{date.month:02}.{date.year}": [user.get_register_date().date() for user in self.user_list].count(date) for date in dict.fromkeys([user.get_register_date().date() for user in self.user_list])}, "Регистрации за все время")
+
+    def last_x_days(self, days):
+        return self.saveplot({f"{(datetime.date.today() - datetime.timedelta(days=i)).day:02}.{(datetime.date.today() - datetime.timedelta(days=i)).month:02}": len(list(filter(lambda user: user.get_register_date().date() == datetime.date.today() - datetime.timedelta(days=i), self.user_list))) for i in range(30, -1, -1)}, f"Регистрации за последние {days} дней")
+
+    def last_x_hours(self, hours):
+        return self.saveplot({f"{(datetime.datetime.today() - datetime.timedelta(hours=i)).hour:02}:00": len(list(filter(lambda user: user.get_register_date().hour == (datetime.datetime.now() - datetime.timedelta(hours=i)).hour and user.get_register_date() > datetime.datetime.now() - datetime.timedelta(hours=hours), self.user_list))) for i in range(hours, -1, -1)}, f"Регистрации за последние {hours} часов.")
+
+
+class OrderCharts:
+    def __init__(self):
+        self.order_list = itm.get_order_list()
+
+    def saveplot(self, data, title):
+        return saveplot(data, title, "Количество заказов")
+
+    def all_time(self):
+        return self.saveplot({f"{date.day:02}.{date.month:02}.{date.year}": [order.get_date().date() for order in self.order_list].count(date) for date in dict.fromkeys([order.get_date().date() for order in self.order_list])}, "Заказы за все время")
+
+    def last_x_days(self, days):
+        return self.saveplot({f"{(datetime.date.today() - datetime.timedelta(days=i)).day:02}.{(datetime.date.today() - datetime.timedelta(days=i)).month:02}": len(list(filter(lambda order: order.get_date().date() == datetime.date.today() - datetime.timedelta(days=i), self.order_list))) for i in range(days, -1, -1)}, f"Заказы за последние {days} дней")
+
+    def last_x_hours(self, hours):
+        return self.saveplot({f"{(datetime.datetime.today() - datetime.timedelta(hours=i)).hour:02}:00": len(list(filter(lambda order: order.get_date() > datetime.datetime.now() - datetime.timedelta(hours=hours) and order.get_date().hour == (datetime.datetime.today() - datetime.timedelta(hours=i)).hour, self.order_list))) for i in range(hours, -1, -1)}, "Заказы за сегодня" if hours == (datetime.datetime.now().hour + 1) else f"Заказы за последние {hours} часов.")

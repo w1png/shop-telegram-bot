@@ -1,3 +1,4 @@
+from datetime import datetime
 import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -640,13 +641,13 @@ async def process_callback(callback_query: types.CallbackQuery):
                     photo = charts.all_time()
                     text = tt.all_time
                 case "Monthly":
-                    photo = charts.monthly()
+                    photo = charts.last_x_days(30)
                     text = tt.monthly
                 case "Weekly":
-                    photo = charts.weekly()
+                    photo = charts.last_x_days(7)
                     text = tt.weekly
                 case "Daily":
-                    photo = charts.daily()
+                    photo = charts.last_x_hours(24)
                     text = tt.daily
 
             await bot.delete_message(
@@ -685,13 +686,13 @@ async def process_callback(callback_query: types.CallbackQuery):
                     photo = charts.all_time()
                     text = tt.all_time
                 case "Monthly":
-                    photo = charts.monthly()
+                    photo = charts.last_x_days(30)
                     text = tt.monthly
                 case "Weekly":
-                    photo = charts.weekly()
+                    photo = charts.last_x_days(7)
                     text = tt.weekly
                 case "Daily":
-                    photo = charts.daily()
+                    photo = charts.last_x_hours(24)
                     text = tt.daily
 
             await bot.delete_message(
