@@ -191,6 +191,9 @@ class Order:
         return self.__clist()[6]
     
     def get_date(self):
+        return datetime.strptime(self.__clist()[7], "%Y-%m-%d %H:%M:%S")
+
+    def get_date_string(self):
         return self.__clist()[7]
     
     def get_status(self):
