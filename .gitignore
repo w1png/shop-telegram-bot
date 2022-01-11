@@ -1,7 +1,7 @@
 /images
 /__pycache__
 data.db
-AnimatedSticker.tgs
+sticker.tgs
 seedb.sh
 config.ini
 test.py

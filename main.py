@@ -39,7 +39,7 @@ def generate_captcha(captcha_text):
     return open("images/captcha.png", "rb")
 
 
-@dp.message_handler(commands=['start'])
+@dp.message_handler(commands=["start"])
 async def welcome(message: types.Message):
     if settings.is_debug():
         print(f"DEBUG: COMMAND [{message.chat.id}] {message.text}")
@@ -51,9 +51,13 @@ async def welcome(message: types.Message):
     if user.is_admin():
         markupMain.row(markups.btnAdminPanel)
 
-    if settings.is_sticker_enabled():
-        with open('AnimatedSticker.tgs', 'rb') as sti:
-            await bot.send_sticker(message.chat.id, sti)
+    try:
+        if settings.is_sticker_enabled():
+            with open("sticker.tgs", "rb") as sti:
+                await bot.send_sticker(message.chat.id, sti)
+    except:
+        if settings.is_debug():
+            print(f"DEBUG: FAILED TO SEND STICKER TO {message.chat.id}. sticker.tgs is probably missing in the bot's root folder.")
     await bot.send_message(
         chat_id=message.chat.id,
         text=settings.get_shop_greeting(),
@@ -807,6 +811,10 @@ async def process_callback(callback_query: types.CallbackQuery):
                 markup = markups.get_markup_checkoutSettings()
                 
                 if call_data[12:] == "Sticker":
+                    await bot.send_message(
+                        chat_id=chat_id,
+                        text=f"Для работы стикера требуется поместить sticker.tgs в корневую папку бота.",
+                    )
                     settings.set_enable_sticker("0" if settings.is_sticker_enabled() else "1")
                     text = tt.main_settings
                     markup = markups.get_markup_mainSettings()
