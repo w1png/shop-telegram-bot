@@ -19,14 +19,14 @@ class User:
         return self.__user_id
 
     def __clist(self):
-        c.execute(f"SELECT * FROM users WHERE user_id={self.get_id()}")
+        c.execute(f"SELECT * FROM users WHERE user_id=?", [self.get_id()])
         return list(c)[0]
 
     def is_admin(self):
         return self.__clist()[1] == 1
 
     def set_admin(self, value):
-        c.execute(f"UPDATE users SET is_admin={value} WHERE user_id={self.get_id()}")
+        c.execute(f"UPDATE users SET is_admin=? WHERE user_id=?", [value, self.get_id()])
         conn.commit()
 
     def is_manager(self):
@@ -47,7 +47,7 @@ class User:
         conn.commit()
 
     def get_orders(self):
-        c.execute(f"SELECT * FROM orders WHERE user_id=\"{self.get_id()}\"")
+        c.execute(f"SELECT * FROM orders WHERE user_id=?", [self.get_id()])
         return list(map(itm.Order, [order[0] for order in list(c)]))[::-1]
     
     def get_cart_comma(self):
@@ -89,7 +89,7 @@ class User:
         
 
 def does_user_exist(user_id):
-    c.execute(f"SELECT * FROM users WHERE user_id=\"{user_id}\"")
+    c.execute(f"SELECT * FROM users WHERE user_id=?", [user_id])
     return len(list(c)) != 0
 
 
@@ -105,7 +105,3 @@ def get_user_login(message):
 def get_user_list():
     c.execute("SELECT * FROM users")
     return list(map(User, [user[0] for user in list(c)]))
-
-
-if __name__ == "__main__":
-    pass
