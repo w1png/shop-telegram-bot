@@ -35,8 +35,8 @@ def get_captcha_text(): return ''.join([choice(ascii_uppercase + digits) for i i
 def generate_captcha(captcha_text):
     image = ImageCaptcha(width=280, height=90)
     image.generate(captcha_text)
-    image.write(captcha_text, "../images/captcha.png")
-    return open("../images/captcha.png", "rb")
+    image.write(captcha_text, "images/captcha.png")
+    return open("images/captcha.png", "rb")
 
 
 @dp.message_handler(commands=["start"])
@@ -1446,17 +1446,17 @@ async def addItemSetImage(message: types.Message, state: FSMContext):
     
     while True:
         image_id = "".join([choice(ascii_lowercase + digits) for _ in range(6)]) + ".png"
-        if image_id not in listdir("../images/"):
+        if image_id not in listdir("images/"):
             break
     
-    await message.photo[-1].download(destination_file=f"../images/{image_id}")
+    await message.photo[-1].download(destination_file=f"images/{image_id}")
     await state.update_data(image=image_id)
     
     cat = category.Category(data["cat_id"])
     text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"], amount=0) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"    
     await bot.send_photo(
         chat_id=message.chat.id,
-        photo=open(f"../images/{image_id}", "rb"),
+        photo=open(f"images/{image_id}", "rb"),
         caption=text,
         reply_markup=markups.get_markup_addItemConfirmation()
     )
@@ -1508,11 +1508,11 @@ async def editItemSetImage(message: types.Message, state: FSMContext):
 
     while True:
         image_id = "".join([choice(ascii_lowercase + digits) for _ in range(6)]) + ".png"
-        if image_id not in listdir("../images/"):
+        if image_id not in listdir("images/"):
             break
     
     try:
-        await message.photo[-1].download(destination_file=f"../images/{image_id}")
+        await message.photo[-1].download(destination_file=f"images/{image_id}")
         item.set_image_id(image_id)
         text = f"Изображение для \"{item.get_name()}\" было обновлено."
     except:
