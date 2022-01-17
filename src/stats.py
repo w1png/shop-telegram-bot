@@ -16,29 +16,18 @@ def saveplot(data, title, ylabel):
     plt.tick_params(labelsize=settings.get_tickfontsize()) 
     plt.bar(range(len(data)), list(data.values()), color="#" + settings.get_barcolor(), edgecolor="black", linewidth=settings.get_borderwidth())
     plt.xticks(range(len(data)), list(data.keys()), rotation=90)
-    plt.savefig(f'../images/stats.png')
+    plt.savefig(f"images/stats.png")
     plt.close()
-    return open(f'../images/stats.png', 'rb')
+    return open(f"images/stats.png", "rb")
 
 
 def get_random_data():
     return {f"{randint(1, 30):02}.{randint(1, 12):02}.{randint(2010, 2030)}": randint(5, 100) for _ in range(randint(2, 30))}
 
 
-# TODO: change to utilise saveplot
 def get_random_graph():
-    plt.autoscale()
-    plt.figure(figsize=(10, 10))
-    plt.title("Название", fontsize=settings.get_titlefontsize())
-    plt.xlabel("Ось Х", fontsize=settings.get_axisfontsize())
-    plt.ylabel("Ось У", fontsize=settings.get_axisfontsize())
-    plt.tick_params(labelsize=settings.get_tickfontsize()) 
     data = get_random_data()
-    plt.bar(range(len(data)), list(data.values()), color="#" + settings.get_barcolor(), edgecolor="black", linewidth=settings.get_borderwidth())
-    plt.xticks(range(len(data)), list(data.keys()), rotation=90)
-    plt.savefig(f'../images/random_graph.png')
-    plt.close()
-    return open(f'../images/random_graph.png', 'rb')
+    return saveplot(get_random_data(), "Название", "Ось Y")
 
 
 class RegistrationCharts:
