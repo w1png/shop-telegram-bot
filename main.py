@@ -1,10 +1,8 @@
-from datetime import datetime
 import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-from aiogram.types import message, message_entity, message_id, user
-from aiogram.types.callback_query import CallbackQuery
+from aiogram.types import message, user
 from random import choice, randint
 from string import ascii_lowercase, ascii_uppercase, digits
 from captcha.image import ImageCaptcha
@@ -18,9 +16,10 @@ import state_handler
 import user as usr
 import stats
 import item as itm
+import order as ordr
+import category
 import text_templates as tt
 from settings import Settings
-
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
@@ -34,7 +33,7 @@ dp = Dispatcher(bot, storage=storage)
 def get_captcha_text(): return ''.join([choice(ascii_uppercase + digits) for i in range(5)])
 
 def generate_captcha(captcha_text):
-    image = ImageCaptcha(width = 280, height = 90)
+    image = ImageCaptcha(width=280, height=90)
     image.generate(captcha_text)
     image.write(captcha_text, "images/captcha.png")
     return open("images/captcha.png", "rb")
@@ -176,10 +175,10 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text="Выберите категорию, которую хотите изменить или нажмите на кнопку \"Назад\".",
-                reply_markup=markups.get_markup_editCatChooseCategory(itm.get_cat_list()),
+                reply_markup=markups.get_markup_editCatChooseCategory(category.get_cat_list()),
             )
         elif call_data.startswith("editCatDelete"):
-            cat = itm.Category(call_data[13:])
+            cat = category.Category(call_data[13:])
             try:
                 text = f"Категория {cat.get_name()} была успешно удалена."
                 cat.delete()
@@ -192,7 +191,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.single_button(markups.btnBackEditCatChooseCategory),
             )
         elif call_data.startswith("editCatName"):
-            cat = itm.Category(call_data[11:])
+            cat = category.Category(call_data[11:])
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
@@ -204,7 +203,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state.update_data(cat_id=cat.get_id())
             await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editCat"):
-            cat = itm.Category(call_data[7:])
+            cat = category.Category(call_data[7:])
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
@@ -224,10 +223,10 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text="Выберите категорию товара, который вы хотите редактировать: ",
-                reply_markup=markups.get_markup_editItemChooseCategory(itm.get_cat_list()),
+                reply_markup=markups.get_markup_editItemChooseCategory(category.get_cat_list()),
             )
         elif call_data.startswith("editItemChooseItem"):
-            cat = itm.Category(call_data[18:])
+            cat = category.Category(call_data[18:])
             text = f"Выберите товар, который вы хотите редактировать: "
             markup = markups.get_markup_editItemChooseItem(cat.get_item_list())
             try:
@@ -259,7 +258,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                     message_id=callback_query.message.message_id,
                     text=text,
                     reply_markup=markup,
-                )   
+                )
             else:
                 await bot.delete_message(
                     message_id=callback_query.message.message_id,
@@ -331,7 +330,7 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("editItemCat"):
             item = itm.Item(call_data[11:])
             text = f"Выберите новую категорию для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
-            markup = markups.get_markup_editItemCat(item_id=item.get_id(), cat_list=itm.get_cat_list())
+            markup = markups.get_markup_editItemCat(item_id=item.get_id(), cat_list=category.get_cat_list())
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled():
                 await bot.edit_message_text(
@@ -383,7 +382,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemHide"):
             item = itm.Item(call_data[12:])
-            cat = itm.Category(item.get_cat_id())
+            cat = category.Category(item.get_cat_id())
 
             try:
                 item.set_active(0 if item.is_active() else 1)
@@ -413,7 +412,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 
         elif call_data.startswith("editItemDelete"):
             item = itm.Item(call_data[14:])
-            cat = itm.Category(item.get_cat_id())
+            cat = category.Category(item.get_cat_id())
             try:
                 text = f"Товар \"{item.get_name()}\" был удалён."
                 item.delete()
@@ -471,7 +470,7 @@ async def process_callback(callback_query: types.CallbackQuery):
 
         elif call_data.startswith("editItem"):
             item = itm.Item(call_data[8:])
-            cat = itm.Category(item.get_cat_id())
+            cat = category.Category(item.get_cat_id())
             text = tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}"
             markup = markups.get_markup_editItem(item)
             
@@ -529,7 +528,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_seeUserOrders(edit_user),
             )
         elif call_data.startswith("seeUserOrder"):
-            order = itm.Order(call_data[12:])
+            order = ordr.Order(call_data[12:])
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
                 chat_id=chat_id,
@@ -1018,7 +1017,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             
         # Manager tab
         elif call_data.startswith("manageOrder"):
-            order = itm.Order(call_data[11:])
+            order = ordr.Order(call_data[11:])
             await bot.edit_message_text(
                 chat_id=message.chat.id,
                 message_id=callback_query.message.message_id,
@@ -1038,16 +1037,16 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("orders"):
             match call_data[6:]:
                 case "Processing":
-                    order_list = itm.get_order_list_processing()
+                    order_list = itm.get_order_list(status=0)
                     text = tt.processing
                 case "Delivery":
-                    order_list = itm.get_order_list_delivery()
+                    order_list = itm.get_order_list(status=1)
                     text = tt.delivery
                 case "Done":
-                    order_list = itm.get_order_list_done()
+                    order_list = itm.get_order_list(status=2)
                     text = tt.done
                 case "Cancelled":
-                    order_list = itm.get_order_list_cancelled()
+                    order_list = itm.get_order_list(status=-1)
                     text = tt.cancelled
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -1056,7 +1055,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_ordersByOrderList(order_list)
             )
         elif call_data.startswith("seeOrder"):
-            order = itm.Order(call_data[8:])
+            order = ordr.Order(call_data[8:])
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
                 chat_id=chat_id,
@@ -1064,7 +1063,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_seeOrder(order)
             )
         elif call_data.startswith("changeOrderStatusProcessing"):
-            order = itm.Order(call_data[27:])
+            order = ordr.Order(call_data[27:])
             order.set_status(0)
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
@@ -1073,7 +1072,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_seeOrder(order)
             )
         elif call_data.startswith("changeOrderStatusDelivery"):
-            order = itm.Order(call_data[25:])
+            order = ordr.Order(call_data[25:])
             order.set_status(1)
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
@@ -1082,7 +1081,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_seeOrder(order)
             )
         elif call_data.startswith("changeOrderStatusDone"):
-            order = itm.Order(call_data[21:])
+            order = ordr.Order(call_data[21:])
             order.set_status(2)
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
@@ -1091,7 +1090,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_seeOrder(order)
             )
         elif call_data.startswith("changeOrderStatusCancel"):
-            order = itm.Order(call_data[23:])
+            order = ordr.Order(call_data[23:])
             order.set_status(-1)
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
@@ -1142,7 +1141,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_myOrders(user.get_orders()),
             )
         elif call_data.startswith("viewMyOrder"):
-            order = itm.Order(call_data[11:])
+            order = ordr.Order(call_data[11:])
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
@@ -1150,7 +1149,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_viewMyOrder(order),
             )
         elif call_data.startswith("cancelOrder"):
-            order = itm.Order(call_data[11:])
+            order = ordr.Order(call_data[11:])
             order.set_status(-1)
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -1159,7 +1158,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_viewMyOrder(order),
             )
         elif call_data.startswith("restoreOrder"):
-            order = itm.Order(call_data[12:])
+            order = ordr.Order(call_data[12:])
             order.set_status(0)
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -1185,13 +1184,13 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_catalogue(itm.get_cat_list()),
             )
         elif call_data.startswith("viewCat"):
-            cat = itm.Category(call_data[7:])
+            category = cat.Category(call_data[7:])
             try:
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
-                    text=cat.get_name(),
-                    reply_markup=markups.get_markup_viewCat(cat.get_item_list()),
+                    text=category.get_name(),
+                    reply_markup=markups.get_markup_viewCat(category.get_item_list()),
                 )
             except:
                 await bot.delete_message(
@@ -1366,7 +1365,7 @@ async def addCat(message: types.Message, state: FSMContext):
 @dp.message_handler(state=state_handler.changeCatName.name)
 async def changeCatName(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    cat = itm.Category(data["cat_id"])
+    cat = category.Category(data["cat_id"])
     cat_name = message.text
 
     try:
@@ -1431,7 +1430,7 @@ async def addItemSetDesc(message: types.Message, state: FSMContext):
         await state_handler.addItem.image.set()
     else:
         markup = markups.get_markup_addItemConfirmation()
-        cat = itm.Category(data["cat_id"])
+        cat = category.Category(data["cat_id"])
         text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"], amount=0) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"    
         await state_handler.addItem.confirmation.set()
     await bot.send_message(
@@ -1453,7 +1452,7 @@ async def addItemSetImage(message: types.Message, state: FSMContext):
     await message.photo[-1].download(destination_file=f"images/{image_id}")
     await state.update_data(image=image_id)
     
-    cat = itm.Category(data["cat_id"])
+    cat = category.Category(data["cat_id"])
     text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"], amount=0) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"    
     await bot.send_photo(
         chat_id=message.chat.id,
@@ -1899,7 +1898,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             await state_handler.addItem.desc.set()
         elif call_data == "skipSetAddItemSetImage":
             await state.update_data(image="None")
-            cat = itm.Category(data["cat_id"])
+            cat = category.Category(data["cat_id"])
             text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"], amount=0) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"    
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -1950,8 +1949,8 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
 
         elif call_data.startswith("editItemSetCat"):
             item = itm.Item(data["item_id"])
-            old_cat = itm.Category(item.get_cat_id())
-            new_cat = itm.Category(call_data[14:])
+            old_cat = category.Category(item.get_cat_id())
+            new_cat = category.Category(call_data[14:])
             try:
                 text = f"Категория для \"{item.get_name()}\" была изменена с \"{old_cat.get_name()}\" на \"{new_cat.get_name()}\"."
                 item.set_cat_id(new_cat.get_id())
@@ -1987,7 +1986,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 )
             await state.finish()
         elif call_data.startswith("editCat"):
-            cat = itm.Category(call_data[7:])
+            cat = category.Category(call_data[7:])
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
@@ -1997,7 +1996,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             await state.finish()
         elif call_data.startswith("editItem"):
             item = itm.Item(call_data[8:])
-            cat = itm.Category(item.get_cat_id())
+            cat = category.Category(item.get_cat_id())
             text = tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}"
             markup = markups.get_markup_editItem(item)
             

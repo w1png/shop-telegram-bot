@@ -1,6 +1,6 @@
 import datetime
 import matplotlib.pyplot as plt
-import item as itm
+import order as ordr
 import user as usr
 from random import randint
 from settings import Settings
@@ -40,31 +40,6 @@ def get_random_graph():
     return open(f'images/random_graph.png', 'rb')
 
 
-# TODO: make RegistrationCharts and OrderCharts inherit from Charts?
-# class Charts:
-#     def __init__(self, data=get_random_data(), ylabel="Количество"):
-#         self.data = data
-#         self.ylabel = ylabel
-        
-#         self.all_time_text = "За всё время"
-#         self.today_text = "За сегодня"
-#         self.last_x_days_text = lambda x: f"За последние {x} дней."
-#         self.last_x_hours_text = lambda x: f"За последние {x} часов."
-
-#     def saveplot(self, data, title):
-#         return saveplot(data, title, self.ylabel)
-
-#     def all_time(self):
-#         return self.saveplot({f"{date.day:02}.{date.month:02}.{date.year}": [user.get_register_date().date() for user in self.user_list].count(date) for date in dict.fromkeys([user.get_register_date().date() for user in self.data])}, self.all_time)
-
-#     def last_x_days(self, days):
-#         return self.saveplot({f"{(datetime.date.today() - datetime.timedelta(days=i)).day:02}.{(datetime.date.today() - datetime.timedelta(days=i)).month:02}": len(list(filter(lambda user: user.get_register_date() == datetime.date.today() - datetime.timedelta(days=i), self.user_list))) for i in range(days, -1, -1)}, self.last_x_days_text(days))
-
-#     def last_x_hours(self, hours):
-#         print(self.today_text if hours == (datetime.datetime.now().hour + 1) else self.last_x_days_text(hours))
-#         return self.saveplot({f"{(datetime.datetime.today() - datetime.timedelta(hours=i)).hour:02}:00": len(list(filter(lambda user: user.get_register_date().date() == datetime.date.today() and user.get_register_date().hour == (datetime.datetime.today() - datetime.timedelta(hours=i)).hour, self.user_list))) for i in range(hours, -1, -1)}, self.today_text if hours == (datetime.datetime.now().hour + 1) else self.last_x_days_text(hours))
-
-
 class RegistrationCharts:
     def __init__(self):
         self.user_list = usr.get_user_list()
@@ -84,7 +59,7 @@ class RegistrationCharts:
 
 class OrderCharts:
     def __init__(self):
-        self.order_list = itm.get_order_list()
+        self.order_list = ordr.get_order_list()
 
     def saveplot(self, data, title):
         return saveplot(data, title, "Количество заказов")
