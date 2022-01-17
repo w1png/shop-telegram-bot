@@ -32,7 +32,7 @@ titlefontsize = 20
 axisfontsize = 12
 tickfontsize = 8
 """
-    with open("config.ini", "w") as config:
+    with open("../config.ini", "w") as config:
         config.write(DEFAULT_CONFIG_TEXT)
 
 
@@ -92,7 +92,7 @@ def create_db():
     conn.close()    
 
 clearConsole()
-if any(list(map(exists, ["config.ini", "images", "data.db"]))):
+if any(list(map(exists, ["../config.ini", "../images", "../data.db"]))):
     while True:
         confirmation = input("Вы уверены, что хотите повторно запустить процесс установки? Все данные будут утеряны! (y/N) ")
         if confirmation.lower() in ["y", "yes", "n", "no", ""]:
@@ -107,22 +107,22 @@ if confirmation.lower() in ["y", "yes"]:
     print("Вы можете получить ваш ID, написав \"/start\" боту @userinfobot")
     main_admin_id = input("Введите ID главного администратора: ")
     if main_admin_id.isalnum():
-        if exists("data.db"):
-            remove("data.db")
+        if exists("../data.db"):
+            remove("../data.db")
             print("База данных была удалена.")
         create_db()
         print("База данных была создана.")
-        if exists("config.ini"):
-            remove("config.ini")
+        if exists("../config.ini"):
+            remove("../config.ini")
             print("Файл настроек был удален.")
         create_config(token, main_admin_id)
         print("Файл настроек был создан.")
-        if exists("images"):
-            for file in listdir("images"):
-                remove("images/" + file)
-            rmdir("images")
+        if exists("../images"):
+            for file in listdir("../images"):
+                remove("../images/" + file)
+            rmdir("../images")
             print("Папка \"images\" была удалена.")
-        mkdir("images")
+        mkdir("../images")
         print("Папка \"images\" была создана.")
     else:
         print("Неверный ID главного администратора.")

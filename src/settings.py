@@ -9,7 +9,7 @@ class Settings:
     def __set_setting(self, category, subcategory, value):
         conf = self.__get_config()
         conf.set(category, subcategory, str(value))
-        with open("config.ini", 'w') as config:
+        with open("../config.ini", 'w') as config:
             conf.write(config)
     
     # main_settings

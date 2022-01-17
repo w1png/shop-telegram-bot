@@ -35,8 +35,8 @@ def get_captcha_text(): return ''.join([choice(ascii_uppercase + digits) for i i
 def generate_captcha(captcha_text):
     image = ImageCaptcha(width=280, height=90)
     image.generate(captcha_text)
-    image.write(captcha_text, "images/captcha.png")
-    return open("images/captcha.png", "rb")
+    image.write(captcha_text, "../images/captcha.png")
+    return open("../images/captcha.png", "rb")
 
 
 @dp.message_handler(commands=["start"])
@@ -101,7 +101,7 @@ async def handle_text(message):
         await bot.send_message(
             chat_id=message.chat.id,
             text=tt.catalogue,
-            reply_markup=markups.get_markup_catalogue(itm.get_cat_list()),
+            reply_markup=markups.get_markup_catalogue(category.get_cat_list()),
         )
     elif message.text == tt.cart:
         if user.get_cart():
@@ -1037,16 +1037,16 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("orders"):
             match call_data[6:]:
                 case "Processing":
-                    order_list = itm.get_order_list(status=0)
+                    order_list = ordr.get_order_list(status=0)
                     text = tt.processing
                 case "Delivery":
-                    order_list = itm.get_order_list(status=1)
+                    order_list = ordr.get_order_list(status=1)
                     text = tt.delivery
                 case "Done":
-                    order_list = itm.get_order_list(status=2)
+                    order_list = ordr.get_order_list(status=2)
                     text = tt.done
                 case "Cancelled":
-                    order_list = itm.get_order_list(status=-1)
+                    order_list = ordr.get_order_list(status=-1)
                     text = tt.cancelled
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -1181,16 +1181,16 @@ async def process_callback(callback_query: types.CallbackQuery):
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
                 text=tt.catalogue,
-                reply_markup=markups.get_markup_catalogue(itm.get_cat_list()),
+                reply_markup=markups.get_markup_catalogue(category.get_cat_list()),
             )
         elif call_data.startswith("viewCat"):
-            category = cat.Category(call_data[7:])
+            cat = category.Category(call_data[7:])
             try:
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
-                    text=category.get_name(),
-                    reply_markup=markups.get_markup_viewCat(category.get_item_list()),
+                    text=cat.get_name(),
+                    reply_markup=markups.get_markup_viewCat(cat.get_item_list()),
                 )
             except:
                 await bot.delete_message(
@@ -1407,7 +1407,7 @@ async def addItemSetPrice(message: types.Message, state: FSMContext):
         await bot.send_message(
             chat_id=message.chat.id,
             text=f"Выберите категорию для \"{data['name']}\" или нажмите на кнопку \"Назад\".",
-            reply_markup=markups.get_markup_addItemSetCat(itm.get_cat_list()),
+            reply_markup=markups.get_markup_addItemSetCat(category.get_cat_list()),
         )
         await state_handler.addItem.cat_id.set()
     except:
@@ -1446,17 +1446,17 @@ async def addItemSetImage(message: types.Message, state: FSMContext):
     
     while True:
         image_id = "".join([choice(ascii_lowercase + digits) for _ in range(6)]) + ".png"
-        if image_id not in listdir("images/"):
+        if image_id not in listdir("../images/"):
             break
     
-    await message.photo[-1].download(destination_file=f"images/{image_id}")
+    await message.photo[-1].download(destination_file=f"../images/{image_id}")
     await state.update_data(image=image_id)
     
     cat = category.Category(data["cat_id"])
     text = tt.get_item_card(name=data["name"], price=data["price"], desc=data["desc"], amount=0) + f"\nКатегория: {cat.get_name()}\n\nВы уверены, что хотите добавить \"{data['name']}\" в каталог?"    
     await bot.send_photo(
         chat_id=message.chat.id,
-        photo=open(f"images/{image_id}", "rb"),
+        photo=open(f"../images/{image_id}", "rb"),
         caption=text,
         reply_markup=markups.get_markup_addItemConfirmation()
     )
@@ -1508,11 +1508,11 @@ async def editItemSetImage(message: types.Message, state: FSMContext):
 
     while True:
         image_id = "".join([choice(ascii_lowercase + digits) for _ in range(6)]) + ".png"
-        if image_id not in listdir("images/"):
+        if image_id not in listdir("../images/"):
             break
     
     try:
-        await message.photo[-1].download(destination_file=f"images/{image_id}")
+        await message.photo[-1].download(destination_file=f"../images/{image_id}")
         item.set_image_id(image_id)
         text = f"Изображение для \"{item.get_name()}\" было обновлено."
     except:

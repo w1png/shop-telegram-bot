@@ -1,8 +1,5 @@
 import sqlite3
 from settings import Settings
-from datetime import datetime
-
-import text_templates as tt
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
