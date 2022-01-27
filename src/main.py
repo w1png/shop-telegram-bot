@@ -211,13 +211,21 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_editCat(cat.get_id()),
             )
         elif call_data == "addItem":
-            await bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                text=f"Введите название нового товара или нажмите на кнопку \"Назад\".",
-                reply_markup=markups.single_button(markups.btnBackItemManagement),
-            )
-            await state_handler.addItem.name.set()
+            if not category.get_cat_list():
+                await bot.edit_message_text(
+                    text=f"Создайте категорию перед добавлением товара!",
+                    chat_id=chat_id,
+                    message_id=callback_query.message.message_id,
+                    reply_markup=markups.single_button(markups.btnBackItemManagement)
+                )
+            else:
+                await bot.edit_message_text(
+                    chat_id=chat_id,
+                    message_id=callback_query.message.message_id,
+                    text=f"Введите название нового товара или нажмите на кнопку \"Назад\".",
+                    reply_markup=markups.single_button(markups.btnBackItemManagement),
+                )
+                await state_handler.addItem.name.set()
         elif call_data == "editItemChooseCategory":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -1346,7 +1354,7 @@ async def addCat(message: types.Message, state: FSMContext):
     cat_name = message.text
 
     try:
-        itm.create_cat(cat_name)
+        category.create_cat(cat_name)
         text = tt.get_category_was_created_successfuly(cat_name)
     except:
         text = tt.error
