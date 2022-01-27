@@ -85,7 +85,7 @@ class Item:
 
 def get_item_list():
     c.execute("SELECT * FROM items")
-    return map(Item, [item[0] for item in list(c)])
+    return list(map(Item, [item[0] for item in list(c)]))
 
 
 def create_item(name, price, cat_id, desc, image_id="None"):
