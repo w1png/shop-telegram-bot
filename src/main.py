@@ -260,7 +260,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             text = f"Введите новое название для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -313,7 +313,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             text = f"Введите новую цену для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -388,6 +388,47 @@ async def process_callback(callback_query: types.CallbackQuery):
             state = Dispatcher.get_current().current_state()
             await state.update_data(item_id=item.get_id())
             await state.update_data(state_message=callback_query.message.message_id)
+        elif call_data.startswith("editItemHideImage"):
+            item = itm.Item(call_data[17:])
+            cat = category.Category(item.get_cat_id())
+
+            try:
+                item.set_hide_image(0 if item.is_hide_image() else 1)
+                text = tt.get_item_card(item) + f"\nКатегория: {cat.get_name()}"
+            except:
+                text = tt.error
+            markup = markups.get_markup_editItem(item)
+
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
+                try:                
+                    await bot.edit_message_text(
+                        chat_id=chat_id,
+                        message_id=callback_query.message.message_id,
+                        text=text,
+                        reply_markup=markup,
+                    )
+                except: # TODO: make it more compact
+                    await bot.delete_message(
+                        message_id=callback_query.message.message_id,
+                        chat_id=chat_id
+                    )
+                    await bot.send_message(
+                        text=text,
+                        chat_id=chat_id,
+                        reply_markup=markup
+                    )
+            else:
+                await bot.delete_message(
+                    message_id=callback_query.message.message_id,
+                    chat_id=chat_id
+                )
+                await bot.send_photo(
+                    chat_id=chat_id,
+                    caption=text,
+                    photo=item.get_image(),
+                    reply_markup=markup
+                )
+
         elif call_data.startswith("editItemHide"):
             item = itm.Item(call_data[12:])
             cat = category.Category(item.get_cat_id())
@@ -399,7 +440,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text = tt.error
             markup = markups.get_markup_editItem(item)
             
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -429,7 +470,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text = tt.error
                 markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -482,7 +523,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             text = tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}"
             markup = markups.get_markup_editItem(item)
             
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -1214,7 +1255,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             item = itm.Item(call_data[8:])
             text = tt.get_item_card(item=item)
             markup = markups.get_markup_viewItem(item)
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -1306,7 +1347,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             else:
                 user.add_to_cart(item.get_id())
                 text = f"Товар \"{item.get_name()}\" был добавлен в корзину."
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
@@ -2008,7 +2049,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             text = tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}"
             markup = markups.get_markup_editItem(item)
             
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled():
+            if item.get_image_id() == "None" or not settings.is_item_image_enabled() and item.is_hide_image():
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,

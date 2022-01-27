@@ -78,6 +78,13 @@ class Item:
     def set_image_id(self, value):
         c.execute(f"UPDATE items SET image_id=? WHERE id=?", [value, self.get_id()])
 
+    def is_hide_image(self):
+        return self.__clist()[8] == 1
+
+    def set_hide_image(self, value):
+        c.execute("UPDATE items SET hide_image=? WHERE id=?", [value, self.get_id()])
+        conn.commit()
+
     def delete(self):
         c.execute(f"DELETE FROM items WHERE id=?", [self.get_id()])
         conn.commit()

@@ -207,6 +207,7 @@ def get_markup_editItem(item):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.change_name, callback_data=f"admin_editItemName{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_image, callback_data=f"admin_editItemImage{itemid}"))
+    markup.add(types.InlineKeyboardButton(text=tt.show_image if item.is_hide_image() else tt.hide_image, callback_data=f"admin_editItemHideImage{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_desc, callback_data=f"admin_editItemDesc{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_price, callback_data=f"admin_editItemPrice{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_item_cat, callback_data=f"admin_editItemCat{itemid}"))
