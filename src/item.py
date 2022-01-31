@@ -41,6 +41,7 @@ class Item:
         c.execute(f"UPDATE items SET price=? WHERE id=?", [value, self.get_id()])
         conn.commit()
 
+    # TODO: change to get_cat and change to cat.get_id() everywhere
     def get_cat_id(self):
         return self.__clist()[3]
 
@@ -95,8 +96,8 @@ def get_item_list():
     return list(map(Item, [item[0] for item in list(c)]))
 
 
-def create_item(name, price, cat_id, desc, image_id="None"):
-    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active, amount, image_id) VALUES(?, ?, ?, ?, 1, 0, ?)", [name, price, cat_id, desc, image_id])
+def create_item(name, price, cat_id, desc, image_id="None", active=True):
+    c.execute(f"INSERT INTO items(name, price, cat_id, desc, active, amount, image_id, hide_image) VALUES(?, ?, ?, ?, ?, 0, ?, 0)", [name, price, cat_id, desc, 1 if active else 0, image_id])
     conn.commit()
 
 

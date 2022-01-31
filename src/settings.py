@@ -1,9 +1,9 @@
 from configparser import ConfigParser
 
 class Settings:
-    def __get_config(self):
+    def __get_config(self, config_path="config.ini"):
         conf = ConfigParser()
-        conf.read("config.ini", encoding='utf8')
+        conf.read(config_path, encoding='utf8')
         return conf
     
     def __set_setting(self, category, subcategory, value):
