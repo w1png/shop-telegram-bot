@@ -1,6 +1,7 @@
 /images
-/src/__pycache__
 data.db
+*.pyc
+*.pyd
 sticker.tgs
 config.ini
 src/test.py

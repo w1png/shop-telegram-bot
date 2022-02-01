@@ -1,15 +1,18 @@
 from configparser import ConfigParser
 
 class Settings:
-    def __get_config(self, config_path="config.ini"):
+    def __init__(self, config_path="config.ini"):
+        self.__config_path = config_path
+
+    def __get_config(self):
         conf = ConfigParser()
-        conf.read(config_path, encoding='utf8')
+        conf.read(self.__config_path, encoding='utf8')
         return conf
     
     def __set_setting(self, category, subcategory, value):
         conf = self.__get_config()
         conf.set(category, subcategory, str(value))
-        with open("config.ini", 'w') as config:
+        with open(self.__config_path, 'w') as config:
             conf.write(config)
     
     # main_settings

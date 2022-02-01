@@ -1,5 +1,5 @@
 import sqlite3
-import item as itm
+from src import item as itm
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
@@ -7,6 +7,12 @@ c = conn.cursor()
 class Category:
     def __init__(self, cat_id):
         self.id = cat_id
+
+    def __eq__(self, __o: object) -> bool:
+        return self.get_id() == __o.get_id()
+
+    def __repr__(self) -> str:
+        return self.get_name()
 
     def get_id(self):
         return self.id
@@ -39,3 +45,7 @@ def get_cat_list():
 def create_cat(cat_name):
     c.execute(f"INSERT INTO cats(name) VALUES(?)", [cat_name])
     conn.commit()
+
+
+if __name__ == "__main__":
+    print(get_cat_list())

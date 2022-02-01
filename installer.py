@@ -7,7 +7,7 @@ import sqlite3
 def clearConsole():
     system("cls" if name in ("nt", "dos") else "clear")
 
-def create_config(token, main_admin_id):
+def create_config(token, main_admin_id, config_path="coinfig.ini"):
     DEFAULT_CONFIG_TEXT = f"""[main_settings]
 token = {token}
 mainadminid = {main_admin_id}
@@ -32,7 +32,7 @@ titlefontsize = 20
 axisfontsize = 12
 tickfontsize = 8
 """
-    with open("config.ini", "w") as config:
+    with open(config_path, "w") as config:
         config.write(DEFAULT_CONFIG_TEXT)
 
 
@@ -92,43 +92,45 @@ def create_db():
     conn.commit()
     conn.close()    
 
-clearConsole()
-if any(list(map(exists, ["config.ini", "images", "data.db"]))):
-    while True:
-        confirmation = input("Вы уверены, что хотите повторно запустить процесс установки? Все данные будут утеряны! (y/N) ")
-        if confirmation.lower() in ["y", "yes", "n", "no", ""]:
-            break
-else:
-    confirmation = "y"
 
-
-if confirmation.lower() in ["y", "yes"]:
-    print("Вы можете узнать как получить токен бота, перейдя по ссылке: https://youtu.be/fyISLEvzIec")
-    token = input("Введите токен бота: ")
-    print("Вы можете получить ваш ID, написав \"/start\" боту @userinfobot")
-    main_admin_id = input("Введите ID главного администратора: ")
-    if main_admin_id.isalnum():
-        if exists("data.db"):
-            remove("data.db")
-            print("База данных была удалена.")
-        create_db()
-        print("База данных была создана.")
-        if exists("config.ini"):
-            remove("config.ini")
-            print("Файл настроек был удален.")
-        create_config(token, main_admin_id)
-        print("Файл настроек был создан.")
-        if exists("images"):
-            for file in listdir("images"):
-                remove("images/" + file)
-            rmdir("images")
-            print("Папка \"images\" была удалена.")
-        mkdir("images")
-        print("Папка \"images\" была создана.")
+if __name__ == "__main__":
+    clearConsole()
+    if any(list(map(exists, ["config.ini", "images", "data.db"]))):
+        while True:
+            confirmation = input("Вы уверены, что хотите повторно запустить процесс установки? Все данные будут утеряны! (y/N) ")
+            if confirmation.lower() in ["y", "yes", "n", "no", ""]:
+                break
     else:
-        print("Неверный ID главного администратора.")
-else:
-    print("Установка была отменена.")
+        confirmation = "y"
 
 
-input("Нажмите ENTER, чтобы продолжить...")
+    if confirmation.lower() in ["y", "yes"]:
+        print("Вы можете узнать как получить токен бота, перейдя по ссылке: https://youtu.be/fyISLEvzIec")
+        token = input("Введите токен бота: ")
+        print("Вы можете получить ваш ID, написав \"/start\" боту @userinfobot")
+        main_admin_id = input("Введите ID главного администратора: ")
+        if main_admin_id.isalnum():
+            if exists("data.db"):
+                remove("data.db")
+                print("База данных была удалена.")
+            create_db()
+            print("База данных была создана.")
+            if exists("config.ini"):
+                remove("config.ini")
+                print("Файл настроек был удален.")
+            create_config(token, main_admin_id)
+            print("Файл настроек был создан.")
+            if exists("images"):
+                for file in listdir("images"):
+                    remove("images/" + file)
+                rmdir("images")
+                print("Папка \"images\" была удалена.")
+            mkdir("images")
+            print("Папка \"images\" была создана.")
+        else:
+            print("Неверный ID главного администратора.")
+    else:
+        print("Установка была отменена.")
+
+
+    input("Нажмите ENTER, чтобы продолжить...")
