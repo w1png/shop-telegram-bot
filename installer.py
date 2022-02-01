@@ -7,7 +7,7 @@ import sqlite3
 def clearConsole():
     system("cls" if name in ("nt", "dos") else "clear")
 
-def create_config(token, main_admin_id, config_path="coinfig.ini"):
+def create_config(token, main_admin_id, config_path="config.ini"):
     DEFAULT_CONFIG_TEXT = f"""[main_settings]
 token = {token}
 mainadminid = {main_admin_id}
