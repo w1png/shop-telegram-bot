@@ -37,7 +37,7 @@ class Command:
         return self.__clist()[2]
 
     def delete(self):
-        c.execute("DELETE * FROM commands WHERE id=?", [self.command_id])
+        c.execute("DELETE FROM commands WHERE id=?", [self.command_id])
         conn.commit()
 
 
