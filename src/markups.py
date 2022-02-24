@@ -35,6 +35,7 @@ btnBackShopSettings = types.InlineKeyboardButton(text=tt.back, callback_data="ad
 btnBackStatsSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_statsSettings")
 btnBackMainSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_mainSettings")
 btnBackCheckoutSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_checkoutSettings")
+btnBackAdditionalSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_additionalSettings")
 btnBackCustomCommands = types.InlineKeyboardButton(text=tt.back, callback_data="admin_customCommands")
 
 # /start menu
@@ -296,7 +297,7 @@ def get_markup_shopSettings():
     markup.add(types.InlineKeyboardButton(text=tt.item_settings, callback_data="admin_itemSettings"))
     markup.add(types.InlineKeyboardButton(text=tt.checkout_settings, callback_data="admin_checkoutSettings"))
     markup.add(types.InlineKeyboardButton(text=tt.stats_settings, callback_data="admin_statsSettings"))
-    markup.add(types.InlineKeyboardButton(text=tt.custom_commands, callback_data="admin_customCommands"))
+    markup.add(types.InlineKeyboardButton(text=tt.additional_settings, callback_data="admin_additionalSettings"))
     markup.add(btnBackAdmin)
     return markup
     
@@ -393,6 +394,12 @@ def get_markup_ordersByOrderList(order_list):
     markup.add(btnBackOrders)
     return markup
 
+def get_markup_additionalSettings():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.custom_commands, callback_data="admin_customCommands"))
+    markup.add(btnBackShopSettings)
+    return markup
+
 # Custom commands
 def get_markup_customCommands():
     markup = types.InlineKeyboardMarkup()
@@ -400,5 +407,5 @@ def get_markup_customCommands():
         markup.add(types.InlineKeyboardButton(text=command.get_command(), callback_data="None"), types.InlineKeyboardButton(text=tt.delete, callback_data=f"admin_deleteCommand{command.get_id()}"))
     markup.add(types.InlineKeyboardButton(text=tt.line_separator, callback_data="None"))
     markup.add(types.InlineKeyboardButton(text=tt.add_command, callback_data="admin_addCommand"))
-    markup.add(btnBackShopSettings)
+    markup.add(btnBackAdditionalSettings)
     return markup

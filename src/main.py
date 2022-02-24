@@ -1077,6 +1077,14 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_statsSettingsTickFontSize()
             )
         
+        elif call_data == "additionalSettings":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.additional_settings,
+                reply_markup=markups.get_markup_additionalSettings()
+            )
+
         # Custom commands
         elif call_data == "customCommands":
             await bot.edit_message_text(
