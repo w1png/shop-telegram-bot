@@ -98,5 +98,9 @@ class changeShopContacts(StatesGroup):
 class changeDeliveryPrice(StatesGroup):
     state_message = State()
     price = State()
+
+class addCustomCommand(StatesGroup):
+    command = State()
+    response = State()
     
     

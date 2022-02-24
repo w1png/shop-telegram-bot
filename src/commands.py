@@ -7,8 +7,20 @@ c = conn.cursor()
 def get_commands():
     return list(map(Command, [command[0] for command in list(c.execute("SELECT * FROM commands"))]))
 
-def does_command_exist(command_id):
-    c.execute("SELECT * FROM commands WHERE id=?", [command_id])
+def does_command_exist(command_id=None, command=None):
+    result = False
+    if command_id:
+        c.execute("SELECT * FROM commands WHERE id=?", [command_id])
+        result = len(list(c)) >= 1
+    elif command:
+        c.execute("SELECT * FROM commands WHERE command=?", [command])
+        result = len(list(c)) >= 1
+    return result
+
+def get_command_by_command(command):
+    c.execute("SELECT * FROM commands WHERE command=?", [command])
+    return Command(list(c)[0][0])
+    
 
 def create_command(command, response):
     c.execute("INSERT INTO commands(command, response) VALUES(?,?)", [command, response])
@@ -17,8 +29,9 @@ def create_command(command, response):
 
 # TODO: rework the permission system and implement command permissions
 class Command:
-    def __init__(self, command_id):
+    def __init__(self, command_id=None):
         self.command_id = command_id
+
 
     def __repr__(self):
         return f"[{self.get_id()}] {self.get_command()}"

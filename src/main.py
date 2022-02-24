@@ -20,6 +20,7 @@ import order as ordr
 import category
 import text_templates as tt
 from settings import Settings
+import commands 
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
@@ -115,6 +116,11 @@ async def handle_text(message):
             text=text,
             reply_markup=markup
         )
+    elif commands.does_command_exist(command=message.text):
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=commands.get_command_by_command(message.text).get_response()
+        )
     else:
         await bot.send_message(message.chat.id, 'Не могу понять команду :(')
 
@@ -164,7 +170,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text="Введите название новой категории или нажмите на кнопку \"Назад\".",
+                text=f"Введите название новой категории {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackItemManagement),
             )
             await state_handler.addCat.name.set()
@@ -174,7 +180,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text="Выберите категорию, которую хотите изменить или нажмите на кнопку \"Назад\".",
+                text=f"Выберите категорию, которую хотите изменить {tt.or_press_back}",
                 reply_markup=markups.get_markup_editCatChooseCategory(category.get_cat_list()),
             )
         elif call_data.startswith("editCatDelete"):
@@ -195,7 +201,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите новое название для категории \"{cat.get_name()}\" или нажмите на кнопку \"Назад\".",
+                text=f"Введите новое название для категории \"{cat.get_name()}\" {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackEditCat(cat.get_id())),
             )
             await state_handler.changeCatName.name.set()
@@ -226,6 +232,13 @@ async def process_callback(callback_query: types.CallbackQuery):
                     reply_markup=markups.single_button(markups.btnBackItemManagement),
                 )
                 await state_handler.addItem.name.set()
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите название нового товара {tt.or_press_back}",
+                reply_markup=markups.single_button(markups.btnBackItemManagement),
+            )
+            await state_handler.addItem.name.set()
         elif call_data == "editItemChooseCategory":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -257,7 +270,7 @@ async def process_callback(callback_query: types.CallbackQuery):
 
         elif call_data.startswith("editItemName"):
             item = itm.Item(call_data[12:])
-            text = f"Введите новое название для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
+            text = f"Введите новое название для \"{item.get_name()}\" {tt.or_press_back}"
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
@@ -284,7 +297,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemDesc"):
             item = itm.Item(call_data[12:])
-            text = f"Введите новое описание для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
+            text = f"Введите новое описание для \"{item.get_name()}\" {tt.or_press_back}"
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled():
@@ -310,7 +323,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemPrice"):
             item = itm.Item(call_data[13:])
-            text = f"Введите новую цену для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
+            text = f"Введите новую цену для \"{item.get_name()}\" {tt.or_press_back}"
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled() or item.is_hide_image():
@@ -337,7 +350,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("editItemCat"):
             item = itm.Item(call_data[11:])
-            text = f"Выберите новую категорию для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
+            text = f"Выберите новую категорию для \"{item.get_name()}\" {tt.or_press_back}"
             markup = markups.get_markup_editItemCat(item_id=item.get_id(), cat_list=category.get_cat_list())
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled():
@@ -363,7 +376,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await state.update_data(item_id=item.get_id())
         elif call_data.startswith("editItemStock"):
             item = itm.Item(call_data[13:])
-            text = f"Введите новое количество товара для \"{item.get_name()}\" или нажмите на кнопку \"Назад\"."
+            text = f"Введите новое количество товара для \"{item.get_name()}\" {tt.or_press_back}"
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled():
@@ -491,7 +504,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 
         elif call_data.startswith("editItemImage"):
             item = itm.Item(call_data[13:])
-            text = f"Отправьте изображение для товара или нажмите на кнопку \"Назад\"."
+            text = f"Отправьте изображение для товара {tt.or_press_back}"
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
             await state_handler.changeItemImage.image.set()
@@ -554,7 +567,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите ID пользователя или нажмите на кнопку \"Назад\".",
+                text=f"Введите ID пользователя {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackUserManagement),
             )
             await state_handler.seeUserProfile.user_id.set()
@@ -784,7 +797,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите новое название магазина или нажмите на кнопку \"Назад\".",
+                text=f"Введите новое название магазина {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackMainSettings),
             )
             await state_handler.changeShopName.name.set()
@@ -794,7 +807,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите новое приветствие магазина или нажмите на кнопку \"Назад\".",
+                text=f"Введите новое приветствие магазина {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackMainSettings),
             )
             await state_handler.changeShopGreeting.greeting.set()
@@ -804,7 +817,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите новую политику возврата магазина или нажмите на кнопку \"Назад\".",
+                text=f"Введите новую политику возврата магазина {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackMainSettings),
             )
             await state_handler.changeShopRefundPolicy.refund_policy.set()
@@ -814,7 +827,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите новый текст для вкладки \"Контакты\" возврата магазина или нажмите на кнопку \"Назад\".",
+                text=f"Введите новый текст для вкладки \"Контакты\" возврата магазина {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackMainSettings),
             )
             await state_handler.changeShopContacts.contacts.set()
@@ -840,7 +853,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите новую цену доставки или нажмите на кнопку \"Назад\".",
+                text=f"Введите новую цену доставки {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackCheckoutSettings),
             )
             await state_handler.changeDeliveryPrice.price.set()
@@ -1063,6 +1076,46 @@ async def process_callback(callback_query: types.CallbackQuery):
                 photo=stats.get_random_graph(),
                 reply_markup=markups.get_markup_statsSettingsTickFontSize()
             )
+        
+        # Custom commands
+        elif call_data == "customCommands":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.custom_commands,
+                reply_markup=markups.get_markup_customCommands()
+            )
+        elif call_data.startswith("deleteCommand"):
+            command = commands.Command(call_data[13:])
+            try:
+                command.delete()
+                text = tt.custom_commands
+                markup = markups.get_markup_customCommands()
+            except:
+                text = tt.error
+                markup = markups.single_button(markups.btnBackCustomCommands)
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markup
+            )
+        elif call_data == "addCommand":
+            if len(commands.get_commands()) >= 90:
+                await bot.edit_message_text(
+                    chat_id=callback_query.message.chat.id,
+                    message_id=callback_query.message.message_id,
+                    text=f"Вы не можете добавить больше 90 команд!",
+                    reply_markup=markups.single_button(markups.btnBackCustomCommands)
+                )
+            else:
+                await bot.edit_message_text(
+                    chat_id=callback_query.message.chat.id,
+                    message_id=callback_query.message.message_id,
+                    text=f"Введите новую команду {tt.or_press_back}",
+                    reply_markup=markups.single_button(markups.btnBackCustomCommands)
+                )
+                await state_handler.addCustomCommand.command.set()
             
         # Manager tab
         elif call_data.startswith("manageOrder"):
@@ -1378,7 +1431,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите ваш Email адрес или нажмите на кнопку \"Назад\".",
+                text=f"Введите ваш Email адрес {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackCart),
             )
             await state_handler.checkoutCart.email.set()
@@ -1442,7 +1495,7 @@ async def addItemSetName(message: types.Message, state: FSMContext):
 
     await bot.send_message(
         chat_id=message.chat.id,
-        text=f"Введите цену для \"{message.text}\" или нажмите на кнопку \"Назад\".",
+        text=f"Введите цену для \"{message.text}\" {tt.or_press_back}",
         reply_markup=markups.single_button(markups.btnBackItemManagement),
     )
     await state_handler.addItem.price.set()
@@ -1455,7 +1508,7 @@ async def addItemSetPrice(message: types.Message, state: FSMContext):
         await state.update_data(price=float(message.text))
         await bot.send_message(
             chat_id=message.chat.id,
-            text=f"Выберите категорию для \"{data['name']}\" или нажмите на кнопку \"Назад\".",
+            text=f"Выберите категорию для \"{data['name']}\" {tt.or_press_back}",
             reply_markup=markups.get_markup_addItemSetCat(category.get_cat_list()),
         )
         await state_handler.addItem.cat_id.set()
@@ -1824,13 +1877,13 @@ async def checkoutCartSetEmail(message: types.Message, state: FSMContext):
     if matchre(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", message.text): # I am not familiar with how re package works. Taken from here: https://stackoverflow.com/questions/8022530/how-to-check-for-valid-email-address
         await state.update_data(email=message.text)
         if settings.is_phone_number_enabled():
-            text = f"Введите ваш номер телефона или нажмите на кнопку \"Назад\"."
+            text = f"Введите ваш номер телефона {tt.or_press_back}"
             await state_handler.checkoutCart.phone_number.set()
         elif settings.is_delivery_enabled() and user.is_cart_delivery():
-            text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
+            text = f"Введите адрес доставки {tt.or_press_back}"
             await state_handler.checkoutCart.home_adress.set()
         else:
-            text = f"Введите комментарий к заказу или нажмите на кнопку \"Назад\"."
+            text = f"Введите комментарий к заказу {tt.or_press_back}"
             await state_handler.checkoutCart.additional_message.set()
     else:
         text = f"\"{message.text}\" не является действительным Email адресом."
@@ -1848,10 +1901,10 @@ async def checkoutCartSetPhoneNumber(message: types.Message, state: FSMContext):
     if is_possible_number(phoneparse(message.text, "RU")):
         await state.update_data(phone_number=message.text)
         if settings.is_delivery_enabled() and user.is_cart_delivery():
-            text = f"Введите адрес доставки или нажмите на кнопку \"Назад\"."
+            text = f"Введите адрес доставки {tt.or_press_back}"
             await state_handler.checkoutCart.home_adress.set()
         else:
-            text = f"Введите комментарий к заказу или нажмите на кнопку \"Назад\"."
+            text = f"Введите комментарий к заказу {tt.or_press_back}"
             await state_handler.checkoutCart.additional_message.set()
     else:
         text = f"\"{message.text}\" не является действительным номером телефона."
@@ -1869,7 +1922,7 @@ async def checkoutCartSetHomeAdress(message: types.Message, state: FSMContext):
     await state.update_data(home_adress=message.text)
     await bot.send_message(
         chat_id=message.chat.id,
-        text=f"Введите комментарий к заказу или нажмите на кнопку \"Назад\".",
+        text=f"Введите комментарий к заказу {tt.or_press_back}",
         reply_markup=markups.single_button(markups.btnBackCart),
     )
     await state_handler.checkoutCart.additional_message.set()
@@ -1920,6 +1973,34 @@ async def checkoutCartCheckCaptcha(message: types.Message, state: FSMContext):
         )
         await state_handler.checkoutCart.captcha.set() 
 
+@dp.message_handler(state=state_handler.addCustomCommand.command)
+async def addCustomCommandSetCommand(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    await state.update_data(command=message.text)
+
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=f"Введите ответ для команды {tt.or_press_back}",
+        reply_markup=markups.single_button(markups.btnBackCustomCommands)
+    )
+    await state_handler.addCustomCommand.response.set()
+
+@dp.message_handler(state=state_handler.addCustomCommand.response)
+async def addCustomCommandSetResponse(message: types.Message, state: FSMContext):
+    state = Dispatcher.get_current().current_state()
+    data = await state.get_data()
+    try:
+        commands.create_command(data["command"], message.text)
+        text = f"Команда \"{data['command']}\" была успешно добвалена!"
+    except:
+        text = tt.error
+    await bot.send_message(
+        chat_id=message.chat.id,
+        text=text,
+        reply_markup=markups.single_button(markups.btnBackCustomCommands)
+    )
+    await state.finish()
+
 # State callbacks
 @dp.callback_query_handler(state='*')
 async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
@@ -1941,7 +2022,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите описание для \"{data['name']}\" или нажмите на кнопку \"Назад\".",
+                text=f"Введите описание для \"{data['name']}\" {tt.or_press_back}",
                 reply_markup=markups.single_button(markups.btnBackItemManagement),
             )
             await state_handler.addItem.desc.set()
@@ -2099,6 +2180,14 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                 message_id=callback_query.message.message_id,
                 text=tt.checkout_settings,
                 reply_markup=markups.get_markup_checkoutSettings(),
+            )
+            await state.finish()
+        elif call_data == "customCommands":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.custom_commands,
+                reply_markup=markups.get_markup_customCommands()
             )
             await state.finish()
         else:

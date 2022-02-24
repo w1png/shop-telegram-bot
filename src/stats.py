@@ -26,7 +26,6 @@ def get_random_data():
 
 
 def get_random_graph():
-    data = get_random_data()
     return saveplot(get_random_data(), "Название", "Ось Y")
 
 
