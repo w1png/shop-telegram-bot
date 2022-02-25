@@ -1,4 +1,6 @@
 import sqlite3
+from os.path import exists
+from main import notify_admins
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
@@ -78,8 +80,11 @@ class Item:
     def set_image_id(self, value):
         c.execute(f"UPDATE items SET image_id=? WHERE id=?", [value, self.get_id()])
 
-    def is_hide_image(self):
-        return self.__clist()[8] == 1
+    async def is_hide_image(self):
+        if exists(f"images/{self.get_image_id()}"):
+            return self.__clist()[7] == 1
+        await notify_admins(f"Файла \"images/{self.get_image_id()}\" для товара \"{self.get_name()}\" не существует!")
+        return True
 
     def set_hide_image(self, value):
         c.execute("UPDATE items SET hide_image=? WHERE id=?", [value, self.get_id()])

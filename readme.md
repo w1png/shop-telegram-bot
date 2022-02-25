@@ -41,15 +41,14 @@
 
 ### Запуск с помощью скрипта
 
-#### Linux
+#### Linux/MacOS
 
     $ chmod +x start.sh
     $ ./start.sh
 
-#### Macos
+#### Windows
 
-    $ chmod +x start.sh
-    $ sh start.sh
+    $ ./start.cmd
 
 ### Запуск вручную
 
