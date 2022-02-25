@@ -9,7 +9,8 @@ from captcha.image import ImageCaptcha
 from re import match as matchre
 from phonenumbers import parse as phoneparse
 from phonenumbers import is_possible_number
-from os import listdir
+from os import listdir, remove
+from os.path import getsize
 
 import markups
 import state_handler
@@ -898,12 +899,19 @@ async def process_callback(callback_query: types.CallbackQuery):
                     markup = markups.get_markup_itemSettings()
                 elif call_data[12:] == "Debug":
                     settings.set_debug("0" if settings.is_debug() else "1")
-                    text = tt.main_settings
-                    markup = markups.get_markup_mainSettings()
+                    text = tt.system_settings
+                    markup = markups.get_markup_systemSettings()
 
             except:
                 text = tt.error
-                markup = markups.single_button(markups.btnBackCheckoutSettings)
+                if call_data[12:] in ["PhoneNumber", "Delivery", "Captcha"]:
+                    markup = markups.single_button(markups.btnBackCheckoutSettings)
+                elif call_data[12:] == "Sticker":
+                    markup = markups.single_button(markups.btnBackMainSettings)
+                elif call_data[12:] == "ItemImage":
+                    markup = markups.single_button(markups.btnBackItemSettings)
+                elif call_data[12:] == "Debug":
+                    markup = markups.single_button(markups.btnBackSystemSettings)
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
@@ -1095,6 +1103,33 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=tt.additional_settings,
                 reply_markup=markups.get_markup_additionalSettings()
+            )
+        elif call_data == "systemSettings":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.system_settings,
+                reply_markup=markups.get_markup_systemSettings()
+            )
+        elif call_data == "cleanImagesMenu":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.clean_images_text,
+                reply_markup=markups.get_markup_cleanImagesMenu()
+            )
+        elif call_data == "cleanImages":
+            cleaned_size = 0
+            for file in listdir("images"):
+                if file not in [item.get_image_id() for item in itm.get_item_list()]:
+                    cleaned_size = getsize(f"images/{file}")
+                    remove(f"images/{file}")
+            cleaned_size /= 1048576
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=f"Неиспользуемые фотографии были успешно удалены!\nОтчищено: {'{:.1f}'.format(cleaned_size)} мб",
+                reply_markup=markups.single_button(markups.btnBackSystemSettings)
             )
 
         # Custom commands

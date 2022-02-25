@@ -37,6 +37,8 @@ btnBackMainSettings = types.InlineKeyboardButton(text=tt.back, callback_data="ad
 btnBackCheckoutSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_checkoutSettings")
 btnBackAdditionalSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_additionalSettings")
 btnBackCustomCommands = types.InlineKeyboardButton(text=tt.back, callback_data="admin_customCommands")
+btnBackSystemSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_systemSettings")
+btnBackItemSettings = types.InlineKeyboardButton(text=tt.back, callback_data="admin_itemSettings")
 
 # /start menu
 btnBackFaq = types.InlineKeyboardButton(text=tt.back, callback_data="faq")
@@ -205,12 +207,12 @@ def get_markup_editItemChooseItem(item_list):
     markup.add(btnBackEditItemChooseCategory)
     return markup
 
-def get_markup_editItem(item):
+async def get_markup_editItem(item):
     itemid = item.get_id()
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.change_name, callback_data=f"admin_editItemName{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_image, callback_data=f"admin_editItemImage{itemid}"))
-    markup.add(types.InlineKeyboardButton(text=tt.show_image if item.is_hide_image() else tt.hide_image, callback_data=f"admin_editItemHideImage{itemid}"))
+    markup.add(types.InlineKeyboardButton(text=tt.show_image if await item.is_hide_image() else tt.hide_image, callback_data=f"admin_editItemHideImage{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_desc, callback_data=f"admin_editItemDesc{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_price, callback_data=f"admin_editItemPrice{itemid}"))
     markup.add(types.InlineKeyboardButton(text=tt.change_item_cat, callback_data=f"admin_editItemCat{itemid}"))
@@ -308,7 +310,6 @@ def get_markup_mainSettings():
     markup.add(types.InlineKeyboardButton(text=f"Политика возврата: {settings.get_refund_policy()}", callback_data="admin_changeShopRefundPolicy"))
     markup.add(types.InlineKeyboardButton(text=f"Контакты: {settings.get_shop_contacts()}", callback_data="admin_changeShopContacts"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_sticker if settings.is_sticker_enabled() else tt.enable_sticker, callback_data="admin_changeEnableSticker"))
-    markup.add(types.InlineKeyboardButton(text=tt.disable_debug if settings.is_debug() else tt.enable_debug, callback_data="admin_changeEnableDebug"))
     markup.add(btnBackShopSettings)
     return markup
 
@@ -369,6 +370,19 @@ def get_markup_statsSettingsTickFontSize():
     markup.add(btnBackStatsSettings)
     return markup
 
+def get_markup_systemSettings():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.disable_debug if settings.is_debug() else tt.enable_debug, callback_data="admin_changeEnableDebug"))
+    markup.add(types.InlineKeyboardButton(text=tt.clean_images, callback_data="admin_cleanImagesMenu"))
+    markup.add(btnBackAdditionalSettings)
+    return markup
+
+def get_markup_cleanImagesMenu():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.delete, callback_data="admin_cleanImages"))
+    markup.add(btnBackSystemSettings)
+    return markup
+
 # Manager tab
 def get_markup_seeOrder(order, user_id=None):
     markup = types.InlineKeyboardMarkup()
@@ -397,6 +411,7 @@ def get_markup_ordersByOrderList(order_list):
 def get_markup_additionalSettings():
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.custom_commands, callback_data="admin_customCommands"))
+    markup.add(types.InlineKeyboardButton(text=tt.system_settings, callback_data="admin_systemSettings"))
     markup.add(btnBackShopSettings)
     return markup
 
