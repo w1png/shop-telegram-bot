@@ -1,4 +1,5 @@
 import sqlite3
+from time import sleep
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -1131,6 +1132,36 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=f"Неиспользуемые фотографии были успешно удалены!\nОтчищено: {'{:.1f}'.format(cleaned_size)} мб",
                 reply_markup=markups.single_button(markups.btnBackSystemSettings)
             )
+        elif call_data == "cleanDatabaseMenu":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.clean_database_text,
+                reply_markup=markups.get_markup_cleanDatabaseMenu()
+            )
+        elif call_data == "cleanDatabase":
+            settings.clean_db()
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=f"База данных была успешно отчищена!",
+                reply_markup=markups.single_button(markups.btnBackSystemSettings)
+            )
+        elif call_data == "resetSettingsMenu":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.resert_settings_text,
+                reply_markup=markups.get_markup_resetSettingsMenu()
+            )
+        elif call_data == "resetSettings":
+            settings.reset()
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=f"Настройки были успешно сброшены!",
+                reply_markup=markups.single_button(markups.btnBackSystemSettings)
+            )
 
         # Custom commands
         elif call_data == "customCommands":
@@ -1501,7 +1532,6 @@ async def process_callback(callback_query: types.CallbackQuery):
 async def addCat(message: types.Message, state: FSMContext):
     data = await state.get_data()
     cat_name = message.text
-
     try:
         category.create_cat(cat_name)
         text = tt.get_category_was_created_successfuly(cat_name)
@@ -1794,7 +1824,7 @@ async def notifyEveryoneSetMessage(message: types.Message, state: FSMContext):
     )
     await state_handler.notifyEveryone.confirmation.set()
     
-@dp.message_handler(state=state_handler.seeUserProfile)
+@dp.message_handler(state=state_handler.seeUserProfile.user_id)
 async def seeUserProfileSetUserID(message: types.Message, state: FSMContext):
     try:
         user_id = int(message.text)

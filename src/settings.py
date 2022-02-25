@@ -1,4 +1,7 @@
 from configparser import ConfigParser
+from genericpath import exists
+from os import remove
+import sqlite3
 
 class Settings:
     def __init__(self, config_path="config.ini"):
@@ -126,3 +129,42 @@ class Settings:
     def set_tickfontsize(self, value):
         self.__set_setting("stats_settings", "tickfontsize", value)
         
+    def reset(self):
+        DEFAULT_CONFIG_TEXT = f"""[main_settings]
+token = {self.get_token()}
+mainadminid = {self.get_main_admin_id()}
+debug = 0
+
+[shop_settings]
+name = Название магазина
+greeting = Добро пожаловать!
+refundpolicy = Текст для вкладки "Политика возврата"
+contacts = Текст для вкладки "Контакты"
+enableimage = 1
+enablesticker = 0
+enablephonenumber = 0
+enabledelivery = 0
+delivery_price = 0.0
+enablecaptcha = 1
+
+[stats_settings]
+barcolor = 3299ff
+borderwidth = 1
+titlefontsize = 20
+axisfontsize = 12
+tickfontsize = 8
+"""
+        if exists("config.ini"):
+            remove("config.ini")
+        with open("config.ini", "w") as config:
+            config.write(DEFAULT_CONFIG_TEXT)
+    
+    def clean_db(self):
+        conn = sqlite3.connect("data.db")
+        c = conn.cursor()
+        c.execute("DELETE FROM cats")
+        c.execute("DELETE FROM items")
+        c.execute("DELETE FROM orders")
+        c.execute("DELETE FROM commands")
+        conn.commit()
+        conn.close()

@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 import item as itm
+from order import Order
 from settings import Settings
 
 conn = sqlite3.connect('data.db')
@@ -51,7 +52,7 @@ class User:
 
     def get_orders(self):
         c.execute(f"SELECT * FROM orders WHERE user_id=?", [self.get_id()])
-        return list(map(itm.Order, [order[0] for order in list(c)]))[::-1]
+        return list(map(Order, [order[0] for order in list(c)]))[::-1]
     
     def get_cart_comma(self):
         return self.__clist()[5]

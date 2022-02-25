@@ -81,6 +81,14 @@ CREATE TABLE "users" (
     "cart_delivery" INTEGER
 )
 """
+CREATE_COMMANDS_TEXT = """
+CREATE TABLE "commands" (
+    "id" INTEGER NOT NULL,
+    "command" TEXT,
+    "response" TEXT,
+    PRIMARY KEY("id")
+)
+"""
 
 def create_db():
     conn = sqlite3.connect("data.db")
@@ -89,6 +97,7 @@ def create_db():
     c.execute(CREATE_ITEMS_TEXT)
     c.execute(CREATE_ORDERS_TEXT)
     c.execute(CREATE_USERS_TEXT)
+    c.execute(CREATE_COMMANDS_TEXT)
     conn.commit()
     conn.close()    
 

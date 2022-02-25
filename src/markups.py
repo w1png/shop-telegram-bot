@@ -372,14 +372,28 @@ def get_markup_statsSettingsTickFontSize():
 
 def get_markup_systemSettings():
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.disable_debug if settings.is_debug() else tt.enable_debug, callback_data="admin_changeEnableDebug"))
     markup.add(types.InlineKeyboardButton(text=tt.clean_images, callback_data="admin_cleanImagesMenu"))
+    markup.add(types.InlineKeyboardButton(text=tt.reset_settings, callback_data="admin_resetSettingsMenu"))
+    markup.add(types.InlineKeyboardButton(text=tt.clean_database, callback_data="admin_cleanDatabaseMenu"))
+    markup.add(types.InlineKeyboardButton(text=tt.disable_debug if settings.is_debug() else tt.enable_debug, callback_data="admin_changeEnableDebug"))
     markup.add(btnBackAdditionalSettings)
     return markup
 
 def get_markup_cleanImagesMenu():
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text=tt.delete, callback_data="admin_cleanImages"))
+    markup.add(btnBackSystemSettings)
+    return markup
+
+def get_markup_resetSettingsMenu():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.reset, callback_data="admin_resetSettings"))
+    markup.add(btnBackSystemSettings)
+    return markup
+
+def get_markup_cleanDatabaseMenu():
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.delete, callback_data="admin_cleanDatabase"))
     markup.add(btnBackSystemSettings)
     return markup
 
