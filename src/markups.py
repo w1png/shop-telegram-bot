@@ -111,11 +111,12 @@ def get_markup_viewMyOrder(order):
 
 def get_markup_cart(user):
     markup = types.InlineKeyboardMarkup()
+    delivery_price = '{:.2f}'.format(float(settings.get_delivery_price()))
     for item_and_amount in user.get_cart_amount():
         markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_name()} - {item_and_amount[0].get_price()}руб. - {item_and_amount[1]}шт.", callback_data=f"viewItem{item_and_amount[0].get_id()}"))
         markup.add(types.InlineKeyboardButton(text=f"{item_and_amount[0].get_price() * item_and_amount[1]}руб.", callback_data="None"), types.InlineKeyboardButton(text=tt.plus, callback_data=f"addToCartFromCart{item_and_amount[0].get_id()}"), types.InlineKeyboardButton(text=tt.minus, callback_data=f"removeFromCartFromCart{item_and_amount[0].get_id()}"))
     if settings.is_delivery_enabled():
-        markup.add(types.InlineKeyboardButton(text=tt.delivery_on if user.is_cart_delivery() else tt.delivery_off, callback_data="changeCartDelivery"))
+        markup.add(types.InlineKeyboardButton(text=tt.delivery_on(delivery_price) if user.is_cart_delivery() else tt.delivery_off(delivery_price), callback_data="changeCartDelivery"))
     else:
         markup.add(types.InlineKeyboardButton(text=tt.pickup, callback_data="None"))
         
@@ -321,7 +322,7 @@ def get_markup_itemSettings():
 
 def get_markup_checkoutSettings():
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.delivery_price, callback_data="admin_changeDeliveryPrice"))
+    markup.add(types.InlineKeyboardButton(text=tt.delivery_price('{:.2f}'.format(settings.get_delivery_price())), callback_data="admin_changeDeliveryPrice"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_delivery if settings.is_delivery_enabled() else tt.enable_delivery, callback_data="admin_changeEnableDelivery"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_phone_number if settings.is_phone_number_enabled() else tt.enable_phone_number, callback_data="admin_changeEnablePhoneNumber"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_captcha if settings.is_captcha_enabled() else tt.enable_captcha, callback_data="admin_changeEnableCaptcha"))

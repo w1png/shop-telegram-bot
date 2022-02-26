@@ -1,14 +1,16 @@
 import sqlite3
+from settings import Settings
 from os.path import exists
 from main import notify_admins
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
 
+settings = Settings()
+
 def does_item_exist(item_id):
     c.execute(f"SELECT * FROM items WHERE id=?", [item_id])
     return len(list(c)) == 1
-
 
 
 class Item:
@@ -82,8 +84,9 @@ class Item:
 
     async def is_hide_image(self):
         if exists(f"images/{self.get_image_id()}"):
-            return self.__clist()[7] == 1
-        await notify_admins(f"Файла \"images/{self.get_image_id()}\" для товара \"{self.get_name()}\" не существует!")
+            return self.__clist()[8] == 1
+        if self.get_image_id() != "None" and settings.is_debug():
+            await notify_admins(f"Файла \"images/{self.get_image_id()}\" для товара \"{self.get_name()}\" не существует!")
         return True
 
     def set_hide_image(self, value):

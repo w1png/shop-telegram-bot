@@ -1,5 +1,4 @@
 import sqlite3
-from time import sleep
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -11,7 +10,7 @@ from re import match as matchre
 from phonenumbers import parse as phoneparse
 from phonenumbers import is_possible_number
 from os import listdir, remove
-from os.path import getsize
+from os.path import getsize, exists
 
 import markups
 import state_handler
@@ -68,8 +67,11 @@ async def welcome(message: types.Message):
 
     try:
         if settings.is_sticker_enabled():
-            with open("sticker.tgs", "rb") as sti:
-                await bot.send_sticker(message.chat.id, sti)
+            if exists("sticker.tgs"):
+                with open("sticker.tgs", "rb") as sti:
+                    await bot.send_sticker(message.chat.id, sti)
+            else:
+                raise Exception
     except:
         if settings.is_debug():
             print(f"DEBUG: FAILED TO SEND STICKER TO {message.chat.id}. sticker.tgs is probably missing in the bot's root folder.")
@@ -246,13 +248,6 @@ async def process_callback(callback_query: types.CallbackQuery):
                     reply_markup=markups.single_button(markups.btnBackItemManagement),
                 )
                 await state_handler.addItem.name.set()
-            await bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=callback_query.message.message_id,
-                text=f"Введите название нового товара {tt.or_press_back}",
-                reply_markup=markups.single_button(markups.btnBackItemManagement),
-            )
-            await state_handler.addItem.name.set()
         elif call_data == "editItemChooseCategory":
             await bot.edit_message_text(
                 chat_id=chat_id,
@@ -341,12 +336,23 @@ async def process_callback(callback_query: types.CallbackQuery):
             markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled() or await item.is_hide_image():
-                await bot.edit_message_text(
-                    chat_id=chat_id,
-                    message_id=callback_query.message.message_id,
-                    text=text,
-                    reply_markup=markup,
-                )   
+                try:
+                    await bot.edit_message_text(
+                        chat_id=chat_id,
+                        message_id=callback_query.message.message_id,
+                        text=text,
+                        reply_markup=markup,
+                    )
+                except:
+                    await bot.delete_message(
+                        chat_id=chat_id,
+                        message_id=callback_query.message.message_id
+                    )
+                    await bot.send_message(
+                        chat_id=chat_id,
+                        text=text,
+                        reply_markup=markup
+                    )
             else:
                 await bot.delete_message(
                     message_id=callback_query.message.message_id,
@@ -424,7 +430,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text = tt.get_item_card(item) + f"\nКатегория: {cat.get_name()}"
             except:
                 text = tt.error
-            markup = markups.get_markup_editItem(item)
+            markup = await markups.get_markup_editItem(item)
 
             if item.get_image_id() == "None" or not settings.is_item_image_enabled() or await item.is_hide_image():
                 try:                
@@ -465,7 +471,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text = tt.get_item_card(item) + f"\nКатегория: {cat.get_name()}"
             except:
                 text = tt.error
-            markup = markups.get_markup_editItem(item)
+            markup = await markups.get_markup_editItem(item)
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled() or await item.is_hide_image():
                 await bot.edit_message_text(
@@ -497,14 +503,14 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text = tt.error
                 markup = markups.single_button(markups.btnBackEditItem(item.get_id()))
             
-            if item.get_image_id() == "None" or not settings.is_item_image_enabled() or await item.is_hide_image():
+            try:
                 await bot.edit_message_text(
                     chat_id=chat_id,
                     message_id=callback_query.message.message_id,
                     text=text,
                     reply_markup=markup,
                 )   
-            else:
+            except:
                 await bot.delete_message(
                     message_id=callback_query.message.message_id,
                     chat_id=chat_id
@@ -548,7 +554,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             item = itm.Item(call_data[8:])
             cat = category.Category(item.get_cat_id())
             text = tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}"
-            markup = markups.get_markup_editItem(item)
+            markup = await markups.get_markup_editItem(item)
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled() or await item.is_hide_image():
                 await bot.edit_message_text(
@@ -617,9 +623,9 @@ async def process_callback(callback_query: types.CallbackQuery):
 
             try:
                 markupMain = markups.get_markup_main()
-                if user.is_manager() or user.is_admin():
+                if editUser.is_manager() or editUser.is_admin():
                     markupMain.row(markups.btnOrders)
-                if user.is_admin():
+                if editUser.is_admin():
                     markupMain.row(markups.btnAdminPanel)
                 await bot.send_message(
                     chat_id=editUser.get_id(),
@@ -649,12 +655,12 @@ async def process_callback(callback_query: types.CallbackQuery):
 
                     try:
                         markupMain = markups.get_markup_main()
-                        if user.is_manager() or user.is_admin():
+                        if editUser.is_manager() or editUser.is_admin():
                             markupMain.row(markups.btnOrders)
-                        if user.is_admin():
+                        if editUser.is_admin():
                             markupMain.row(markups.btnAdminPanel)
                         await bot.send_message(
-                            chat_id=message.chat.id,
+                            chat_id=editUser.get_id(),
                             text=f"Ваша роль администратора была обновлена.",
                             reply_markup=markupMain
                         )
@@ -2016,6 +2022,7 @@ async def checkoutCartSetHomeAdress(message: types.Message, state: FSMContext):
 async def checkoutCartSetAdditionalMessage(message: types.Message, state: FSMContext):
     state = Dispatcher.get_current().current_state()
     data = await state.get_data()
+    user = usr.User(message.chat.id)
     await state.update_data(additional_message=message.text)
     if settings.is_captcha_enabled():
         captcha_text = get_captcha_text()
@@ -2030,7 +2037,7 @@ async def checkoutCartSetAdditionalMessage(message: types.Message, state: FSMCon
     else:
         await bot.send_message(
             chat_id=message.chat.id,
-            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=data["additional_message"], phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_delivery_enabled() and user.is_cart_delivery() else None),
+            text=tt.get_order_confirmation_template(item_amount_dict=user.get_cart_amount(), cart_price=user.get_cart_price(), email_adress=data["email"], additional_message=message.text, phone_number=data["phone_number"] if settings.is_phone_number_enabled() else None, home_adress=data["home_adress"] if settings.is_delivery_enabled() and user.is_cart_delivery() else None),
             reply_markup=markups.get_markup_checkoutCartConfirmation(),
         )
         await state_handler.checkoutCart.confirmation.set()
@@ -2213,7 +2220,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             item = itm.Item(call_data[8:])
             cat = category.Category(item.get_cat_id())
             text = tt.get_item_card(item=item) + f"\nКатегория: {cat.get_name()}"
-            markup = markups.get_markup_editItem(item)
+            markup = await markups.get_markup_editItem(item)
             
             if item.get_image_id() == "None" or not settings.is_item_image_enabled() and await item.is_hide_image():
                 await bot.edit_message_text(
@@ -2309,7 +2316,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
         elif call_data == "checkoutCartConfirm":
             while True:
                 order_id = randint(100000, 999999)
-                if not itm.does_order_exist(order_id):
+                if not ordr.does_order_exist(order_id):
                     break
             user_id = data["user_id"]
             item_list_comma = user.get_cart_comma()
@@ -2319,9 +2326,9 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             home_adress = data["home_adress"] if settings.is_delivery_enabled() and user.is_cart_delivery() else None
             
             try:
-                order = itm.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)
+                order = ordr.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)
                 user.clear_cart()
-                text = f"Заказ с ID {order.get_order_id()} был успешно создан."
+                text = f"Заказ с ID {order.get_order_id()} был успешно создан.\nСпасибо за закакз! Наш менеджер свяжется с вами в ближайшее время."
                 for user in usr.get_notif_list():
                     try:
                         await bot.send_message(
