@@ -11,3 +11,5 @@ ideas.txt
 /tmp
 DOCS/overview.md
 src/modules/
+backups/
+logs/

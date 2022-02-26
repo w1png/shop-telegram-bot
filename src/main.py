@@ -1,3 +1,4 @@
+from distutils.log import error
 import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -9,8 +10,10 @@ from captcha.image import ImageCaptcha
 from re import match as matchre
 from phonenumbers import parse as phoneparse
 from phonenumbers import is_possible_number
-from os import listdir, remove
+from os import getcwd, listdir, remove, mkdir, rmdir
 from os.path import getsize, exists
+from shutil import copyfile
+import datetime
 
 import markups
 import state_handler
@@ -31,6 +34,25 @@ settings = Settings()
 storage = MemoryStorage()
 bot = Bot(token=settings.get_token())
 dp = Dispatcher(bot, storage=storage)
+
+# Create a backup folder + copy the needed files there
+if not exists("backups/" + datetime.date.today().strftime("%d-%m-%Y")):
+    folder_path = "backups/" + datetime.date.today().strftime("%d-%m-%Y")
+    mkdir(folder_path)
+    copyfile("config.ini", folder_path + "/config.ini")
+    copyfile("data.db", folder_path + "/data.db")
+    print("Backup created!")
+
+def clean_backups(days_ago=0):
+    longest_date = datetime.date.today() - datetime.timedelta(days=days_ago)
+    cleaned_size = 0
+    for folder in listdir("backups"):
+        if datetime.datetime.strptime(folder, "%d-%m-%Y").date() < longest_date:
+            for file in listdir("backups/" + folder):
+                cleaned_size += getsize(file)
+                remove(file)
+            rmdir("backups/" + folder)
+    return cleaned_size / 1048576
 
 def get_captcha_text(): return ''.join([choice(ascii_uppercase + digits) for i in range(5)])
 
@@ -1135,7 +1157,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=callback_query.message.chat.id,
                 message_id=callback_query.message.message_id,
-                text=f"Неиспользуемые фотографии были успешно удалены!\nОтчищено: {'{:.1f}'.format(cleaned_size)} мб",
+                text=f"Неиспользуемые фотографии были успешно удалены!\nОчищено: {'{:.1f}'.format(cleaned_size)} мб",
                 reply_markup=markups.single_button(markups.btnBackSystemSettings)
             )
         elif call_data == "cleanDatabaseMenu":
@@ -1150,7 +1172,7 @@ async def process_callback(callback_query: types.CallbackQuery):
             await bot.edit_message_text(
                 chat_id=callback_query.message.chat.id,
                 message_id=callback_query.message.message_id,
-                text=f"База данных была успешно отчищена!",
+                text=f"База данных была успешно очищена!",
                 reply_markup=markups.single_button(markups.btnBackSystemSettings)
             )
         elif call_data == "resetSettingsMenu":
@@ -1168,6 +1190,56 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=f"Настройки были успешно сброшены!",
                 reply_markup=markups.single_button(markups.btnBackSystemSettings)
             )
+        elif call_data == "backups":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.backups,
+                reply_markup=markups.get_markup_backups()
+            )
+        elif call_data == "loadBackupMenu":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.load_backup,
+                reply_markup=markups.get_markup_loadBackupMenu()
+            )
+        elif call_data.startswith("loadBackup"):
+            backup_path = "backups/" + call_data[10:]
+            if exists(backup_path):
+                for file in listdir(backup_path):
+                    try:
+                        copyfile(f"{backup_path}/{file}", f"{getcwd()}/{file}")
+                    except:
+                        if settings.is_debug():
+                            print(f"DEBUG: Failed to copy \"{file}\" to \".\"!")
+                text = tt.load_backup + f"\nРезервная копия за {call_data[10:]} была успешно загружена!"
+            else:
+                text = f"{tt.load_backup}\n\n{tt.error} Файла {backup_path} не существует!"
+
+
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=text,
+                reply_markup=markups.get_markup_loadBackupMenu()
+            )
+        elif call_data == "cleanBackupsMenu":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.clean_backups,
+                reply_markup=markups.get_markup_cleanBackupsMenu()
+            )
+        elif call_data.startswith("cleanBackup"):
+            days = 0 if call_data[11:] == "All" else int(call_data[11:])
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.clean_backups + f"\nОчищено: {'{:.2f}'.format(clean_backups(days))}мб!",
+                reply_markup=markups.get_markup_cleanBackupsMenu()
+            )
+
 
         # Custom commands
         elif call_data == "customCommands":
