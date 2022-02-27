@@ -2249,7 +2249,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     user = usr.User(callback_query.message.chat.id)
 
-    logging.info(f"CALL [{chat_id}] {call_data} (STATE")
+    logging.info(f"CALL [{chat_id}] {call_data} (STATE)")
     if settings.is_debug():
         print(f"DEBUG: CALL [{chat_id}] {call_data} (STATE)")
 

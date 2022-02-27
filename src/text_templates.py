@@ -2,7 +2,7 @@ from settings import Settings
 
 settings = Settings()
 
-line_separator = "➖➖➖➖➖➖➖➖➖➖"
+line_separator = "➖➖➖➖➖"
 
 
 # Multiple lines
