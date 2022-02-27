@@ -2483,7 +2483,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             try:
                 order = ordr.create_order(order_id, user_id, item_list_comma, email, additional_message, phone_number=phone_number, home_adress=home_adress)
                 user.clear_cart()
-                text = f"Заказ с ID {order.get_order_id()} был успешно создан.\nСпасибо за закакз! Наш менеджер свяжется с вами в ближайшее время."
+                text = f"Заказ с ID {order.get_order_id()} был успешно создан.\nСпасибо за заказ! Наш менеджер свяжется с вами в ближайшее время."
                 for user in usr.get_notif_list():
                     try:
                         await bot.send_message(
