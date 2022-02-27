@@ -11,10 +11,11 @@ from captcha.image import ImageCaptcha
 from re import match as matchre
 from phonenumbers import parse as phoneparse
 from phonenumbers import is_possible_number
-from os import getcwd, listdir, remove, mkdir, rmdir
+from os import getcwd, listdir, remove, mkdir, rmdir, mknod
 from os.path import getsize, exists
 from shutil import copyfile
 import datetime
+import logging
 
 import markups
 import state_handler
@@ -30,6 +31,7 @@ import commands
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s:%(levelname)s:%(message)s", filename=f"logs/{datetime.date.today().strftime('%d-%m-%Y')}.log")
 settings = Settings()
 
 storage = MemoryStorage()
@@ -42,6 +44,7 @@ def create_backup():
     mkdir(folder_path)
     copyfile("config.ini", folder_path + "/config.ini")
     copyfile("data.db", folder_path + "/data.db")
+    logging.info("backup created")
     print("Backup created!")
 
 def clean_backups(days_ago=0):
@@ -53,7 +56,29 @@ def clean_backups(days_ago=0):
                 cleaned_size += getsize(file)
                 remove(file)
             rmdir("backups/" + folder)
+    logging.info(f"backups cleaned ({'{:.2f}'.format(cleaned_size / 1048576)}mb)")
     return cleaned_size / 1048576
+
+def clean_logs():
+    cleaned_size = 0
+    for file in listdir("logs"):
+        if file == f"{datetime.date.today().strftime('%d-%m-%Y')}.log":
+            continue
+        cleaned_size = getsize(f"logs/{file}")
+        remove(f"logs/{file}")
+    logging.info(f"logs cleaned ({'{:.2f}'.format(cleaned_size / 1048576)}mb)")
+
+    return cleaned_size / 1048576
+
+def clean_images():
+    cleaned_size = 0
+    for file in listdir("images"):
+        if file not in [item.get_image_id() for item in itm.get_item_list()]:
+            cleaned_size = getsize(f"images/{file}")
+            remove(f"images/{file}")
+    logging.info(f"unused images cleaned ({'{:.2f}'.format(cleaned_size / 1048576)}mb)")
+    return cleaned_size / 1048576
+
 
 def get_captcha_text(): return ''.join([choice(ascii_uppercase + digits) for i in range(5)])
 
@@ -72,12 +97,14 @@ async def notify_admins(text):
                 text=text
             )
         except:
+            logging.warning(f"FAILED TO SEND TO [{user.get_id()}]")
             if settings.is_debug():
                 print(f"FAILED TO SEND TO [{user.get_id()}]")
 
 
 @dp.message_handler(commands=["start"])
 async def welcome(message: types.Message):
+    logging.info(f"COMMAND [{message.chat.id}] {message.text}")
     if settings.is_debug():
         print(f"DEBUG: COMMAND [{message.chat.id}] {message.text}")
     user = usr.User(message.chat.id)
@@ -96,6 +123,7 @@ async def welcome(message: types.Message):
             else:
                 raise Exception
     except:
+        logging.warning(f"FAILED TO SEND STICKER TO {message.chat.id}. sticker.tgs is probably missing in the bot's root folder.")
         if settings.is_debug():
             print(f"DEBUG: FAILED TO SEND STICKER TO {message.chat.id}. sticker.tgs is probably missing in the bot's root folder.")
     await bot.send_message(
@@ -107,6 +135,7 @@ async def welcome(message: types.Message):
 
 @dp.message_handler()
 async def handle_text(message):
+    logging.info(f"MESSAGE [{message.chat.id}] {message.text}")
     if settings.is_debug():
         print(f"DEBUG: MESSAGE [{message.chat.id}] {message.text}")
     user = usr.User(message.chat.id)
@@ -170,6 +199,7 @@ async def process_callback(callback_query: types.CallbackQuery):
     call_data = callback_query.data
     user = usr.User(chat_id)
     
+    logging.info(f"CALL [{chat_id}] {call_data}")
     if settings.is_debug():
         print(f"DEBUG: CALL [{chat_id}] {call_data}")
     
@@ -657,6 +687,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                 )
             except:
                 if settings.is_debug():
+                    logging.warning(f"[{user.get_id()}] FAILED TO SEND MESSAGE TO [{editUser.get_id()}]")
                     print(f"DEBUG [{user.get_id()}] FAILED TO SEND MESSAGE TO [{editUser.get_id()}]")
 
             await bot.edit_message_text(
@@ -688,6 +719,7 @@ async def process_callback(callback_query: types.CallbackQuery):
                             reply_markup=markupMain
                         )
                     except:
+                        logging.warning(f"[{user.get_id()}] FAILED TO SEND MESSAGE TO [{editUser.get_id()}]")
                         if settings.is_debug():
                             print(f"DEBUG [{user.get_id()}] FAILED TO SEND MESSAGE TO [{editUser.get_id()}]")
 
@@ -1149,18 +1181,27 @@ async def process_callback(callback_query: types.CallbackQuery):
                 reply_markup=markups.get_markup_cleanImagesMenu()
             )
         elif call_data == "cleanImages":
-            cleaned_size = 0
-            for file in listdir("images"):
-                if file not in [item.get_image_id() for item in itm.get_item_list()]:
-                    cleaned_size = getsize(f"images/{file}")
-                    remove(f"images/{file}")
-            cleaned_size /= 1048576
             await bot.edit_message_text(
                 chat_id=callback_query.message.chat.id,
                 message_id=callback_query.message.message_id,
-                text=f"Неиспользуемые фотографии были успешно удалены!\nОчищено: {'{:.1f}'.format(cleaned_size)} мб",
+                text=f"Неиспользуемые фотографии были успешно удалены!\nОчищено: {'{:.1f}'.format(clean_images())}мб",
                 reply_markup=markups.single_button(markups.btnBackSystemSettings)
             )
+        elif call_data == "cleanLogsMenu":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=tt.clean_logs_text,
+                reply_markup=markups.get_markup_cleanLogsMenu()
+            )
+        elif call_data == "cleanLogs":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=f"Логи были успешно удалены!\nОчишено: {'{:.2f}'.format(clean_logs())}мб",
+                reply_markup=markups.single_button(markups.btnBackSystemSettings)
+            )
+            
         elif call_data == "cleanDatabaseMenu":
             await bot.edit_message_text(
                 chat_id=callback_query.message.chat.id,
@@ -1212,8 +1253,9 @@ async def process_callback(callback_query: types.CallbackQuery):
                     try:
                         copyfile(f"{backup_path}/{file}", f"{getcwd()}/{file}")
                     except:
+                        logging.error(f"Failed to copy \"{file}\" to \".\"")
                         if settings.is_debug():
-                            print(f"DEBUG: Failed to copy \"{file}\" to \".\"!")
+                            print(f"DEBUG: Failed to copy \"{file}\" to \".\"")
                 text = tt.load_backup + f"\nРезервная копия за {call_data[10:]} была успешно загружена!"
             else:
                 text = f"{tt.load_backup}\n\n{tt.error} Файла {backup_path} не существует!"
@@ -1758,6 +1800,7 @@ async def editItemSetPrice(message: types.Message, state: FSMContext):
             chat_id=message.chat.id
         )
     except:
+        logging.warning(f"[{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")
         if settings.is_debug():
             print(f"DEBUG: [{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")    
     await bot.send_message(
@@ -1823,6 +1866,7 @@ async def editItemSetDesc(message: types.Message, state: FSMContext):
             chat_id=message.chat.id
         )
     except:
+        logging.warning(f"[{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")
         if settings.is_debug():
             print(f"DEBUG: [{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")       
     await bot.send_message(
@@ -1848,6 +1892,7 @@ async def editItemSetName(message: types.Message, state: FSMContext):
             chat_id=message.chat.id
         )
     except:
+        logging.warning(f"[{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")
         if settings.is_debug():
             print(f"DEBUG: [{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")      
     await bot.send_message(
@@ -1875,6 +1920,7 @@ async def editItemStockSetStock(message: types.Message, state: FSMContext):
             chat_id=message.chat.id
         )
     except:
+        logging.warning(f"[{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")
         if settings.is_debug():
             print(f"DEBUG: [{message.chat.id}] FAILED TO DELETE MESSAGE WITH ID {data['state_message']}")  
     await bot.send_message(
@@ -2175,6 +2221,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     user = usr.User(callback_query.message.chat.id)
 
+    logging.info(f"CALL [{chat_id}] {call_data} (STATE")
     if settings.is_debug():
         print(f"DEBUG: CALL [{chat_id}] {call_data} (STATE)")
 
@@ -2410,6 +2457,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
                             reply_markup=markups.get_markup_seeOrder(order)
                         )
                     except:
+                        logging.warning(f"FAIL MESSAGE TO [{user.get_id()}]")
                         if settings.is_debug():
                             print(f"DEBUG: FAIL MESSAGE TO [{user.get_id()}]")
             except:
