@@ -1275,8 +1275,8 @@ async def process_callback(callback_query: types.CallbackQuery):
                 text=tt.clean_backups,
                 reply_markup=markups.get_markup_cleanBackupsMenu()
             )
-        elif call_data.startswith("cleanBackup"):
-            days = 0 if call_data[11:] == "All" else int(call_data[11:])
+        elif call_data.startswith("cleanBackups"):
+            days = 0 if call_data[12:] == "All" else int(call_data[12:])
             await bot.edit_message_text(
                 chat_id=callback_query.message.chat.id,
                 message_id=callback_query.message.message_id,

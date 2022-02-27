@@ -137,8 +137,10 @@ if __name__ == "__main__":
             mkdir("images")
             print("Папка \"images\" была создана.")
             if exists("backups"):
-                for file in listdir("backups"):
-                    remove("backups/" + file)
+                for folder in listdir("backups"):
+                    for file in listdir("backups/" + folder):
+                        remove(f"backups/{folder}/{file}")
+                    rmdir(f"backups/{folder}")
                 rmdir("backups")
                 print("Папка \"backups\" была удалена.")
             mkdir("backups")

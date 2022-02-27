@@ -415,6 +415,7 @@ def get_markup_cleanBackupsMenu():
     for days in ["7", "30", "90"]:
         markup.add(types.InlineKeyboardButton(text=f"{days} дней", callback_data=f"admin_cleanBackups{days}"))
     markup.add(types.InlineKeyboardButton(text="Удалить все резервные копии", callback_data="admin_cleanBackupsAll"))
+    markup.add(btnBackBackups)
     return markup
 
 def get_markup_cleanLogsMenu():
