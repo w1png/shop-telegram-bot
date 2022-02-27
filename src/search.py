@@ -42,12 +42,4 @@ def search_item(query):
                         points[item.get_id()] += 1
         if points[item.get_id()] == 0:
             points.pop(item.get_id())
-    print(points)
     return Query(dict(sorted(points.items(), key=lambda item: item[1])))
-
-if __name__ == "__main__":
-    # Query()
-    res = search_item("телефон с большим экраном")
-    print(res.match())
-    print(res.price())
-

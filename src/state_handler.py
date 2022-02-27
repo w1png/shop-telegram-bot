@@ -1,3 +1,4 @@
+from urllib import response
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 # Item management
@@ -104,3 +105,7 @@ class addCustomCommand(StatesGroup):
     response = State()
     
     
+# Misc
+class search(StatesGroup):
+    state_message = State()
+    query = State()

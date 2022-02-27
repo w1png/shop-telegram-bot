@@ -144,7 +144,16 @@ def get_markup_catalogue(cat_list):
     markup = types.InlineKeyboardMarkup()
     for cat in cat_list:
         markup.add(types.InlineKeyboardButton(text=cat.get_name(), callback_data=f"viewCat{cat.get_id()}"))
+    markup.add(types.InlineKeyboardButton(text=tt.search, callback_data="search"))
     return markup
+
+def get_markup_search(query):
+    markup = types.InlineKeyboardMarkup()
+    for item in query:
+        markup.add(types.InlineKeyboardButton(text=item.get_name(), callback_data=f"viewItem{item.get_id()}"))
+    markup.add(btnBackCatalogue)
+    return markup
+
 
 def get_markup_viewCat(item_list):
     markup = types.InlineKeyboardMarkup()

@@ -27,6 +27,7 @@ import category
 import text_templates as tt
 from settings import Settings
 import commands 
+import search
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
@@ -1511,6 +1512,16 @@ async def process_callback(callback_query: types.CallbackQuery):
                     text=cat.get_name(),
                     reply_markup=markups.get_markup_viewCat(cat.get_item_list()),
                 )
+        elif call_data == "search":
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text=f"Введите поисковой запрос {tt.or_press_back}",
+                reply_markup=markups.single_button(markups.btnBackCatalogue)
+            )
+            await state_handler.search.query.set()
+            state = Dispatcher.get_current().current_state()
+            await state.update_data(state_message=callback_query.message.message_id)
         elif call_data.startswith("viewItem"):
             item = itm.Item(call_data[8:])
             text = tt.get_item_card(item=item)
@@ -2078,6 +2089,23 @@ async def changeDeliveryPriceSetPrice(message: types.Message, state: FSMContext)
     )
     await state.finish()
 
+@dp.message_handler(state=state_handler.search.query)
+async def searchSetQuery(message: types.Message, state: FSMContext):
+    query = search.search_item(message.text)
+    if query.match():
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=f"Результаты поиска для \"{message.text}\":",
+            reply_markup=markups.get_markup_search(query.match())
+        )
+    else:
+        await bot.send_message(
+            chat_id=message.chat.id,
+            text=f"По вашему запросу ничего не найдено :(",
+            reply_markup=markups.single_button(markups.btnBackCatalogue)
+        )
+    await state.finish()
+
 # Cart checkout
 # Required
 @dp.message_handler(state=state_handler.checkoutCart.email)
@@ -2405,7 +2433,15 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
         else:
             await state.finish()
     else:
-        if call_data == "cart":
+        if call_data == "catalogue":
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=callback_query.message.message_id,
+                text=tt.catalogue,
+                reply_markup=markups.get_markup_catalogue(category.get_cat_list())
+            )
+            await state.finish()
+        elif call_data == "cart":
             if user.get_cart():
                 text = tt.cart
                 markup = markups.get_markup_cart(user)
