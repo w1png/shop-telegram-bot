@@ -1,5 +1,4 @@
 import asyncio
-from distutils.log import error
 import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
