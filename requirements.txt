@@ -1,5 +1,5 @@
 aiogram==2.19
-django_recaptcha==3.0.0
+captcha==0.3
 matplotlib==3.5.1
 phonenumbers==8.12.40
 pymorphy2==0.9.1
