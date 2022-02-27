@@ -1,3 +1,4 @@
+import asyncio
 from distutils.log import error
 import sqlite3
 from aiogram import Bot, Dispatcher, executor, types
@@ -36,7 +37,7 @@ bot = Bot(token=settings.get_token())
 dp = Dispatcher(bot, storage=storage)
 
 # Create a backup folder + copy the needed files there
-if not exists("backups/" + datetime.date.today().strftime("%d-%m-%Y")):
+def create_backup():
     folder_path = "backups/" + datetime.date.today().strftime("%d-%m-%Y")
     mkdir(folder_path)
     copyfile("config.ini", folder_path + "/config.ini")
@@ -2424,5 +2425,14 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             )
             await state.finish()
 
+async def background_runner():
+    while True:
+        if not exists("backups/" + datetime.date.today().strftime("%d-%m-%Y")):
+            create_backup()
+        await asyncio.sleep(60)
+
+async def on_startup(dp):
+    asyncio.create_task(background_runner())
+
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
