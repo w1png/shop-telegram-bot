@@ -2260,7 +2260,7 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
             await state.update_data(cat_id=int(call_data[13:]))
             
             finish = False
-            if len(category.Category(call_data[13:]).get_item_list()) < 85:
+            if len(category.Category(call_data[13:]).get_item_list()) > 85:
                 text = tt.error
                 finish = True
             else:
