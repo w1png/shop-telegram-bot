@@ -2258,13 +2258,23 @@ async def cancelState(callback_query: types.CallbackQuery, state: FSMContext):
         # Callbacks
         if call_data.startswith("addItemSetCat"):
             await state.update_data(cat_id=int(call_data[13:]))
+            
+            finish = False
+            if len(category.Category(call_data[13:]).get_item_list()) < 85:
+                text = tt.error
+                finish = True
+            else:
+                text = f"Введите описание для \"{data['name']}\" {tt.or_press_back}"
             await bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=callback_query.message.message_id,
-                text=f"Введите описание для \"{data['name']}\" {tt.or_press_back}",
+                text=text,
                 reply_markup=markups.single_button(markups.btnBackItemManagement),
             )
-            await state_handler.addItem.desc.set()
+            if finish:
+                await state.finish()
+            else:
+                await state_handler.addItem.desc.set()
         elif call_data == "skipSetAddItemSetImage":
             await state.update_data(image="None")
             cat = category.Category(data["cat_id"])

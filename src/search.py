@@ -15,7 +15,7 @@ class Query:
         self.results = results
 
     def __get_items(self):
-        return list(map(itm.Item, self.results.keys()))[::-1]
+        return list(map(itm.Item, self.results.keys()))[::-1][:90]
 
     def match(self):
         return self.__get_items()
