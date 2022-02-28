@@ -41,6 +41,10 @@ dp = Dispatcher(bot, storage=storage)
 # Create a backup folder + copy the needed files there
 def create_backup():
     folder_path = "backups/" + datetime.date.today().strftime("%d-%m-%Y")
+    if folder_path[8:] in listdir("backups"):
+        for file in listdir(folder_path):
+            remove(folder_path + "/" + file)
+        rmdir(folder_path)
     mkdir(folder_path)
     copyfile("config.ini", folder_path + "/config.ini")
     copyfile("data.db", folder_path + "/data.db")
@@ -1238,6 +1242,14 @@ async def process_callback(callback_query: types.CallbackQuery):
                 message_id=callback_query.message.message_id,
                 text=tt.backups,
                 reply_markup=markups.get_markup_backups()
+            )
+        elif call_data == "updateBackup":
+            create_backup()
+            await bot.edit_message_text(
+                chat_id=callback_query.message.chat.id,
+                message_id=callback_query.message.message_id,
+                text="Резервная копия была обновлена!",
+                reply_markup=markups.single_button(markups.btnBackBackups)
             )
         elif call_data == "loadBackupMenu":
             await bot.edit_message_text(
