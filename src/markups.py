@@ -396,6 +396,7 @@ def get_markup_systemSettings():
 
 def get_markup_backups():
     markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text=tt.update_backup, callback_data="admin_updateBackup"))
     markup.add(types.InlineKeyboardButton(text=tt.load_backup, callback_data="admin_loadBackupMenu"))
     markup.add(types.InlineKeyboardButton(text=tt.clean_backups, callback_data="admin_cleanBackupsMenu"))
     markup.add(btnBackSystemSettings)
