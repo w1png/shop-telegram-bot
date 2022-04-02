@@ -48,7 +48,7 @@
 
 #### Windows
 
-    $ ./start.cmd
+    $ start.cmd
 
 ### Запуск вручную
 
