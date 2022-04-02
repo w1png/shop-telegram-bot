@@ -10,7 +10,7 @@ from captcha.image import ImageCaptcha
 from re import match as matchre
 from phonenumbers import parse as phoneparse
 from phonenumbers import is_possible_number
-from os import getcwd, listdir, remove, mkdir, rmdir, mknod
+from os import getcwd, listdir, remove, mkdir, rmdir
 from os.path import getsize, exists
 from shutil import copyfile
 import datetime
