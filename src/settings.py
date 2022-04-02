@@ -9,7 +9,7 @@ class Settings:
 
     def __get_config(self):
         conf = ConfigParser()
-        conf.read(self.__config_path, encoding='utf8')
+        conf.read(self.__config_path)
         return conf
     
     def __set_setting(self, category, subcategory, value):
