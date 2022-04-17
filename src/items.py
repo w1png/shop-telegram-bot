@@ -15,7 +15,7 @@ class Item:
         return  self.id == item.id 
 
     @property
-    def _db_query(self):
+    def _db_query(self) -> list[Any]:
          return list(c.execute("SELECT * FROM items WHERE id=?", [self.id]))[0]
 
     def _db_update(self, param: str, value: Any) -> None:
