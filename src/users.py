@@ -57,7 +57,7 @@ class User:
 
     @property
     def orders(self) -> list[Order]:
-        return list(map(Order, [order[0] for order in list(c.execute("SELECT * FROM orders WHERE user_id=?", [self.id]))]))
+        return list(map(lambda order: Order(order[0]), list(c.execute("SELECT * FROM orders WHERE user_id=?", [self.id]))))
     
     Cart = NewType("Cart")
     @property
