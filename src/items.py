@@ -11,6 +11,9 @@ class Item:
     def __repr__(self) -> str:
         return f"[{self.id}] {self.name}"
 
+    def __eq__(self, item: 'Item') -> bool:
+        return  self.id == item.id 
+
     @property
     def _db_query(self):
          return list(c.execute("SELECT * FROM items WHERE id=?", [self.id]))[0]
