@@ -99,3 +99,8 @@ class Item:
         def bytes(self) -> BufferedReader:
             return open(f"images/items/{self.filename}.png", "rb")
 
+
+def create(name: str, price: float, category_id: int, description: str, image_filename=None | str) -> None:
+    c.execute("INSERT INTO items (name, price, category_id, description, 0, 0, 0, ?)", [name, price, category_id, description, image_filename])
+    conn.commit()
+
