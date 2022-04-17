@@ -8,7 +8,7 @@ class Item:
     def __init__(self, id: int) -> None:
         self.id = id
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"[{self.id}] {self.name}"
 
     def __eq__(self, item: 'Item') -> bool:
