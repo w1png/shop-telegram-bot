@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, NewType
 from aiogram.types import Message
 
 import sqlite3
@@ -59,8 +59,9 @@ class User:
     def orders(self) -> list[Order]:
         return list(map(Order, [order[0] for order in list(c.execute("SELECT * FROM orders WHERE user_id=?", [self.id]))]))
     
+    Cart = NewType("Cart")
     @property
-    def cart(self) -> 'Cart':
+    def cart(self) -> Cart:
         return self.__Cart(self)
 
     class __Cart:
@@ -84,12 +85,13 @@ class User:
         def delivery(self, value: bool) -> None:
             self._user._db_update("delivery", 1 if value else 0)
 
+        Items = NewType("Items")
         @property
-        def items(self) -> 'Items':
+        def items(self) -> Items:
             return self.__Items(self)
 
         class __Items:
-            def __init__(self, cart: 'Cart') -> None:
+            def __init__(self, cart: Cart) -> None:
                 self.cart = cart
 
             def __repr__(self) -> list[Item]:
