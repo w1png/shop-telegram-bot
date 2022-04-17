@@ -15,7 +15,7 @@ class Item:
         return  self.id == item.id 
 
     def __del__(self):
-        c.execute("DELETE * FROM items WHERE id=?", [self.id])
+        c.execute("DELETE FROM items WHERE id=?", [self.id])
         conn.commit()
 
     @property
