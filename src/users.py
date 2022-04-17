@@ -4,18 +4,17 @@ from aiogram.types import Message
 import sqlite3
 from datetime import datetime
 
+from main import conn, c
 from order import Order
 from items import Item
 from config import Config
 
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-conn = sqlite3.connect("data.db") 
-c = conn.cursor()
 
 
 class User:
-    def __init__(self, id: str | int) -> None:
+    def __init__(self, id: int) -> None:
         self.id = id
 
         if not does_user_exist(self.id):
@@ -28,7 +27,7 @@ class User:
     def _db_query(self) -> list[Any]:
         return list(c.execute("SELECT * FROM users WHERE id=?", [self.id]))[0]
 
-    def _db_update(self, param: str, value: str | int) -> None:
+    def _db_update(self, param: str, value: Any) -> None:
         c.execute(f"UPDATE users SET {param}=? WHERE id=?", [value, self.id])
 
     @property
@@ -128,14 +127,14 @@ class User:
         @property
         def price(self) -> float:
             return self.items.price + Config.delivery_price if self.delivery else 0
- 
 
-def create_user(id: int | str) -> None:
+
+def create_user(id: int) -> None:
     c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)", [id, 0, 0, datetime.now().strftime(TIME_FORMAT), None, 0])
     conn.commit()
 
 
-def does_user_exist(id: int | str) -> bool:
+def does_user_exist(id: int) -> bool:
    return len(list(c.execute("SELECT * FROM users WHERE id=?", [id]))) != 0
 
 
