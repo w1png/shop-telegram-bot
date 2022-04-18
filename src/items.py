@@ -1,7 +1,7 @@
 from typing import Any
 from io import BufferedReader 
 
-from main import conn, c
+from constants import conn, c
 from categories import Category
 
 class Item:

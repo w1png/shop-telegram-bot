@@ -4,10 +4,10 @@ from aiogram.types import Message
 import sqlite3
 from datetime import datetime
 
-from main import conn, c, TIME_FORMAT
+from constants import conn, c, TIME_FORMAT
 from orders import Order
 from items import Item
-from config import Config
+# from config import Config
 
 
 class User:

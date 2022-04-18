@@ -3,10 +3,9 @@ from typing import Any, NewType, Dict
 from datetime import datetime
 from random import randint
 
-from main import conn, c, TIME_FORMAT, STATUS_DICT
+from constants import conn, c, TIME_FORMAT, STATUS_DICT
 from users import User
 from items import Item
-import text_templates as tt
 
 
 class Order:
