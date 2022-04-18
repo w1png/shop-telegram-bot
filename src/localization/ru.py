@@ -1,3 +1,1 @@
-lang = {
-    
-} 
+text = "test"
