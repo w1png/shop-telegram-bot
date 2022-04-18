@@ -97,11 +97,13 @@ def does_order_exist(id) -> bool:
    return len(list(c.execute("SELECT * FROM orders WHERE id=?", [id]))) == 1 
 
 
-def create(user_id, item_list, email, message=None, phone=None, home_adress=None) -> None:
-    id = 0
-    while does_order_exist(id): 
+def create(user_id: int, item_list: list[Item], email: str, message=None, phone=None, adress=None) -> None:
+    id = randint(100000, 999999)
+    while does_order_exist(id):
         id = randint(100000, 999999)
+    item_text = ",".join(map(lambda item: str(item.id), item_list))
+    date = datetime.now().strftime(TIME_FORMAT) 
 
-   c.execute("INSERT INTO orders VALUES (?,?,)")
-   conn.commit()
+    c.execute(f"INSERT INTO orders VALUES ({id}, ?, ?, )", [user_id, item_text, phone, email, adress, message, date, 0])
+    conn.commit()
 
