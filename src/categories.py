@@ -1,7 +1,6 @@
 from typing import Any
 
 from main import conn, c
-from items import Item
 
 
 class Category:

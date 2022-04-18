@@ -41,12 +41,10 @@ class Item:
         self._db_update("price", value)
 
     @property
-    def category(self) -> Category:
-        return Category(self._db_query[3])
-    @category.setter
-    def category(self, value: Category | int) -> None:
-        if isinstance(value, Category):
-            return self._db_update("category_id", value.id)
+    def category_id(self) -> int:
+        return self._db_query[3]
+    @category_id.setter
+    def category(self, value: int) -> None:
         self._db_update("category_id", value)
 
     @property

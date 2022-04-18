@@ -4,7 +4,6 @@ from datetime import datetime
 from random import randint
 
 from constants import conn, c, TIME_FORMAT, STATUS_DICT
-from users import User
 from items import Item
 
 
@@ -24,10 +23,10 @@ class Order:
         conn.commit()
 
     @property
-    def user(self) -> User:
-        return User(self._db_query[1])
+    def user_id(self) -> int:
+        return self._db_query[1]
 
-    Items = NewType("Items")
+    Items = NewType("Items", Any)
     @property
     def items(self) -> Items:
         return self.__Items(self)
