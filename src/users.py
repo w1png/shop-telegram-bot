@@ -17,7 +17,7 @@ class User:
         self.id = id
 
         if not does_user_exist(self.id):
-            create_user(self.id)
+            create(self.id)
 
     def __eq__(self, user: "User") -> bool:
         return self.id == user.id
@@ -129,8 +129,8 @@ class User:
             return self.items.price + Config.delivery_price if self.delivery else 0
 
 
-def create_user(id: int) -> None:
-    c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?)", [id, 0, 0, datetime.now().strftime(TIME_FORMAT), None, 0])
+def create(id: int) -> None:
+    c.execute(f"INSERT INTO users VALUES(?, ?, ?, ?, ?, ?, ?)", [id, 0, 0, datetime.now().strftime(TIME_FORMAT), None, 0, 0])
     conn.commit()
 
 
