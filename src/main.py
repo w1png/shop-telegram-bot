@@ -32,6 +32,12 @@ dp = Dispatcher(bot, storage=storage)
 async def welcome(message: types.Message) -> None:
     user = users.User(message.chat.id)
 
+    markup = markups.main
+    if user.is_admin:
+        markup.add(types.KeyboardButton(language.admin_panel))
+    if user.is_admin or user.is_manager:
+        markup.add(types.KeyboardButton(language.orders))
+
     if "sticker.tgs" in listdir("."):
         with open("sticker.tgs", "rb") as sticker:
             await bot.send_sticker(user.id, sticker)
@@ -39,7 +45,7 @@ async def welcome(message: types.Message) -> None:
     await bot.send_message(
         chat_id=user.id,
         text=config["info"]["greeting"],
-        reply_markup=markups.main,
+        reply_markup=markup,
     )
 
 @dp.message_handler()
