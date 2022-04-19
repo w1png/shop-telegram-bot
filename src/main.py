@@ -19,8 +19,8 @@ import utils
 
 # First startup
 c.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER, is_admin INTEGER, is_manager INTEGER, registration_date TEXT, cart TEXT, cart_delivery INTEGER, notifications INTEGER)")
-c.execute("CREATE TABLE IF NOT EXISTS items (id INTEGER, name TEXT, price REAL, category_id INTEGER, description TEXT, is_active INTEGER, amount INTEGER, is_custom INTEGER, image_filename TEXT)")
-c.execute("CREATE TABLE IF NOT EXISTS categories (id INTEGER, name TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, name TEXT, price REAL, category_id INTEGER, description TEXT, is_active INTEGER, amount INTEGER, is_custom INTEGER, image_filename TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT)")
 c.execute("CREATE TABLE IF NOT EXISTS orders (id INTEGER, user_id INTEGER, items TEXT, phone TEXT, email TEXT, adress TEXT, message TEXT, date TEXT, status INTEGER)")
 
 storage = MemoryStorage()
@@ -56,7 +56,7 @@ async def handle_text(message: types.Message) -> None:
 
     match message.text:
         case language.catalogue:
-            markup = markups.catalogue
+            markup = markups.catalogue(categories.cat_list())
         case language.cart:
             markup = markups.cart
         case language.profile:

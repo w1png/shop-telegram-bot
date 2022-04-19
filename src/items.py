@@ -2,7 +2,7 @@ from typing import Any
 from io import BufferedReader 
 
 from constants import conn, c
-from categories import Category
+# from categories import Category
 
 class Item:
     def __init__(self, id: int) -> None:
@@ -14,7 +14,7 @@ class Item:
     def __eq__(self, item: 'Item') -> bool:
         return  self.id == item.id 
 
-    def __del__(self):
+    def __delete__(self):
         c.execute("DELETE FROM items WHERE id=?", [self.id])
         conn.commit()
 
@@ -98,7 +98,14 @@ class Item:
             return open(f"images/items/{self.filename}.png", "rb")
 
 
-def create(name: str, price: float, category_id: int, description: str, image_filename=None | str) -> None:
-    c.execute("INSERT INTO items (name, price, category_id, description, 0, 0, 0, ?)", [name, price, category_id, description, image_filename])
+def create(name: str, price: float, category_id: int, description: str, image_filename=None) -> None:
+    c.execute("INSERT INTO items(name, price, category_id, description, is_active, amount, is_custom, image_filename) VALUES (?, ?, ?, ?, 0, 0, 0, ?)", [name, price, category_id, description, image_filename])
     conn.commit()
+ 
+
+if __name__ == "__main__":
+    create("TTT", 10.42, 1, "testdesc")
+    create("Tasf", 19780.99, 1, "testdeasfbkajsnfsc")
+    create("TxashkbfnTT", 1870.99, 2, "testdesc")
+    create("TaaaaaaaaaaTT", 10, 1, "testdeasfasfsc")
 

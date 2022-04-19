@@ -13,7 +13,7 @@ class Category:
     def __str__(self) -> str:
         return f"[{self.id}] {self.name}"
 
-    def __del__(self) -> None:
+    def __delete__(self) -> None:
         c.execute("DELETE FROM categories WHERE id=?", [self.id])
         conn.commit()
 
@@ -34,11 +34,11 @@ class Category:
 
     @property
     def items(self):
-        return list(map(lambda item: Item(item[0]), c.execute(f"SELECT * FROM items WHERE category_id=?", [self.id])))
+        return list(map(lambda item: item[0], c.execute(f"SELECT * FROM items WHERE category_id=?", [self.id])))
 
 
 def cat_list():
-    return list(map(lambda category: Category(category[0]), c.execute(f"SELECT * FROM cats")))
+    return list(map(lambda category: Category(category[0]), c.execute(f"SELECT * FROM categories")))
     
 
 def create(name):
