@@ -25,30 +25,30 @@ dp = Dispatcher(bot, storage=storage)
 
 
 @dp.message_handler(commands=["start"])
-async def welcome(message: types.Message):
+async def welcome(message: types.Message) -> None:
     pass 
 
 
 @dp.message_handler()
-async def handle_text(message):
+async def handle_text(message) -> None:
     pass
 
 
 @dp.callback_query_handler()
-async def process_callback(callback_query: types.CallbackQuery):
+async def process_callback(callback_query: types.CallbackQuery) -> None:
     data = callback_query.data
     user = users.User(callback_query.message.chat.id)
+    execute_args = (bot, user, callback_query.message.message_id)
 
     if data.startswith("admin_"):
         if not user.is_admin:
             return await utils.sendNoPermission(bot, user.id)
-        importlib.import_module(f"callbacks.admin.{data[6:]}").execute()
+        return importlib.import_module(f"callbacks.admin.{data[6:]}").execute(*execute_args)
     elif data.startswith("manager_"):
         if not user.is_manager:
             return await utils.sendNoPermission(bot, user.id)
-        importlib.import_module(f"callbacks.manager.{data[8:]}").execute()
-    else:
-        importlib.import_module("callbacks.user").execute()
+        return importlib.import_module(f"callbacks.manager.{data[8:]}").execute(*execute_args)
+    return importlib.import_module(f"callbacks.user.{data}").execute(*execute_args)
 
 
 if __name__ == "__main__":
