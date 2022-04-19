@@ -1,10 +1,10 @@
 import sqlite3
 import importlib
-# from config import Config
+from config import config
 
 conn = sqlite3.connect("data.db")
 c = conn.cursor()
-language = importlib.import_module(f"localization.ru")
+language = importlib.import_module(f"localization.{config['settings']['language']}")
 
 # Constants
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
