@@ -13,7 +13,7 @@ bot_settings = "⚙ Настройки бота"
 
 # FAQ
 contacts = "📞 Контакты"
-refund = "🎫 Политика возврата"
+refund_policy = "🎫 Политика возврата"
 
 # Profile
 my_orders = "📂 Мои заказы"
@@ -127,3 +127,4 @@ show = "🐵 Показать"
 delete = "❌ Удалить"
 reset = "❌ Сбросить"
 no_permission = "У вас нет прав для выполнения данной команды!"
+unknown_command = "Не могу понять команду :("

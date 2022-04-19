@@ -16,12 +16,33 @@ class Markups:
         return markup
 
     @property
-    def categories(self) -> types.InlineKeyboardMarkup:
+    def catalogue(self) -> types.InlineKeyboardMarkup:
+        pass
+
+    @property
+    def faq(self) -> types.InlineKeyboardMarkup:
+        json = '{"role": "user"}'
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(text=language.contacts, callback_data=f"{json}contacts"))
+        markup.add(types.InlineKeyboardButton(text=language.refund_policy, callback_data=f"{json}refund_policy"))
+        return markup
+
+    @property
+    def profile(self) -> types.InlineKeyboardMarkup:
+        pass
+
+    @property
+    def cart(self) -> types.InlineKeyboardMarkup:
         pass
 
     @property
     def adminPanel(self) -> types.InlineKeyboardMarkup:
         pass
+
+    @property
+    def orders(self) -> types.InlineKeyboardMarkup:
+        pass
+
 
 markups = Markups()
 

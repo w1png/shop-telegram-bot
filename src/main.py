@@ -50,8 +50,35 @@ async def welcome(message: types.Message) -> None:
 
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
-    pass
+    user = users.User(message.chat.id)
+    text = language.unknown_command
+    markup = types.InlineKeyboardMarkup()
 
+    match message.text:
+        case language.catalogue:
+            markup = markups.catalogue
+        case language.cart:
+            markup = markups.cart
+        case language.profile:
+            markup = markups.profile
+        case language.faq:
+            markup = markups.faq
+        case language.admin_panel:
+            if not user.is_admin:
+                return await utils.sendNoPermission(bot, user.id)
+            markup = markups.adminPanel
+        case language.orders:
+            if not user.is_manager and not user.is_admin:
+                return await utils.sendNoPermission(bot, user.id)
+            markup = markups.orders
+
+    text = text if markup == types.InlineKeyboardMarkup() else message.text
+    await bot.send_message(
+        chat_id=user.id,
+        text=text,
+        reply_markup=markup,
+    )
+    
 
 # A call sends json data at the start i.e. '{"role":admin,"item_id":10}deleteItem'
 @dp.callback_query_handler()
@@ -61,6 +88,9 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
     data = loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]
     execute_args = (bot, user, callback_query.message.message_id, data)
+
+    if config["settings"]["debug"]:
+        print(f"{call} | [{user.id}] | {data}")
 
     if data["role"] == "admin" and not user.is_admin:
         return await utils.sendNoPermission(bot, user.id)
