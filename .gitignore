@@ -3,7 +3,7 @@ data.db
 *.pyc
 *.pyd
 sticker.tgs
-config.ini
+config.json
 src/test.py
 aws.sh
 KP.pem
