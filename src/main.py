@@ -6,8 +6,11 @@ from aiogram.dispatcher import FSMContext
 import importlib
 from json import loads
 
+from os import listdir
+
 from constants import *
-import markups
+from config import config
+from markups import markups
 import users
 import items
 import orders
@@ -28,7 +31,16 @@ dp = Dispatcher(bot, storage=storage)
 @dp.message_handler(commands=["start"])
 async def welcome(message: types.Message) -> None:
     user = users.User(message.chat.id)
-    pass
+
+    if "sticker.tgs" in listdir("."):
+        with open("sticker.tgs", "rb") as sticker:
+            await bot.send_sticker(user.id, sticker)
+
+    await bot.send_message(
+        chat_id=user.id,
+        text=config["info"]["greeting"],
+        reply_markup=markups.main,
+    )
 
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
