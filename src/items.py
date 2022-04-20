@@ -6,7 +6,7 @@ from constants import conn, c
 
 class Item:
     def __init__(self, id: int) -> None:
-        self.id = id
+        self.id = int(id) 
 
     def __str__(self) -> str:
         return f"[{self.id}] {self.name}"

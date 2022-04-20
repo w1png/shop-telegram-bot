@@ -7,14 +7,14 @@ from datetime import datetime
 from constants import conn, c, TIME_FORMAT
 from orders import Order
 from items import Item
-# from config import Config
+from config import config
 
 Cart = NewType("Cart", Any)
 
 
 class User:
     def __init__(self, id: int) -> None:
-        self.id = id
+        self.id = int(id) 
 
         if not does_user_exist(self.id):
             create(self.id)
@@ -28,6 +28,7 @@ class User:
 
     def _db_update(self, param: str, value: Any) -> None:
         c.execute(f"UPDATE users SET {param}=? WHERE id=?", [value, self.id])
+        conn.commit()
 
     @property
     def is_admin(self) -> bool:
@@ -45,14 +46,14 @@ class User:
 
     @property
     def notifications(self) -> bool:
-        return self._db_query[3] == 1
+        return self._db_query[6] == 1
     @notifications.setter
     def notifications(self, value: bool) -> None:
         self._db_update("notifications", 1 if value else 0)
 
     @property
     def registration_date(self) -> datetime:
-        return datetime.strptime(self._db_query[4], TIME_FORMAT)
+        return datetime.strptime(self._db_query[3], TIME_FORMAT)
 
     @property
     def orders(self) -> list[Order]:
@@ -74,7 +75,7 @@ class User:
 
         @property
         def _cart_raw(self) -> str:
-            return self._user._db_query[5]
+            return self._user._db_query[4]
 
         @property
         def delivery(self) -> bool:
@@ -96,21 +97,24 @@ class User:
                 return self.__items
 
             def __str__(self) -> str:
-                return self.cart.__cart_raw
+                return str(self.cart._cart_raw)
+
+            def __iter__(self):
+                return iter(self.__items)
 
             @property
             def __items(self) -> list[Item]:
-                if not self.cart.__cart_raw:
+                if not self.cart._cart_raw:
                     return list()
                 return list(map(Item, [item_id for item_id in self.cart._cart_raw.split(",")]))
 
             def add(self, item: Item) -> None:
-                return self.cart._user._db_update("cart", ",".join(list(map(lambda item: str(item.id), self.__items))))
+                return self.cart._user._db_update("cart", ",".join(list(map(lambda item: str(item.id), self.__items+[item]))))
 
             def remove(self, item: Item) -> None:
                 new_list = list(map(lambda item: str(item.id), self.__items))
                 new_list.remove(str(item.id))
-                return self.cart._user._db_update("cart", ','.join(new_list)) 
+                return self.cart._user._db_update("cart", ','.join(new_list) if new_list != 0 else None) 
 
             def clear(self) -> None:
                 return self.cart._user.db_update("cart", None)
@@ -121,12 +125,12 @@ class User:
 
             @property
             def dict(self) -> Dict[int, int]:
-                items = self.__items
-                return {item.id: items.count(item) for item in set(items)}
+                items = list(map(lambda item: item.id, self.__items)) 
+                return {itemid: items.count(itemid) for itemid in set(items)}
         
         @property
         def price(self) -> float:
-            return self.items.price + Config.delivery_price if self.delivery else 0
+            return self.items.price + config["delivery_price"] if self.delivery else 0
 
 
 def create(id: int) -> None:

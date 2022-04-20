@@ -9,7 +9,7 @@ from items import Item
 
 class Order:
     def __init__(self, id: int) -> None:
-        self.id = id
+        self.id = int(id) 
 
     def __repr__(self) -> str:
         return str(self.id)

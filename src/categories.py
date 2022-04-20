@@ -5,7 +5,7 @@ from main import conn, c
 
 class Category:
     def __init__(self, id: int) -> None:
-        self.id = id
+        self.id = int(id) 
 
     def __eq__(self, category: "Category") -> bool:
         return self.id == category.id
