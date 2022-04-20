@@ -82,6 +82,7 @@ async def handle_text(message: types.Message) -> None:
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery) -> None:
     call = callback_query.data
+    if call == "None": return
     user = users.User(callback_query.message.chat.id)
     data = loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]

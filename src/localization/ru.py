@@ -26,6 +26,7 @@ disable_notif = "🔕Выключить оповещения о заказах"
 # Catalogue / Item / Cart
 search = "🔍 Найти"
 add_to_cart = "🛒 Добавить в корзину"
+not_in_stock = "❌ Нет в наличии"
 cart_is_empty = "Корзина пуста."
 pickup = "✅Самовывоз"
 def delivery_on(price): return f"✅ Доставка - {price}руб."
@@ -36,6 +37,9 @@ processing = "Обрабатывается"
 delivery = "Ожидает доставки"
 done = "Готов"
 cancelled = "Отменён"
+def item(item):
+    stock = "под заказ" if item.is_custom else f"{item.amount}"
+    return f"{item.name}\n{item.price:.2f} руб.\nВ наличии: {stock}\n{item.description}"
 
 # Item management
 add_cat = "🛍️ Добавить категорию"
