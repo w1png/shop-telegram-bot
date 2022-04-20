@@ -1,11 +1,16 @@
 from aiogram import types
-from typing import Any, NewType
 
 from constants import language, JSON_ADMIN, JSON_MANAGER, JSON_USER
 
 class Markups:
     def singleButton(self, button: types.InlineKeyboardButton) -> types.InlineKeyboardMarkup:
         return types.InlineKeyboardMarkup().add(button)
+
+    def create(self, values: list[tuple[str, str]]) -> types.InlineKeyboardMarkup:
+        markup = types.InlineKeyboardMarkup()
+        for text, callback_data in values:
+            markup.add(types.InlineKeyboardButton(text=text, callback_data=callback_data))
+        return markup
 
     @property
     def main(self) -> types.ReplyKeyboardMarkup:
@@ -16,17 +21,14 @@ class Markups:
         return markup
 
     def catalogue(self, category_list: list["Category"]) -> types.InlineKeyboardMarkup:
-        markup = types.InlineKeyboardMarkup()
-        for category in category_list:
-            markup.add(types.InlineKeyboardButton(text=category.name, callback_data=f'{{"role": "user", "category_id": {category.id}}}category'))
-        return markup
+        return self.create([(category.name, f'{{"role": "user", "category_id": {category.id}}}category') for category in category_list])
 
     @property
     def faq(self) -> types.InlineKeyboardMarkup:
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(text=language.contacts, callback_data=f"{JSON_USER}contacts"))
-        markup.add(types.InlineKeyboardButton(text=language.refund_policy, callback_data=f"{JSON_USER}refund_policy"))
-        return markup
+        return self.create([
+            (language.contacts, f"{JSON_USER}contacts"),
+            (language.refund_policy, f"{JSON_USER}refund_policy")
+        ])
 
     @property
     def profile(self) -> types.InlineKeyboardMarkup:
