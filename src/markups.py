@@ -40,7 +40,12 @@ class Markups:
 
     @property
     def adminPanel(self) -> types.InlineKeyboardMarkup:
-        pass
+        return self.create([
+            (language.item_management, f"{JSON_ADMIN}item_management"),
+            (language.user_management, f"{JSON_ADMIN}user_management"),
+            (language.stats, f"{JSON_ADMIN}stats"),
+            (language.settings, f"{JSON_ADMIN}settings")
+        ])
 
     @property
     def orders(self) -> types.InlineKeyboardMarkup:
