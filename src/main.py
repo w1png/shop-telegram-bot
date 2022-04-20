@@ -1,12 +1,10 @@
 import asyncio
-from os import environ
+from os import environ, listdir
+import importlib
+from json import loads
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-import importlib
-from json import loads
-
-from os import listdir
 
 from constants import *
 from config import config
@@ -19,7 +17,7 @@ import utils
 
 # First startup
 c.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER, is_admin INTEGER, is_manager INTEGER, registration_date TEXT, cart TEXT, cart_delivery INTEGER, notifications INTEGER)")
-c.execute("CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, name TEXT, price REAL, category_id INTEGER, description TEXT, is_active INTEGER, amount INTEGER, is_custom INTEGER, image_filename TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, name TEXT, price REAL, category_id INTEGER, description TEXT, is_active INTEGER, amount INTEGER, is_custom INTEGER, image_filename TEXT, is_image_hidden INTEGER)")
 c.execute("CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT)")
 c.execute("CREATE TABLE IF NOT EXISTS orders (id INTEGER, user_id INTEGER, items TEXT, phone TEXT, email TEXT, adress TEXT, message TEXT, date TEXT, status INTEGER)")
 
@@ -71,7 +69,7 @@ async def handle_text(message: types.Message) -> None:
             if not user.is_manager and not user.is_admin:
                 return await utils.sendNoPermission(bot, user.id)
             markup = markups.orders
-
+    
     text = text if markup == types.InlineKeyboardMarkup() else message.text
     await bot.send_message(
         chat_id=user.id,

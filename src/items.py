@@ -94,6 +94,13 @@ class Item:
             self.__item._db_update("image_filename", value)
 
         @property
+        def is_hidden(self) -> bool:
+            return self.__item._db_query[9]
+        @is_hidden.setter
+        def is_hidden(self, value: bool):
+            return self.__item._db_update("is_image_hidden", 1 if value else 0)
+
+        @property
         def bytes(self) -> BufferedReader:
             return open(f"images/items/{self.filename}.png", "rb")
 
