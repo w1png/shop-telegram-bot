@@ -6,7 +6,6 @@ conn = sqlite3.connect("data.db")
 c = conn.cursor()
 language = importlib.import_module(f"localization.{config['settings']['language']}")
 
-# Constants
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 STATUS_DICT = {
     0: language.processing,
@@ -14,4 +13,8 @@ STATUS_DICT = {
     2: language.done,
     -1: language.cancelled
 }
+
+JSON_USER = '{"role": "user"}'
+JSON_MANAGER = '{"role": "manager"}'
+JSON_ADMIN = '{"role": "admin"}'
 

@@ -1,12 +1,7 @@
 from aiogram import types
 from typing import Any, NewType
 
-from constants import language
-
-JSON_USER = '{"role": "user"}'
-JSON_MANAGER = '{"role": "manager"}'
-JSON_ADMIN = '{"role": "admin"}'
-
+from constants import language, JSON_ADMIN, JSON_MANAGER, JSON_USER
 
 class Markups:
     def singleButton(self, button: types.InlineKeyboardButton) -> types.InlineKeyboardMarkup:
