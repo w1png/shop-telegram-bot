@@ -3,12 +3,13 @@ from users import User
 
 from config import config
 from constants import language, JSON_USER
+from markups import markups
 
 async def execute(bot: Bot, user: User, message_id: int, data: dict):
    await bot.edit_message_text(
        chat_id=user.id,
        message_id=message_id,
        text=config["info"]["refund_policy"],
-       reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text=language.back, callback_data=f"{JSON_USER}faq"))
+       reply_markup=markups.create([(language.back, f"{JSON_USER}faq")])
     )
 
