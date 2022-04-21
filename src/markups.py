@@ -1,4 +1,5 @@
 from aiogram import types
+from typing import Any, NewType
 
 from constants import language, JSON_ADMIN, JSON_MANAGER, JSON_USER
 
@@ -6,10 +7,13 @@ class Markups:
     def singleButton(self, button: types.InlineKeyboardButton) -> types.InlineKeyboardMarkup:
         return types.InlineKeyboardMarkup().add(button)
 
-    def create(self, values: list[tuple[str, str]]) -> types.InlineKeyboardMarkup:
+    def create(self, values: list[tuple[str, str] | tuple[tuple[str, str]]]) -> types.InlineKeyboardMarkup:
         markup = types.InlineKeyboardMarkup()
-        for text, callback_data in values:
-            markup.add(types.InlineKeyboardButton(text=text, callback_data=callback_data))
+        for item in values:
+            if isinstance(item[0], tuple):
+                markup.add(*[types.InlineKeyboardButton(text=subitem[0], callback_data=subitem[1]) for subitem in item])
+                continue
+            markup.add(types.InlineKeyboardButton(text=item[0], callback_data=item[1]))
         return markup
 
     @property
@@ -32,7 +36,7 @@ class Markups:
 
     @property
     def profile(self) -> types.InlineKeyboardMarkup:
-        pass
+        pass 
 
     @property
     def cart(self) -> types.InlineKeyboardMarkup:
