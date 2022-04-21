@@ -82,7 +82,6 @@ async def handle_text(message: types.Message) -> None:
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery) -> None:
     call = callback_query.data
-    if call == "None": return
     user = users.User(callback_query.message.chat.id)
     data = loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]
@@ -90,6 +89,7 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
 
     if config["settings"]["debug"]:
         print(f"{call} | [{user.id}] | {data}")
+    if call == "None": return
 
     if data["role"] == "admin" and not user.is_admin:
         return await utils.sendNoPermission(bot, user.id)
