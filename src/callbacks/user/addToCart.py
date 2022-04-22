@@ -8,5 +8,5 @@ async def execute(bot: Bot, user: User, message_id: int, data: dict):
     item = Item(data["item_id"])
     user.cart.items.add(item)
     
-    await import_module("callbacks.user.item").execute(bot, user, message_id, data)
+    await import_module(f"callbacks.user.{data['dest']}").execute(bot, user, message_id, data)
 
