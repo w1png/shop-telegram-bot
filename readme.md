@@ -62,13 +62,3 @@
     DEBUG: <MESSAGE/CALL> [<user_id>] <Сообщение/вызов>
 
 *Пример: `DEBUG CALL [462741] admin_itemManagement`*
-
-
-
-# Поддержать проект
-
-Monero: 43fxouHQFZ5guiyYSUWh6eL1ZQ7pDtVV8D1kKUzp4aYwQBgLjyY8q7KjeEbDvvTYCDPFEdDxz9duBdRrZPnjiSMwVGV4jZj 
-
-Bitcoin: bc1qnzft2cfty0hqptxjx9ajk4m2q9x3a30gvpylh2
-
-
