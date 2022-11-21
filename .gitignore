@@ -1,15 +1,11 @@
 /images
-data.db
+database.db
 *.pyc
 *.pyd
 sticker.tgs
 config.json
 src/test.py
-aws.sh
-KP.pem
-ideas.txt
 /tmp
 DOCS/overview.md
-src/modules/
 backups/
 logs/

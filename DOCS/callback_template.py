@@ -1,5 +1,5 @@
 from aiogram import Bot
-from users import User
+from models.users import User
 
 async def execute(bot: Bot, user: User, message_id: int, data: dict):
     await bot.edit_message_text(

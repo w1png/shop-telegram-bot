@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "shop-telegram-bot"
+version = "2.0.0"
+description = "Телеграм бот, позволяющий создать магазин"
+authors = ["Denis Smirnov <w1png@yandex.ru>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiohttp = "^3.8.3"
+aiogram = "^2.23.1"
+aiosqlite = "^0.17.0"
+async-property = "^0.2.1"
+asyncio = "^3.4.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

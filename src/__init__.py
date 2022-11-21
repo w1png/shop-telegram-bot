@@ -9,7 +9,7 @@ from aiogram.dispatcher import FSMContext
 from constants import *
 from config import config
 from markups import markups
-import users
+import models.users as users
 import items
 import orders
 import categories

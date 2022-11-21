@@ -1,9 +1,6 @@
-import sqlite3
 import importlib
 from config import config
 
-conn = sqlite3.connect("data.db")
-c = conn.cursor()
 language = importlib.import_module(f"localization.{config['settings']['language']}")
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
