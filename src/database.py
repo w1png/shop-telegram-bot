@@ -11,25 +11,6 @@ async def fetch(query: str, *args) -> list:
         cursor = await db.execute(query, *args)
         return await cursor.fetchall()
 
-def __create_tables(cursor) -> None:
-
-    # cursor.execute("""CREATE TABLE categories(
-    #     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    #     name TEXT NOT NULL
-    #     parent_id INTEGER NOT NULL
-    # )""")
-
-    # cursor.execute("""CREATE TABLE items(
-    #     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    #     name TEXT NOT NULL,
-    #     description TEXT,
-    #     category_id INTEGER NOT NULL,
-    #     FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE SET NULL,
-    #     price REAL NOT NULL,
-    #     images TEXT
-    # )""")
-    DB.commit()
-
-def init() -> None:
-    if exists("database.db"):
-        return
+def create_tables(database: aiosqlite.Connection, *tables: str) -> None:
+    for table in tables:
+        database.execute(table)
