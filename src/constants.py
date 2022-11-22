@@ -2,6 +2,9 @@ import importlib
 from config import config
 import os
 
+if not os.path.exists("config.json"):
+    config.init()
+    
 language = importlib.import_module(f"localization.{config['settings']['language']}")
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"

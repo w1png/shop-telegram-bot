@@ -35,8 +35,14 @@ class Config:
     def init(self) -> None:
         with open(filename, "w") as f:
             data = {
-                "language": "ru",
-                "shop_greeting": "Приветствуем в нашем магазине!",
+                "settings": {
+                    "language": "ru",
+                    "currency": "RUB",
+                    "currency_symbol": "₽",
+                },
+                "info": {
+                    "greeting": "Приветствуем в нашем магазине!",
+                },
             }
             dump(data, f, indent=2)
     

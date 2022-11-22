@@ -46,25 +46,25 @@ class User:
     async def __update(self, field: str, value: Any) -> None:
         await database.execute(f"UPDATE users SET {field} = ? WHERE id = ?", value, self.id)
     
-    @async_property
+    @property
     async def is_admin(self) -> bool:
         return await self.__query("is_admin")
     async def set_admin(self, value: bool) -> None:
         await self.__update("is_admin", int(value))
     
-    @async_property
+    @property
     async def is_manager(self) -> bool:
         return await self.__query("is_manager")
     async def set_manager(self, value: bool) -> None:
         await self.__update("is_manager", int(value))
 
-    @async_property
+    @property
     async def notification(self) -> bool:
         return await self.__query("notification")
     async def set_notification(self, value: bool) -> None:
         await self.__update("notification", int(value))
         
-    @async_property
+    @property
     async def date_created(self) -> datetime.datetime:
         return datetime.datetime.strptime(await self.__query("date_created"), constants.TIME_FORMAT)
 
@@ -82,7 +82,7 @@ class User:
         async def __set_data(self, data: dict) -> None:
             await self.__user.__update("cart", json.dumps(data))
 
-        @async_property
+        @property
         def items(self) -> "Items":
             return self.__Items(self)
         
@@ -112,7 +112,7 @@ class User:
             async def get_quantity(self, item_id: int) -> int:
                 return await self.__get_data()[item_id]
 
-        @async_property
+        @property
         async def delivery(self) -> int:
             return await self.__get_data()["delivery"]
         async def set_delivery(self, delivery_id: int) -> None:
@@ -120,7 +120,7 @@ class User:
             data["delivery"] = delivery_id
             await self.__set_data(data)
 
-        @async_property
+        @property
         async def payment(self) -> int:
             return await self.__get_data()["payment"]
         async def set_payment(self, payment_id: int) -> None:

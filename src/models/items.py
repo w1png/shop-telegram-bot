@@ -1,7 +1,7 @@
 import json
 from typing import Any
 import database
-import categories
+from .import categories
 
 class Item:
     def __init__(self, id: int) -> None:
@@ -25,31 +25,31 @@ class Item:
             FOREIGN KEY (category_id) REFERENCES categories (id)
         )"""
 
-    @async_property
+    @property
     async def name(self) -> str:
         return await self.__query("name")
     async def set_name(self, value: str) -> None:
         await self.__update("name", value)
 
-    @async_property
+    @property
     async def description(self) -> str:
         return await self.__query("description")
     async def set_description(self, value: str) -> None:
         await self.__update("description", value)
 
-    @async_property
+    @property
     async def category_id(self) -> int:
         return await self.__query("category_id")
     async def set_category_id(self, value: int) -> None:
         await self.__update("category_id", value)
 
-    @async_property
+    @property
     async def category(self) -> "Category":
         return categories.Category(await self.__category_id)
     async def set_category(self, value: "Category") -> None:
         await self.__update("category_id", value.id)
 
-    @async_property
+    @property
     async def price(self) -> float:
         return await self.__query("price")
     async def set_price(self, value: float) -> None:
@@ -69,7 +69,7 @@ class Item:
         async def __update(self, value: str) -> None:
             await database.execute(f"UPDATE items SET images = ? WHERE id = ?", value, self.item.id)
 
-        @async_property
+        @property
         async def list(self) -> list[str]:
             return json.loads(await self.__query())
 
@@ -79,9 +79,3 @@ class Item:
         async def remove(self, value: str) -> None:
             await self.__update(json.dumps(self.list.remove(value)))
         
-        @async_property
-        async def bytes(self) -> list[bytes]:
-            return [
-                open(f"images/{image}", "rb")
-                for image in self.list
-            ]

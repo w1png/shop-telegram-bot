@@ -11,20 +11,20 @@ from config import config
 from markups import markups
 import models.users as users
 import models.items as items
+import models.categories as categories
 import utils
 import database
 import dotenv
+
+loop = asyncio.get_event_loop()
 
 # First startup
 if not os.path.exists("database.db"):
     tasks = [
         database.execute(object.database_table)
-        for object in [users, items]
+        for object in [users.User(0), items.Item(0), categories.Category(0)]
     ]
-    asyncio.run(asyncio.gather(*tasks))
-if not os.path.exists("config.json"):
-    config.init()
-
+    loop.run_until_complete(asyncio.gather(*tasks))
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 TOKEN = os.getenv("TOKEN")
@@ -107,5 +107,5 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
 
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, loop=loop)
 

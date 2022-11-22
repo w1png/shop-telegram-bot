@@ -1,2 +1,2 @@
 clear
-nodemon --exec python3 src/main.py
+nodemon --exec poetry run python3 src/__init__.py
