@@ -1,5 +1,5 @@
 import asyncio
-from os import environ, listdir
+from os import listdir
 import importlib
 from json import loads
 from aiogram import Bot, Dispatcher, executor, types
@@ -10,19 +10,26 @@ from constants import *
 from config import config
 from markups import markups
 import models.users as users
-import items
-import orders
-import categories
+import models.items as items
 import utils
+import database
+import dotenv
 
 # First startup
-c.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER, is_admin INTEGER, is_manager INTEGER, registration_date TEXT, cart TEXT, cart_delivery INTEGER, notifications INTEGER)")
-c.execute("CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, name TEXT, price REAL, category_id INTEGER, description TEXT, is_active INTEGER, amount INTEGER, is_custom INTEGER, image_filename TEXT, is_image_hidden INTEGER)")
-c.execute("CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT)")
-c.execute("CREATE TABLE IF NOT EXISTS orders (id INTEGER, user_id INTEGER, items TEXT, phone TEXT, email TEXT, adress TEXT, message TEXT, date TEXT, status INTEGER)")
+if not os.path.exists("database.db"):
+    tasks = [
+        database.execute(object.database_table)
+        for object in [users, items]
+    ]
+    asyncio.run(asyncio.gather(*tasks))
+if not os.path.exists("config.json"):
+    config.init()
 
+
+dotenv.load_dotenv(dotenv.find_dotenv())
+TOKEN = os.getenv("TOKEN")
 storage = MemoryStorage()
-bot = Bot(token=environ["TOKEN"])
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 

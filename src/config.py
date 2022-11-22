@@ -31,6 +31,15 @@ class Config:
         remove(filename)
         with open(filename, "w") as f:
             dump(modified_data, f, indent=2)
+
+    def init(self) -> None:
+        with open(filename, "w") as f:
+            data = {
+                "language": "ru",
+                "shop_greeting": "Приветствуем в нашем магазине!",
+            }
+            dump(data, f, indent=2)
     
 config = Config()
+
 
