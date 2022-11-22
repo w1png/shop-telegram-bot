@@ -13,6 +13,15 @@ class Category:
     async def __update(self, field: str, value: Any) -> None:
         await database.execute(f"UPDATE categories SET {field} = ? WHERE id = ?", value, self.id)
 
+    @property
+    def database_table(self) -> str:
+        return """CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            parent_id INTEGER,
+            FOREIGN KEY (parent_id) REFERENCES categories (id)
+        )"""
+
     @async_property
     async def name(self) -> str:
         return await self.__query("name")
