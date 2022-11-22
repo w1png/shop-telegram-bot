@@ -13,6 +13,8 @@ aiogram = "^2.23.1"
 aiosqlite = "^0.17.0"
 async-property = "^0.2.1"
 asyncio = "^3.4.3"
+matplotlib = "^3.6.2"
+python-dotenv = "^0.21.0"
 
 
 [build-system]

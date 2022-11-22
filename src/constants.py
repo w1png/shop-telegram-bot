@@ -1,5 +1,11 @@
 import importlib
 from config import config
+import dotenv
+import os
+
+dotenv.load_dotenv(dotenv.find_dotenv())
+
+TOKEN = os.getenv("TOKEN")
 
 language = importlib.import_module(f"localization.{config['settings']['language']}")
 
