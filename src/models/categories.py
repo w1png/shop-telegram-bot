@@ -1,8 +1,6 @@
-# id int pk
-# name str not null
-# parent_id int fk categories.id
 from typing import Any
 import database
+from items import Item
 
 
 class Category:
