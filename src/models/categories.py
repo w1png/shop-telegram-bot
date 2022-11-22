@@ -51,3 +51,6 @@ class Category:
 
 async def get_categories() -> list[Category]:
     return [Category(id) for id in await database.fetch("SELECT id FROM categories WHERE parent_id=0")]
+
+async def create(name: str, parent_id: int = 0) -> Category:
+    return Category(await database.execute("INSERT INTO categories (name, parent_id) VALUES (?, ?)", name, parent_id))
