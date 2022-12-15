@@ -145,13 +145,6 @@ if __name__ == "__main__":
                 print("Папка \"backups\" была удалена.")
             mkdir("backups")
             print("Папка \"backups\" была создана.")
-            if exists("logs"):
-                for file in listdir("logs"):
-                    remove("logs/" + file)
-                rmdir("logs")
-                print("Папка \"logs\" была удалена.")
-            mkdir("logs")
-            print("Папка \"logs\" была создана.")
         else:
             print("Неверный ID главного администратора.")
     else:

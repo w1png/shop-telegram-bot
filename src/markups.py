@@ -386,7 +386,6 @@ def get_markup_systemSettings():
     markup.add(types.InlineKeyboardButton(text=tt.clean_images, callback_data="admin_cleanImagesMenu"))
     markup.add(types.InlineKeyboardButton(text=tt.reset_settings, callback_data="admin_resetSettingsMenu"))
     markup.add(types.InlineKeyboardButton(text=tt.clean_database, callback_data="admin_cleanDatabaseMenu"))
-    markup.add(types.InlineKeyboardButton(text=tt.clean_logs, callback_data="admin_cleanLogsMenu"))
     markup.add(types.InlineKeyboardButton(text=tt.backups, callback_data="admin_backups"))
     markup.add(types.InlineKeyboardButton(text=tt.disable_debug if settings.is_debug() else tt.enable_debug, callback_data="admin_changeEnableDebug"))
     markup.add(btnBackAdditionalSettings)
@@ -415,12 +414,6 @@ def get_markup_cleanBackupsMenu():
         markup.add(types.InlineKeyboardButton(text=f"{days} дней", callback_data=f"admin_cleanBackups{days}"))
     markup.add(types.InlineKeyboardButton(text="Удалить все резервные копии", callback_data="admin_cleanBackupsAll"))
     markup.add(btnBackBackups)
-    return markup
-
-def get_markup_cleanLogsMenu():
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text=tt.delete, callback_data="admin_cleanLogs"))
-    markup.add(btnBackSystemSettings)
     return markup
 
 def get_markup_cleanImagesMenu():
