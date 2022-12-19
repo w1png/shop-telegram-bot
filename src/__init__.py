@@ -75,6 +75,9 @@ async def handle_text(message: types.Message) -> None:
             destination = "orders"
             role = "manager"
 
+    if not destination:
+        return await message.answer(language.unknown_command)
+
     if role == "admin" and user.is_admin or role == "manager" and user.is_manager:
         return await utils.sendNoPermission(bot, message.from_user.id)
 
