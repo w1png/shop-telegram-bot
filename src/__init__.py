@@ -56,36 +56,31 @@ async def welcome(message: types.Message) -> None:
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
     user = users.User(message.chat.id)
-    text = language.unknown_command
-    markup = types.InlineKeyboardMarkup()
+    destination = ""
+    role = "user"
 
     match message.text:
         case language.catalogue:
-            markup = markups.catalogue(categories.cat_list())
+            destination = "catalogue"
         case language.cart:
-            markup = markups.cart
+            destination = "cart"
         case language.profile:
-            markup = markups.profile
+            destination = "profile"
         case language.faq:
-            markup = markups.faq
+            destination = "faq"
         case language.admin_panel:
-            if not user.is_admin:
-                return await utils.sendNoPermission(bot, user.id)
-            markup = markups.adminPanel
+            destination = "admin_panel"
+            role = "admin"
         case language.orders:
-            if not user.is_manager and not user.is_admin:
-                return await utils.sendNoPermission(bot, user.id)
-            markup = markups.orders
-    
-    text = text if markup == types.InlineKeyboardMarkup() else message.text
-    await bot.send_message(
-        chat_id=user.id,
-        text=text,
-        reply_markup=markup,
-    )
-    
+            destination = "orders"
+            role = "manager"
 
-# A call sends json data at the start i.e. '{"role":admin,"item_id":10}deleteItem'
+    if role == "admin" and user.is_admin or role == "manager" and user.is_manager:
+        return await utils.sendNoPermission(bot, message.from_user.id)
+
+    await importlib.import_module(f"callbacks.{role}.{destination}").execute(bot, user, message.message_id)
+
+
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery) -> None:
     call = callback_query.data
