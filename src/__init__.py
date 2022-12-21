@@ -15,6 +15,7 @@ import models.categories as categories
 import utils
 import database
 import dotenv
+import states
 
 # First startup
 if not os.path.exists("database.db"):
@@ -110,7 +111,7 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
 
 
     permission = True
-    match data["role"]:
+    match data["r"]:
         case "admin":
             permission = await user.is_admin
         case "manager":
@@ -118,7 +119,7 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
     if not permission:
         return await utils.sendNoPermission(callback_query.message)
 
-    return await importlib.import_module(f"callbacks.{data['role']}.{call}").execute(*execute_args)
+    return await importlib.import_module(f"callbacks.{data['r']}.{call}").execute(*execute_args)
 
 
 if __name__ == "__main__":

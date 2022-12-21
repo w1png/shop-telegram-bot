@@ -16,9 +16,9 @@ STATUS_DICT = {
     -1: language.cancelled
 }
 
-JSON_USER = '{"role": "user"}'
-JSON_MANAGER = '{"role": "manager"}'
-JSON_ADMIN = '{"role": "admin"}'
+JSON_USER = '{"r": "user"}'
+JSON_MANAGER = '{"r": "manager"}'
+JSON_ADMIN = '{"r": "admin"}'
 
 loop = asyncio.new_event_loop()
 
