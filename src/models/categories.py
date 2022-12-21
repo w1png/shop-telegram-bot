@@ -8,10 +8,10 @@ class Category:
         self.id = id
     
     async def __query(self, field: str) -> Any:
-        return await database.fetch(f"SELECT {field} FROM categories WHERE id = ?", self.id)[0][0]
+        return (await database.fetch(f"SELECT {field} FROM categories WHERE id = ?", self.id))[0][0]
 
     async def __update(self, field: str, value: Any) -> None:
-        await database.execute(f"UPDATE categories SET {field} = ? WHERE id = ?", value, self.id)
+        await database.fetch(f"UPDATE categories SET {field} = ? WHERE id = ?", value, self.id)
 
     @property
     def database_table(self) -> str:
@@ -36,7 +36,7 @@ class Category:
     
     @property
     async def parent(self) -> "Category":
-        return Category(await self.__parent_id)
+        return Category(await self.parent_id)
     async def set_parent(self, value: "Category") -> None:
         await self.__update("parent_id", value.id)
 
@@ -53,4 +53,5 @@ async def get_categories() -> list[Category]:
     return [Category(id) for id in await database.fetch("SELECT id FROM categories WHERE parent_id=0")]
 
 async def create(name: str, parent_id: int = 0) -> Category:
-    return Category(await database.execute("INSERT INTO categories (name, parent_id) VALUES (?, ?)", name, parent_id))
+    # TODO: category creation
+    pass
