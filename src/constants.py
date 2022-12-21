@@ -1,6 +1,7 @@
 import importlib
 from config import config
 import os
+import asyncio
 
 if not os.path.exists("config.json"):
     config.init()
@@ -18,4 +19,6 @@ STATUS_DICT = {
 JSON_USER = '{"role": "user"}'
 JSON_MANAGER = '{"role": "manager"}'
 JSON_ADMIN = '{"role": "admin"}'
+
+loop = asyncio.new_event_loop()
 

@@ -1,9 +1,3 @@
-# id int
-# is_admin bool
-# is_manager bool
-# notificaton bool
-# date_created datetime
-# cart str
 import asyncio
 from typing import Any
 import datetime
@@ -12,12 +6,11 @@ import json
 import database
 import constants
 
+
 class User:
     def __init__(self, user_id: int) -> None:
-        if not does_user_exist(user_id):
-            create(user_id)
         self.id = user_id
-    
+        
     @property
     def database_table(self) -> str:
         return """CREATE TABLE IF NOT EXISTS users (
@@ -41,10 +34,10 @@ class User:
         return False
     
     async def __query(self, field: str) -> Any:
-        return await database.fetch(f"SELECT {field} FROM users WHERE id = ?", self.id)[0][0]
+        return (await database.fetch(f"SELECT {field} FROM users WHERE id = ?", self.id))[0][0]
 
     async def __update(self, field: str, value: Any) -> None:
-        await database.execute(f"UPDATE users SET {field} = ? WHERE id = ?", value, self.id)
+        await database.fetch(f"UPDATE users SET {field} = ? WHERE id = ?", value, self.id)
     
     @property
     async def is_admin(self) -> bool:
@@ -127,25 +120,4 @@ class User:
             data = await self.__get_data()
             data["payment"] = payment_id
             await self.__set_data(data)
-
-def does_user_exist(user_id: int) -> bool:
-    return bool(database.fetch("SELECT id FROM users WHERE id = ?", user_id))
-
-def create(user_id: int) -> None:
-    database.execute("""INSERT INTO users (
-        id,
-        is_admin,
-        is_manager,
-        notification,
-        date_created,
-        cart
-        ) VALUES (?, 0, 0, 1, ?, ?)""",
-        user_id,
-        datetime.datetime.now().strftime(constants.TIME_FORMAT),
-        json.dumps({
-            "items": {},
-            "delivery": 0,
-            "payment": 0
-        })
-    )
 

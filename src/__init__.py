@@ -1,12 +1,12 @@
 import asyncio
-from os import listdir
+import os
 import importlib
-from json import loads
+import json
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 
-from constants import *
+import constants
 from config import config
 from markups import markups
 import models.users as users
@@ -16,18 +16,22 @@ import utils
 import database
 import dotenv
 
-loop = asyncio.get_event_loop()
-
 # First startup
 if not os.path.exists("database.db"):
     tasks = [
-        database.execute(object.database_table)
+        database.fetch(object.database_table)
         for object in [users.User(0), items.Item(0), categories.Category(0)]
     ]
-    loop.run_until_complete(asyncio.gather(*tasks))
+    constants.loop.run_until_complete(asyncio.gather(*tasks))
+
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 TOKEN = os.getenv("TOKEN")
+if not TOKEN:
+    print("No token found!")
+    exit(1)
+
+
 storage = MemoryStorage()
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=storage)
@@ -35,15 +39,16 @@ dp = Dispatcher(bot, storage=storage)
 
 @dp.message_handler(commands=["start"])
 async def welcome(message: types.Message) -> None:
+    await utils.create_if_not_exist(message.from_user.id)
     user = users.User(message.chat.id)
 
     markup = markups.main
-    if user.is_admin:
-        markup.add(types.KeyboardButton(language.admin_panel))
-    if user.is_admin or user.is_manager:
-        markup.add(types.KeyboardButton(language.orders))
+    if await user.is_admin:
+        markup.add(types.KeyboardButton(constants.language.admin_panel))
+    if await user.is_admin or await user.is_manager:
+        markup.add(types.KeyboardButton(constants.language.orders))
 
-    if "sticker.tgs" in listdir("."):
+    if "sticker.tgs" in os.listdir("."):
         with open("sticker.tgs", "rb") as sticker:
             await bot.send_sticker(user.id, sticker)
 
@@ -55,31 +60,33 @@ async def welcome(message: types.Message) -> None:
 
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
+    await utils.create_if_not_exist(message.from_user.id)
     user = users.User(message.chat.id)
     destination = ""
     role = "user"
 
     match message.text:
-        case language.catalogue:
+        case constants.language.catalogue:
             destination = "catalogue"
-        case language.cart:
+        case constants.language.cart:
             destination = "cart"
-        case language.profile:
+        case constants.language.profile:
             destination = "profile"
-        case language.faq:
+        case constants.language.faq:
             destination = "faq"
-        case language.admin_panel:
+        case constants.language.admin_panel:
             destination = "admin_panel"
             role = "admin"
-        case language.orders:
+        case constants.language.orders:
             destination = "orders"
             role = "manager"
 
     if not destination:
-        return await message.answer(language.unknown_command)
+        await message.answer(constants.language.unknown_command)
+        return
 
-    if role == "admin" and user.is_admin or role == "manager" and user.is_manager:
-        return await utils.sendNoPermission(bot, message.from_user.id)
+    if role == "admin" and await user.is_admin or role == "manager" and await user.is_manager:
+        return await utils.sendNoPermission(message)
 
     await importlib.import_module(f"callbacks.{role}.{destination}").execute(bot, user, message.message_id)
 
@@ -88,7 +95,7 @@ async def handle_text(message: types.Message) -> None:
 async def process_callback(callback_query: types.CallbackQuery) -> None:
     call = callback_query.data
     user = users.User(callback_query.message.chat.id)
-    data = loads(call[:call.index("}")+1])
+    data = json.loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]
     execute_args = (bot, user, callback_query.message.message_id, data)
 
@@ -96,14 +103,12 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
         print(f"{call} | [{user.id}] | {data}")
     if call == "None": return
 
-    if data["role"] == "admin" and not user.is_admin:
-        return await utils.sendNoPermission(bot, user.id)
-    elif data["role"] == "manager" and (not user.is_admin or not user.is_manager):
-        return await utils.sendNoPermission(bot, user.id)
+    if data["role"] == "admin" and not user.is_admin or data["role"] == "manager" and (not user.is_admin or not user.is_manager):
+        return await utils.sendNoPermission(callback_query.message)
 
     return await importlib.import_module(f"callbacks.{data['role']}.{call}").execute(*execute_args)
 
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True, loop=loop)
+    executor.start_polling(dp, skip_updates=True, loop=constants.loop)
 
