@@ -39,7 +39,7 @@ dp = Dispatcher(bot, storage=storage)
 
 @dp.message_handler(commands=["start"])
 async def welcome(message: types.Message) -> None:
-    await utils.create_if_not_exist(message.from_user.id)
+    await utils.create_if_not_exist(message.chat.id)
     user = users.User(message.chat.id)
 
     markup = markups.main
@@ -60,7 +60,7 @@ async def welcome(message: types.Message) -> None:
 
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
-    await utils.create_if_not_exist(message.from_user.id)
+    await utils.create_if_not_exist(message.chat.id)
     user = users.User(message.chat.id)
     destination = ""
     role = "user"
@@ -90,11 +90,10 @@ async def handle_text(message: types.Message) -> None:
 
     await importlib.import_module(f"callbacks.{role}.{destination}").execute(None, user, None, message)
 
-
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery) -> None:
     call = callback_query.data
-    user = users.User(callback_query.message.from_user.id)
+    user = users.User(callback_query.message.chat.id)
     data = json.loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]
     execute_args = (callback_query, user, data)
