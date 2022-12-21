@@ -88,22 +88,24 @@ async def handle_text(message: types.Message) -> None:
     if role == "admin" and await user.is_admin or role == "manager" and await user.is_manager:
         return await utils.sendNoPermission(message)
 
-    await importlib.import_module(f"callbacks.{role}.{destination}").execute(bot, user, message.message_id)
+    await importlib.import_module(f"callbacks.{role}.{destination}").execute(None, user, None, message)
 
 
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery) -> None:
     call = callback_query.data
-    user = users.User(callback_query.message.chat.id)
+    user = users.User(callback_query.message.from_user.id)
     data = json.loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]
-    execute_args = (bot, user, callback_query.message.message_id, data)
+    execute_args = (callback_query, user, data)
 
     if config["settings"]["debug"]:
         print(f"{call} | [{user.id}] | {data}")
     if call == "None": return
 
-    if data["role"] == "admin" and not user.is_admin or data["role"] == "manager" and (not user.is_admin or not user.is_manager):
+    is_admin, is_manager = await asyncio.gather(user.is_admin, user.is_manager)
+
+    if data["role"] == "admin" and not is_admin or data["role"] == "manager" and (not is_admin or not is_manager):
         return await utils.sendNoPermission(callback_query.message)
 
     return await importlib.import_module(f"callbacks.{data['role']}.{call}").execute(*execute_args)
