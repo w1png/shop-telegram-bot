@@ -75,7 +75,7 @@ async def handle_text(message: types.Message) -> None:
         case constants.language.faq:
             destination = "faq"
         case constants.language.admin_panel:
-            destination = "admin_panel"
+            destination = "adminPanel"
             role = "admin"
         case constants.language.orders:
             destination = "orders"
@@ -85,7 +85,13 @@ async def handle_text(message: types.Message) -> None:
         await message.answer(constants.language.unknown_command)
         return
 
-    if role == "admin" and await user.is_admin or role == "manager" and await user.is_manager:
+    permission = True
+    match role:
+        case "admin":
+            permission = await user.is_admin
+        case "manager":
+            permission = await user.is_manager or await user.is_admin
+    if not permission:
         return await utils.sendNoPermission(message)
 
     await importlib.import_module(f"callbacks.{role}.{destination}").execute(None, user, None, message)
@@ -102,9 +108,14 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
         print(f"{call} | [{user.id}] | {data}")
     if call == "None": return
 
-    is_admin, is_manager = await asyncio.gather(user.is_admin, user.is_manager)
 
-    if data["role"] == "admin" and not is_admin or data["role"] == "manager" and (not is_admin or not is_manager):
+    permission = True
+    match data["role"]:
+        case "admin":
+            permission = await user.is_admin
+        case "manager":
+            permission = await user.is_manager or await user.is_admin
+    if not permission:
         return await utils.sendNoPermission(callback_query.message)
 
     return await importlib.import_module(f"callbacks.{data['role']}.{call}").execute(*execute_args)
