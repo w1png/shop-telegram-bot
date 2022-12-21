@@ -10,3 +10,4 @@ DOCS/overview.md
 backups/
 logs/
 src/config.py
+.env
