@@ -1,16 +1,17 @@
-from aiogram import Bot
+from aiogram import types
 import models
 from markups import markups
 import constants
 
-async def execute(bot: Bot, user: models.user.User, message_id: int, data: dict):
-    await bot.edit_message_text(
-       chat_id=user.id,
-       message_id=message_id,
-       text=constants.language.faq,
-       markup=markups.create([
-            (language.contacts, f'{constants.JSON_USER}contacts'),
-            (language.refund, f'{constants.JSON_USER}refund'),
-        ])
-    ) 
+async def execute(callback_query: types.CallbackQuery, user: models.users.User, data: dict, message=None) -> None:
+    markup = markups.create([
+        (constants.language.contacts, f'{constants.JSON_USER}contacts'),
+        (constants.language.refund_policy, f'{constants.JSON_USER}refund'),
+    ])
+    text = constants.language.faq
+
+    if message:
+        return await message.answer(text, reply_markup=markup)
+    await callback_query.message.edit_text(text, reply_markup=markup)
+    
 
