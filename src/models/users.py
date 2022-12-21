@@ -41,19 +41,19 @@ class User:
     
     @property
     async def is_admin(self) -> bool:
-        return await self.__query("is_admin")
+        return bool(await self.__query("is_admin"))
     async def set_admin(self, value: bool) -> None:
         await self.__update("is_admin", int(value))
     
     @property
     async def is_manager(self) -> bool:
-        return await self.__query("is_manager")
+        return bool(await self.__query("is_manager"))
     async def set_manager(self, value: bool) -> None:
         await self.__update("is_manager", int(value))
 
     @property
     async def notification(self) -> bool:
-        return await self.__query("notification")
+        return bool(await self.__query("notification"))
     async def set_notification(self, value: bool) -> None:
         await self.__update("notification", int(value))
         
