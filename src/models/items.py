@@ -8,10 +8,10 @@ class Item:
         self.id = id
     
     async def __query(self, field: str) -> Any:
-        return await database.fetch(f"SELECT {field} FROM items WHERE id = ?", self.id)[0][0]
+        return (await database.fetch(f"SELECT {field} FROM items WHERE id = ?", self.id))[0][0]
 
     async def __update(self, field: str, value: Any) -> None:
-        await database.execute(f"UPDATE items SET {field} = ? WHERE id = ?", value, self.id)
+        await database.fetch(f"UPDATE items SET {field} = ? WHERE id = ?", value, self.id)
 
     @property
     def database_table(self) -> str:
@@ -45,7 +45,7 @@ class Item:
 
     @property
     async def category(self) -> "Category":
-        return categories.Category(await self.__category_id)
+        return categories.Category(await self.category_id)
     async def set_category(self, value: "Category") -> None:
         await self.__update("category_id", value.id)
 
@@ -57,25 +57,25 @@ class Item:
 
     @property
     async def images(self) -> "__Images":
-        return self.__Images(self, self)
+        return self.__Images(self)
 
     class __Images:
         def __init__(self, item: "Item") -> None:
             self.item = item
 
         async def __query(self) -> str:
-            return await database.fetch(f"SELECT images FROM items WHERE id = ?", self.item.id)[0][0]
+            return (await database.fetch(f"SELECT images FROM items WHERE id = ?", self.item.id))[0][0]
 
         async def __update(self, value: str) -> None:
-            await database.execute(f"UPDATE items SET images = ? WHERE id = ?", value, self.item.id)
+            await database.fetch(f"UPDATE items SET images = ? WHERE id = ?", value, self.item.id)
 
         @property
         async def list(self) -> list[str]:
             return json.loads(await self.__query())
 
         async def add(self, value: str) -> None:
-            await self.__update(json.dumps(self.list + [value]))
+            await self.__update(json.dumps(await self.list + [value]))
 
         async def remove(self, value: str) -> None:
-            await self.__update(json.dumps(self.list.remove(value)))
+            await self.__update(json.dumps((await self.list).remove(value)))
         
