@@ -16,7 +16,7 @@ class Category:
     @property
     def database_table(self) -> str:
         return """CREATE TABLE IF NOT EXISTS categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             parent_id INTEGER,
             FOREIGN KEY (parent_id) REFERENCES categories (id)
@@ -35,18 +35,19 @@ class Category:
         await self.__update("parent_id", value)
     
     @property
-    async def parent(self) -> "Category":
-        return Category(await self.parent_id)
+    async def parent(self) -> Any | None:
+        parent_id = await self.parent_id
+        return Category(parent_id) if parent_id != 0 else None
     async def set_parent(self, value: "Category") -> None:
         await self.__update("parent_id", value.id)
 
     @property
     async def children(self) -> list["Category"]:
-        return [Category(id) for id in await database.fetch("SELECT id FROM categories WHERE parent_id = ?", self.id)]
+        return [Category(*id) for id in await database.fetch("SELECT id FROM categories WHERE parent_id = ?", self.id)]
     
     @property
     async def items(self) -> list["Item"]:
-        return [items.Item(id) for id in await database.fetch("SELECT id FROM items WHERE category_id = ?", self.id)]
+        return [items.Item(*id) for id in await database.fetch("SELECT id FROM items WHERE category_id = ?", self.id)]
     
 
 async def get_categories() -> list[Category]:
