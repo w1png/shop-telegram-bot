@@ -16,7 +16,7 @@ class Item:
     @property
     def database_table(self) -> str:
         return """CREATE TABLE IF NOT EXISTS items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             description TEXT NOT NULL,
             category_id INTEGER NOT NULL,
