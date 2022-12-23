@@ -157,7 +157,7 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
                 await state.update_data(parent_category=0)
             case "parent_category":
                 print("parent_category")
-                await state.update_data(parent_category=data["pid"])
+                await state.update_data(parent_category=data["cid"])
 
         data = await state.get_data()
         await categories.create(data["name"], data["parent_category"])
@@ -174,7 +174,7 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
 async def add_category_name(message: types.Message, state: FSMContext) -> None:
 
     markup = [
-        (f"[{category.id}] {await category.name}", f'{{"r":"admin","pid":"{category.id}"}}parent_category')
+        (f"[{category.id}] {await category.name}", f'{{"r":"admin","cid":"{category.id}"}}parent_category')
         for category in (await categories.get_categories())
     ]
     markup.append((constants.language.skip, '{"r":"admin","d":"categories"}skip'))
