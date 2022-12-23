@@ -25,7 +25,7 @@ if not os.path.exists("database.db"):
         database.fetch(object.database_table)
         for object in [users.User(0), items.Item(0), categories.Category(0)]
     ]
-    constants.loop.run_until_complete(asyncio.gather(*tasks))
+    asyncio.get_event_loop().run_until_complete(asyncio.gather(*tasks))
 
 
 dotenv.load_dotenv(dotenv.find_dotenv())
