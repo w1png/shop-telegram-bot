@@ -9,7 +9,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         text=constants.language.category_management,
         reply_markup=markups.create([
             (constants.language.add_category, f"{constants.JSON_ADMIN}addCategory"),
-            (constants.language.edit_category, f"{constants.JSON_ADMIN}editCategory"),
+            (constants.language.edit_category, f"{constants.JSON_ADMIN}editCategories"),
             (constants.language.back, f"{constants.JSON_ADMIN}adminPanel"),
         ])
     )
