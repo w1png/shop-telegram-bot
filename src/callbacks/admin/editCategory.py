@@ -18,7 +18,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         text=constants.language.format_category(category.id, category_name, category_parent_id, category_parent_name),
         reply_markup=markups.create([
             (constants.language.edit_name, f'{{"r":"admin","cid":{category.id}}}editCategoryName'),
-            (constants.language.edit_parent_category, f'{{"r":"admin","cid":{category.id}}}editCategoryParentCategory'),
+            (constants.language.edit_parent_category, f'{{"r":"admin","cid":{category.id}}}editCategoryPC'),
             (constants.language.back, f"{constants.JSON_ADMIN}editCategories"),
         ])
     )
