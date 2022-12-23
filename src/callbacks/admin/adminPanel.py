@@ -9,9 +9,9 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     markup = markups.create([
         (constants.language.category_management, f"{constants.JSON_ADMIN}categories"),
         (constants.language.item_management, f"{constants.JSON_ADMIN}items"),
-        (constants.language.order_management, f"{constants.JSON_ADMIN}orders"),
         (constants.language.user_management, f"{constants.JSON_ADMIN}users"),
         (constants.language.stats, f"{constants.JSON_ADMIN}stats"),
+        (constants.language.settings, f"{constants.JSON_ADMIN}settings"),
     ])
 
     if message:
