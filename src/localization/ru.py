@@ -68,11 +68,14 @@ edit_category = "✏️ Редактировать категорию"
 input_category_name = f"Введите название категории {or_press_back}"
 set_category_parent = f"📁 Выберите родительскую категорию {or_press_skip}"
 category_created = "Категория успешно создана."
+def format_category(category_id, category_name, category_parent_id, category_parent_name):
+    return f"Категория [{category_id}]{category_name}:\nРодительская категория: {f'[{category_parent_id}]{category_parent_name}' if category_parent_id else 'Нет'}"
+edit_parent_category = "📁 Изменить родительскую категорию"
 
 # Item management
 add_item = "🗃️ Добавить товар"
 edit_item = "✏️ Редактировать товар"
-change_name = "📋 Изменить название"
+edit_name = "📋 Изменить название"
 change_image = "🖼️ Изменить изображение"
 hide_image = "🙈 Скрыть изображение"
 show_image = "🐵 Показать изображение"
