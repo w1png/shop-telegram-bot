@@ -11,7 +11,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
 
     markup = markups.create([
         (await category.name, f'{{"r":"user","cid":{category.id}}}category')
-        for category in await models.categories.get_categories()
+        for category in await models.categories.get_main_categories()
     ])
 
     if message:
