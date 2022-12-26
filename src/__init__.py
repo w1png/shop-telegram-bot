@@ -111,7 +111,11 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
         print(f"{call} | [{user.id}] | {data}")
     if call == "None": return
     if call in ["cancel", "skip"]:
-        return await importlib.import_module(f"callbacks.{data['r']}.{data['d']}").execute(*execute_args)
+        if "d" in data:
+            return await importlib.import_module(f"callbacks.{data['r']}.{data['d']}").execute(*execute_args)
+
+        await callback_query.message.delete()
+        return
 
     permission = True
     match data["r"]:
@@ -122,7 +126,12 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
     if not permission:
         return await utils.sendNoPermission(callback_query.message)
 
-    return await importlib.import_module(f"callbacks.{data['r']}.{call}").execute(*execute_args)
+    try:
+        return await importlib.import_module(f"callbacks.{data['r']}.{call}").execute(*execute_args)
+    except:
+        await callback_query.answer(
+            text=constants.language.unknown_command
+        )
 
 
 def parse_state(current_state: State) -> str:
@@ -145,11 +154,23 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
 
     if call == "cancel":
         await state.finish()
-        return await importlib.import_module(f"callbacks.{data['r']}.{data['d']}").execute(*execute_args)
+        if "d" in data:
+            return await importlib.import_module(f"callbacks.{data['r']}.{data['d']}").execute(*execute_args)
+
+        await callback_query.message.edit_text(
+            text=constants.language.state_cancelled,
+        )
+        return
 
     
     state_path = f"callbacks.states.{(await state.get_state()).replace(':', '_')}"
-    await importlib.import_module(state_path).execute(callback_query=callback_query, user=user, data=data, state=state)
+    try:
+        await importlib.import_module(state_path).execute(callback_query=callback_query, user=user, data=data, state=state)
+    except:
+        await callback_query.message.answer(
+            text=constants.language.unknown_call_stop_state,
+            reply_markup=markups.create([(constants.language.back, f"{constants.JSON_ADMIN}cancel")])
+        )
 
 
 @dp.message_handler(state="*")
