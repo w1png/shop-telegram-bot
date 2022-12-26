@@ -83,11 +83,10 @@ class Item:
 async def create(
     name: str,
     description: str,
-    category: categories.Category,
+    category_id: int,
     price: float,
     images: list[str]
 ) -> Item:
-    await database.fetch("INSERT INTO items VALUES (NULL, ?, ?, ?, ?, ?)", name, description, category.id, price, json.dumps(images))
-    return Item(*(await database.fetch("SELECT id FROM items ORDER BY id DESC LIMIT 1"))[0][0])
-        
+    await database.fetch("INSERT INTO items VALUES (NULL, ?, ?, ?, ?, ?)", name, description, category_id, price, json.dumps(images))
+    return Item((await database.fetch("SELECT id FROM items ORDER BY id DESC LIMIT 1"))[0][0])
 
