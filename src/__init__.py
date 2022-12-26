@@ -164,13 +164,17 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
 
     
     state_path = f"callbacks.states.{(await state.get_state()).replace(':', '_')}"
+    print(state_path)
     try:
         await importlib.import_module(state_path).execute(callback_query=callback_query, user=user, data=data, state=state)
-    except:
+    except ModuleNotFoundError:
         await callback_query.message.answer(
             text=constants.language.unknown_call_stop_state,
             reply_markup=markups.create([(constants.language.back, f"{constants.JSON_ADMIN}cancel")])
         )
+    except:
+        import traceback
+        traceback.print_exc()
 
 
 @dp.message_handler(state="*")
