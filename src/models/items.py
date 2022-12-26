@@ -79,3 +79,15 @@ class Item:
         async def remove(self, value: str) -> None:
             await self.__update(json.dumps((await self.list).remove(value)))
         
+
+async def create(
+    name: str,
+    description: str,
+    category: categories.Category,
+    price: float,
+    images: list[str]
+) -> Item:
+    await database.fetch("INSERT INTO items VALUES (NULL, ?, ?, ?, ?, ?)", name, description, category.id, price, json.dumps(images))
+    return Item(*(await database.fetch("SELECT id FROM items ORDER BY id DESC LIMIT 1"))[0][0])
+        
+
