@@ -11,7 +11,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     data = await state.get_data()
 
     await callback_query.message.edit_text(
-        text=constants.language.none,
+        text=constants.language.None,
         reply_markup=markups.create([
 
         ])
