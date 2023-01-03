@@ -1,2 +1,2 @@
 clear
-nodemon --exec poetry run python3 src/__init__.py
+nodemon --ignore *.json --exec poetry run python3 src/__init__.py
