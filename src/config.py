@@ -1,5 +1,5 @@
-from json import loads, dump
-from os import remove
+import os
+import json
 
 filename = "config.json"
 class Config:
@@ -22,15 +22,24 @@ class Config:
 
     @property
     def __data(self):
-       return loads(self.__raw) 
+       return json.loads(self.__raw) 
 
-    def set(self, param: str, value: str | int) -> None:
+    def set(self, param: str | tuple[str, str], value: str | int) -> None:
         modified_data = self.__data
-        modified_data[param] = value
 
-        remove(filename)
+        if isinstance(param, tuple):
+            modified_data[param[0]][param[1]] = value
+        else:
+            modified_data[param] = value
+
+        backup_filename = f"{filename}.bak"
+        if os.path.exists(backup_filename):
+            os.remove(backup_filename)
+        with open(backup_filename, "w") as f:
+            json.dump(modified_data, f, indent=2)        
+        os.remove(filename)
         with open(filename, "w") as f:
-            dump(modified_data, f, indent=2)
+            json.dump(modified_data, f, indent=2)
 
     def init(self) -> None:
         with open(filename, "w") as f:
@@ -39,12 +48,13 @@ class Config:
                     "language": "ru",
                     "currency": "RUB",
                     "currency_symbol": "₽",
+                    "debug": True,
                 },
                 "info": {
                     "greeting": "Приветствуем в нашем магазине!",
                 },
             }
-            dump(data, f, indent=2)
+            json.dump(data, f, indent=2)
     
 config = Config()
 

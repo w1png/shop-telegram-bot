@@ -13,3 +13,5 @@ class AddItem(StatesGroup):
     images = State()
     confirmation = State()
 
+class Language(StatesGroup):
+    language = State()

@@ -4,6 +4,7 @@ database.db
 *.pyd
 sticker.tgs
 config.json
+config.json.bak
 src/test.py
 /tmp
 DOCS/overview.md
