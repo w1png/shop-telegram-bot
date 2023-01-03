@@ -128,7 +128,7 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
 
     try:
         return await importlib.import_module(f"callbacks.{data['r']}.{call}").execute(*execute_args)
-    except:
+    except ModuleNotFoundError:
         await callback_query.answer(
             text=constants.language.unknown_command
         )
