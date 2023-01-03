@@ -15,3 +15,6 @@ class AddItem(StatesGroup):
 
 class Language(StatesGroup):
     language = State()
+
+class Greeting(StatesGroup):
+    greeting = State()

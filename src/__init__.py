@@ -57,7 +57,7 @@ async def welcome(message: types.Message) -> None:
 
     await bot.send_message(
         chat_id=user.id,
-        text=config["info"]["greeting"],
+        text=config["info"]["greeting"].replace("%s", message.from_user.full_name),
         reply_markup=markup,
     )
 
