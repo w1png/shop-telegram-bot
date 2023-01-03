@@ -10,7 +10,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         reply_markup=markups.create([
             (constants.language.language, f"{constants.JSON_ADMIN}language"),
             (constants.language.greeting, f"{constants.JSON_ADMIN}greeting"),
-            (constants.language.back, f"{constants.JSON_ADMIN}main_settings")
+            (constants.language.back, f"{constants.JSON_ADMIN}settings")
         ])
     )
 
