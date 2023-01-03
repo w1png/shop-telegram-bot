@@ -105,6 +105,7 @@ change_item_cat = "🛍️ Изменить категорию"
 change_stock = "📦 Изменить кол-во"
 def format_confirm_item(name: str, description: str, category_id: int, price: float, images: list[str]) -> str:
     return f"Товар {name}:\nОписание: {description}\nКатегория: {category_id}\nЦена: {price}\nИзображения: {images}\n\nВы уверены, что хотите создать товар?"
+item_added = "Товар успешно добавлен."
 
 # User management
 user_profile = "📁Профиль пользователя"
