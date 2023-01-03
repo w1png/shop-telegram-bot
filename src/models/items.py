@@ -2,6 +2,7 @@ import json
 from typing import Any
 import database
 from .import categories
+import asyncio
 
 class Item:
     def __init__(self, id: int) -> None:
@@ -79,6 +80,14 @@ class Item:
         async def remove(self, value: str) -> None:
             await self.__update(json.dumps((await self.list).remove(value)))
         
+    async def format_text(self, template: str) -> str:
+        name, description, price, category_name = asyncio.gather(
+            self.name,
+            self.description,
+            self.price,
+            (await self.category).name
+        )
+        return template.replace("%n", name).replace("%d", description).replace("%p", f"{price} {config['settings']['currency']}").replace("%c", category_name)
 
 async def create(
     name: str,
