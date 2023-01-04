@@ -33,33 +33,33 @@ class User:
             return self.id == other.id
         return False
     
-    async def __query(self, field: str) -> Any:
+    async def _query(self, field: str) -> Any:
         return (await database.fetch(f"SELECT {field} FROM users WHERE id = ?", self.id))[0][0]
 
-    async def __update(self, field: str, value: Any) -> None:
+    async def _update(self, field: str, value: Any) -> None:
         await database.fetch(f"UPDATE users SET {field} = ? WHERE id = ?", value, self.id)
     
     @property
     async def is_admin(self) -> bool:
-        return bool(await self.__query("is_admin"))
+        return bool(await self._query("is_admin"))
     async def set_admin(self, value: bool) -> None:
-        await self.__update("is_admin", int(value))
+        await self._update("is_admin", int(value))
     
     @property
     async def is_manager(self) -> bool:
-        return bool(await self.__query("is_manager"))
+        return bool(await self._query("is_manager"))
     async def set_manager(self, value: bool) -> None:
-        await self.__update("is_manager", int(value))
+        await self._update("is_manager", int(value))
 
     @property
     async def notification(self) -> bool:
-        return bool(await self.__query("notification"))
+        return bool(await self._query("notification"))
     async def set_notification(self, value: bool) -> None:
-        await self.__update("notification", int(value))
+        await self._update("notification", int(value))
         
     @property
     async def date_created(self) -> datetime.datetime:
-        return datetime.datetime.strptime(await self.__query("date_created"), constants.TIME_FORMAT)
+        return datetime.datetime.strptime(await self._query("date_created"), constants.TIME_FORMAT)
 
     @property
     def cart(self) -> "Cart":
@@ -69,33 +69,31 @@ class User:
         def __init__(self, user: "User") -> None:
             self.__user = user
 
-        async def __get_data(self) -> dict:
-            return json.loads(await self.__user.__query("cart"))
+        async def _get_data(self) -> dict:
+            return json.loads(await self.__user._query("cart"))
         
-        async def __set_data(self, data: dict) -> None:
-            await self.__user.__update("cart", json.dumps(data))
+        async def _set_data(self, data: dict) -> None:
+            await self.__user._update("cart", json.dumps(data))
 
         @property
-        def items(self) -> "Items":
-            return self.__Items(self)
-        
+        def items(self) -> "__Items":
+            return (self.__Items(self))
+
         class __Items:
             def __init__(self, cart: "__Cart") -> None:
                 self.__cart = cart
             
-            def __repr__(self) -> dict:
-                asyncio.run_in_executor(None, self.__get_data())
-
-            async def __get_data(self) -> dict:
-                return await self.__cart.__get_data()["items"]
+            @property
+            async def dict(self) -> dict:
+                return (await self.__cart._get_data())["items"]
 
             async def add(self, item_id: int, quantity: int) -> None:
-                data = await self.__get_data()
+                data = await self.dict
                 data[item_id] = quantity
-                await self.__cart.__set_data(data)
+                await self.__cart._set_data(data)
             
             async def remove(self, item_id: int) -> None:
-                data = await self.__get_data()
+                data = await self.dict
                 data[item_id] -= 1
                 await self.__cart.__set_data(data)
             
