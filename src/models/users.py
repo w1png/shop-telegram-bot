@@ -87,31 +87,33 @@ class User:
             async def dict(self) -> dict:
                 return (await self.__cart._get_data())["items"]
 
-            async def add(self, item_id: int) -> None:
-                data = await self.dict
+            async def add(self, item_id: int | str) -> None:
+                data = await self.__cart._get_data()
 
-                if item_id in data:
-                    data[item_id] += 1
-                else:
-                    data[item_id] = 1
+                item_id = str(item_id)
+                
+                if item_id not in data["items"]:
+                    data["items"][item_id] = 0
+                data["items"][item_id] += 1
 
                 await self.__cart._set_data(data)
             
-            async def remove(self, item_id: int) -> None:
-                data = await self.dict
+            async def remove(self, item_id: int | str) -> None:
+                data = await self.__cart._get_data()
 
-                if item_id in data:
-                    data[item_id] -= 1
+                item_id = str(item_id)
+
+                if data["items"][item_id] == 1:
+                    del data["items"][item_id]
                 else:
-                    return
+                    data["items"][item_id] -= 1
 
-                await self.__cart.__set_data(data)
+                await self.__cart._set_data(data)
             
             async def clear(self) -> None:
-                await self.__cart.__set_data({})
-
-            async def get_quantity(self, item_id: int) -> int:
-                return await self.__get_data()[item_id]
+                data = self.__cart._get_data()
+                data["items"] = {}
+                await self.__cart._set_data(data)
 
         @property
         async def delivery(self) -> int:
