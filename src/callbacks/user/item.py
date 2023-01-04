@@ -13,18 +13,20 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         user.cart.items.dict
     )
 
-    add_to_cart_callback = f'{{"r":"user","iid":{item.id}}}addToCart'
+    def cart_callback(state: int):
+        return f'{{"r":"user","iid":{item.id},"s":{state}}}changeCart'
+
 
     item_id = str(item.id)
 
     if item_id in cart_dict:
         cart_buttons = (
-            (constants.language.minus, f'{{"r":"user","iid":{item_id}}}removeFromCart'),
+            (constants.language.minus, cart_callback(0)),
             (cart_dict[item_id], f'None'),
-            (constants.language.plus, add_to_cart_callback),
+            (constants.language.plus, cart_callback(1)),
         )
     else:
-        cart_buttons = (constants.language.add_to_cart, add_to_cart_callback)
+        cart_buttons = (constants.language.add_to_cart, cart_callback(1))
 
     markup = markups.create([
         cart_buttons,

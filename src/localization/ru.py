@@ -4,6 +4,8 @@ back = "🔙 Назад"
 skip = "⏭ Пропустить"
 yes = "✅ Да"
 no = "❌ Нет"
+enabled = "✅ Включено"
+disabled = "❌ Выключено"
 error = "Произошла ошибка!"
 or_press_back = "или нажмите на кнопку \"Назад\"."
 or_press_skip = "или нажмите на кнопку \"Пропустить\"."
@@ -125,9 +127,16 @@ monthly = "За последние 30 дней"
 weekly = "За последние 7 дней"
 daily = "За последние 24 часа"
 
+# Payment settings
+yoomoney = "🟢 ЮMoney"
+qiwi = "🏧 QIWI"
+
+
+
 # Shop settings
 main_settings = "🛠️ Основные настройки"
 item_settings = "🗃️ Настройки товаров"
+payment_settings = "💳 Настройки оплаты"
 additional_settings = "📖 Дополнительные настройки"
 custom_commands = "📖 Команды"
 add_command = "📝 Добавить команду"
