@@ -87,14 +87,24 @@ class User:
             async def dict(self) -> dict:
                 return (await self.__cart._get_data())["items"]
 
-            async def add(self, item_id: int, quantity: int) -> None:
+            async def add(self, item_id: int) -> None:
                 data = await self.dict
-                data[item_id] = quantity
+
+                if item_id in data:
+                    data[item_id] += 1
+                else:
+                    data[item_id] = 1
+
                 await self.__cart._set_data(data)
             
             async def remove(self, item_id: int) -> None:
                 data = await self.dict
-                data[item_id] -= 1
+
+                if item_id in data:
+                    data[item_id] -= 1
+                else:
+                    return
+
                 await self.__cart.__set_data(data)
             
             async def clear(self) -> None:
