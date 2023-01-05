@@ -11,5 +11,5 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     else:
         await user.cart.items.remove(data['iid'])
 
-    await importlib.import_module("callbacks.user.item").execute(callback_query, user, data)
+    await importlib.import_module(f"callbacks.user.{data['d']}").execute(callback_query, user, data)
 

@@ -14,7 +14,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     )
 
     def cart_callback(state: int):
-        return f'{{"r":"user","iid":{item.id},"s":{state}}}changeCart'
+        return f'{{"r":"user","iid":{item.id},"s":{state},"d":"item"}}changeCart'
 
 
     item_id = str(item.id)
