@@ -3,7 +3,6 @@ import os
 import importlib
 import json
 from aiogram import Bot, Dispatcher, executor, types
-import aiogram
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State
@@ -17,7 +16,6 @@ import models.categories as categories
 import utils
 import database
 import dotenv
-import states
 
 # First startup
 if not os.path.exists("database.db"):
