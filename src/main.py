@@ -1347,6 +1347,12 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("changeOrderStatusProcessing"):
             order = ordr.Order(call_data[27:])
             order.set_status(0)
+
+            await bot.send_message(
+                text=f"Статус заказа #{order.get_order_id()} был изменен на \"{tt.processing}\"",
+                chat_id=order.get_user_id()
+            )
+
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
                 chat_id=chat_id,
@@ -1356,6 +1362,12 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("changeOrderStatusDelivery"):
             order = ordr.Order(call_data[25:])
             order.set_status(1)
+
+            await bot.send_message(
+                text=f"Статус заказа #{order.get_order_id()} был изменен на \"{tt.delivery}\"",
+                chat_id=order.get_user_id()
+            )
+
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
                 chat_id=chat_id,
@@ -1365,6 +1377,12 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("changeOrderStatusDone"):
             order = ordr.Order(call_data[21:])
             order.set_status(2)
+
+            await bot.send_message(
+                text=f"Статус заказа #{order.get_order_id()} был изменен на \"{tt.done}\"",
+                chat_id=order.get_user_id()
+            )
+
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
                 chat_id=chat_id,
@@ -1374,6 +1392,12 @@ async def process_callback(callback_query: types.CallbackQuery):
         elif call_data.startswith("changeOrderStatusCancel"):
             order = ordr.Order(call_data[23:])
             order.set_status(-1)
+
+            await bot.send_message(
+                text=f"Заказ #{order.get_order_id()} был отменён.",
+                chat_id=order.get_user_id()
+            )
+
             await bot.edit_message_text(
                 text=tt.get_order_template(order),
                 chat_id=chat_id,
