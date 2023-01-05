@@ -1,0 +1,14 @@
+{
+  "cash": {
+    "title": "Наличные",
+    "enabled": true
+  },
+  "telegram_api": {
+    "title": "Онлайн оплата",
+    "enabled": false
+  },
+  "manager_payment": {
+    "title": "Оплата после связи с менеджером",
+    "enabled": true
+  }
+}

@@ -1,10 +1,10 @@
-import asyncio
 from typing import Any
 import datetime
 import json
 
 import database
 import constants
+from models import payment_methods, items
 
 
 class User:
@@ -115,19 +115,29 @@ class User:
                 data["items"] = {}
                 await self.__cart._set_data(data)
 
+            @property
+            async def total_price(self) -> float:
+                total = 0
+                for item_id, amount in (await self.dict).items():
+                    total += (await items.Item(item_id).price) * amount
+
+                return total
+
+        # 0 is self_checkout
+        # 1 is delivery
         @property
-        async def delivery(self) -> int:
-            return await self.__get_data()["delivery"]
-        async def set_delivery(self, delivery_id: int) -> None:
-            data = await self.__get_data()
+        async def delivery_id(self) -> int:
+            return (await self._get_data())["delivery"]
+        async def set_delivery_id(self, delivery_id: int) -> None:
+            data = await self._get_data()
             data["delivery"] = delivery_id
-            await self.__set_data(data)
+            await self._set_data(data)
 
         @property
-        async def payment(self) -> int:
-            return await self.__get_data()["payment"]
+        async def payment_method(self) -> payment_methods.PaymentMethod:
+            return payment_methods.PaymentMethod((await self._get_data())["payment"])
         async def set_payment(self, payment_id: int) -> None:
-            data = await self.__get_data()
+            data = await self._get_data()
             data["payment"] = payment_id
-            await self.__set_data(data)
+            await self._set_data(data)
 
