@@ -94,7 +94,7 @@ input_category_name = f"Введите название категории {or_p
 set_parent_category = f"📁 Выберите родительскую категорию {or_press_skip}"
 category_created = "Категория успешно создана."
 def format_category(category_id, category_name, category_parent_id, category_parent_name):
-    return f"Категория [{category_id}]{category_name}:\nРодительская категория: {f'[{category_parent_id}]{category_parent_name}' if category_parent_id else 'Нет'}"
+    return f"Категория: [{category_id}]{category_name}\nРодительская категория: {f'[{category_parent_id}]{category_parent_name}' if category_parent_id else 'Нет'}"
 edit_parent_category = "📁 Изменить родительскую категорию"
 choose_a_category_to_edit = "Выберите категорию для редактирования:"
 
