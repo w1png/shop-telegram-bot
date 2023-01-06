@@ -14,7 +14,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
 
     await state.update_data(name=message.text)
     await message.answer(
-        text=constants.language.set_category_parent,
+        text=constants.language.set_parent_category,
         reply_markup=markups.create(markup)
     )
     await states.AddCategory.next()

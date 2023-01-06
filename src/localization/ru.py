@@ -19,6 +19,7 @@ cross = "❌"
 too_many_categories = "Слишком много категорий!"
 unknown_call_stop_state = "Бот ожидает от вас ввода данных, но вы ничего не ввели. Для выхода из режима ввода данных нажмите на кнопку ниже."
 state_cancelled = "Вы отменили операцию."
+unknown_error = "Произошла неизвестная ошибка!"
 
 # main markup
 admin_panel = "🔴 Админ панель"
@@ -90,7 +91,7 @@ def item(item):
 add_category = "🛍️ Добавить категорию"
 edit_category = "✏️ Редактировать категорию"
 input_category_name = f"Введите название категории {or_press_back}"
-set_category_parent = f"📁 Выберите родительскую категорию {or_press_skip}"
+set_parent_category = f"📁 Выберите родительскую категорию {or_press_skip}"
 category_created = "Категория успешно создана."
 def format_category(category_id, category_name, category_parent_id, category_parent_name):
     return f"Категория [{category_id}]{category_name}:\nРодительская категория: {f'[{category_parent_id}]{category_parent_name}' if category_parent_id else 'Нет'}"
