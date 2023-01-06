@@ -4,6 +4,12 @@ class AddCategory(StatesGroup):
     name = State()
     parent_category = State()
 
+class EditCategory(StatesGroup):
+    category_id = State()
+    main = State()
+    name = State()
+    parent_category = State()
+
 class AddItem(StatesGroup):
     name = State()
     description = State()
