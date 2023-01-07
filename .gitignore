@@ -10,5 +10,6 @@ src/test.py
 DOCS/overview.md
 backups/
 logs/
-src/config.py
 .env
+Dockerfile
+.dockerignore
