@@ -35,8 +35,8 @@ choose_payment_method = "Выберите способ оплаты:"
 delivery = "🚚 Доставка"
 self_pickup = "🚚 Самовывоз"
 cart_empty = "Ваша корзина пуста!"
-def cart_total_price(price: float) -> str:
-    return f"🛒 Итоговая цена: {price:.2f}руб."
+def cart_total_price(price: float, currency_sym: str) -> str:
+    return f"🛒 Итоговая цена: {price:.2f} {currency_sym}"
 
 # Admin panel tabs
 item_management = "📦 Управление товаром"

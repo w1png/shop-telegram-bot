@@ -20,6 +20,8 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
 
     markup = []
 
+    currency = constants.config["settings"]["currency_symbol"]
+    total_price = 0
     for item_id, amount in cart_items_dict.items():
         item = models.items.Item(item_id)
 
@@ -28,7 +30,6 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             item.price,
             user.cart.items.total_price
         )
-        currency = constants.config["settings"]["currency"]
         markup.append((f"[{item_price}{currency}] {item_name}", f"None"))
         markup += [(
             (constants.language.minus, changeCart_callback(item_id, 0)),
@@ -51,7 +52,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         f"{constants.JSON_USER}cycleDelivery"
     ))
     markup.append(
-        (constants.language.cart_total_price(total_price), "None")
+        (constants.language.cart_total_price(total_price, currency), "None")
     )
     markup.append(
         (constants.language.cart_checkout, f"{constants.JSON_USER}checkout")
