@@ -141,3 +141,7 @@ class User:
             data["payment"] = payment_id
             await self._set_data(data)
 
+
+async def get_users() -> list[User]:
+    return [User(user_id) for user_id in await database.fetch("SELECT id FROM users")]
+
