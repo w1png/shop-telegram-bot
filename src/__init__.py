@@ -100,6 +100,8 @@ async def handle_text(message: types.Message) -> None:
 @dp.callback_query_handler()
 async def process_callback(callback_query: types.CallbackQuery) -> None:
     call = callback_query.data
+    if call == "None": return
+
     user = users.User(callback_query.message.chat.id)
     data = json.loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]
@@ -107,7 +109,6 @@ async def process_callback(callback_query: types.CallbackQuery) -> None:
 
     if config["settings"]["debug"]:
         print(f"{call} | [{user.id}] | {data}")
-    if call == "None": return
     if call in ["cancel", "skip"]:
         if "d" in data:
             return await importlib.import_module(f"callbacks.{data['r']}.{data['d']}").execute(*execute_args)
@@ -141,6 +142,8 @@ def parse_state(current_state: State) -> str:
 @dp.callback_query_handler(state="*")
 async def process_callback_state(callback_query: types.CallbackQuery, state: FSMContext) -> None:
     call = callback_query.data
+    if call == "None": return
+
     user = users.User(callback_query.message.chat.id)
     data = json.loads(call[:call.index("}")+1])
     call = call[call.index("}")+1:]
@@ -148,7 +151,6 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
 
     if config["settings"]["debug"]:
         print(f"[STATE: {await state.get_state()}] {call} | [{user.id}] | {data}")
-    if call == "None": return
 
     if call == "cancel":
         await state.finish()
