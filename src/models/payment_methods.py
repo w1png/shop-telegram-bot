@@ -4,6 +4,12 @@ class PaymentMethod:
     def __init__(self, id: str) -> None:
         self.id = id
     
+    def __str__(self) -> str:
+        return f"[{self.id}] {self['title']}"
+
+    def __repr__(self) -> str:
+        return f"[{self.id}] {self['title']}"
+
     def __get_data(self) -> dict:
         with open("payment_methods.json", "r") as file:
             return json.loads(file.read())[self.id]
@@ -14,6 +20,10 @@ class PaymentMethod:
 
 def get_all_payment_methods() -> list[PaymentMethod]:
     with open("payment_methods.json", "r") as file:
-        return [PaymentMethod(id) for id in json.loads(file.read())]
+        result = []
+        for id, data in json.loads(file.read()).items():
+            if data["enabled"]:
+                result.append(PaymentMethod(id))
+        return result
     
 

@@ -136,7 +136,7 @@ class User:
         @property
         async def payment_method(self) -> payment_methods.PaymentMethod:
             return payment_methods.PaymentMethod((await self._get_data())["payment"])
-        async def set_payment(self, payment_id: int) -> None:
+        async def set_payment_method_id(self, payment_id: int) -> None:
             data = await self._get_data()
             data["payment"] = payment_id
             await self._set_data(data)

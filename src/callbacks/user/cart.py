@@ -40,7 +40,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         user.cart.payment_method,
         user.cart.delivery_id
     )
-    changePaymentMethod_callback = f"{constants.JSON_USER}changePaymentMethod"
+    changePaymentMethod_callback = f"{constants.JSON_USER}cyclePaymentMethod"
     markup.append(
         (constants.language.payment_method, changePaymentMethod_callback) 
         if not payment_method.id else
@@ -48,7 +48,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     )
     markup.append((
         constants.language.delivery if delivery_id else constants.language.self_pickup,
-        f"{constants.JSON_USER}changeDelivery"
+        f"{constants.JSON_USER}cycleDelivery"
     ))
     markup.append(
         (constants.language.cart_total_price(total_price), "None")

@@ -5,7 +5,7 @@
   },
   "telegram_api": {
     "title": "Онлайн оплата",
-    "enabled": false
+    "enabled": true
   },
   "manager_payment": {
     "title": "Оплата после связи с менеджером",
