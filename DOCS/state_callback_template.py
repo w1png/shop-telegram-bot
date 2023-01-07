@@ -8,7 +8,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     call = callback_query.data[callback_query.data.index("}")+1:]
 
     await state.update_data()
-    data = await state.get_data()
+    state_data = await state.get_data()
 
     await callback_query.message.edit_text(
         text=constants.language.None,
