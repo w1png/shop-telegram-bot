@@ -23,3 +23,7 @@ class Language(StatesGroup):
 
 class Greeting(StatesGroup):
     greeting = State()
+
+class Notification(StatesGroup):
+    notification = State()
+    confirmation = State()

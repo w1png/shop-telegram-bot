@@ -143,5 +143,5 @@ class User:
 
 
 async def get_users() -> list[User]:
-    return [User(user_id) for user_id in await database.fetch("SELECT id FROM users")]
+    return [User(*user_id) for user_id in await database.fetch("SELECT id FROM users")]
 
