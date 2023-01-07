@@ -34,7 +34,8 @@ if not TOKEN:
 
 
 storage = MemoryStorage()
-bot = Bot(token=TOKEN)
+bot = constants.create_bot(TOKEN)
+# bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 

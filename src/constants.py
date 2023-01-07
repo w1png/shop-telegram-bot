@@ -1,4 +1,6 @@
 import importlib
+
+import aiogram
 from config import config
 import os
 import asyncio
@@ -21,4 +23,10 @@ JSON_MANAGER = '{"r": "manager"}'
 JSON_ADMIN = '{"r": "admin"}'
 
 loop = asyncio.new_event_loop()
+
+bot = None
+def create_bot(token: str) -> aiogram.bot.bot.Bot:
+    global bot
+    bot = aiogram.Bot(token=token, loop=loop)
+    return bot
 
