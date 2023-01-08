@@ -2,7 +2,7 @@ import asyncio
 import os
 import importlib
 import json
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State
@@ -41,7 +41,7 @@ dp = Dispatcher(bot, storage=storage)
 
 @dp.message_handler(commands=["start"])
 async def welcome(message: types.Message) -> None:
-    await utils.create_if_not_exist(message.chat.id)
+    await users.create_if_not_exist(message.chat.id)
     user = users.User(message.chat.id)
 
     markup = markups.main
@@ -62,7 +62,7 @@ async def welcome(message: types.Message) -> None:
 
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
-    await utils.create_if_not_exist(message.chat.id)
+    await users.create_if_not_exist(message.chat.id)
     user = users.User(message.chat.id)
     destination = ""
     role = "user"
