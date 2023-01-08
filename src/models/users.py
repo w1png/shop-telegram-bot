@@ -15,6 +15,7 @@ class User:
     def database_table(self) -> str:
         return """CREATE TABLE IF NOT EXISTS users (
             id INTEGER,
+            username TEXT,
             is_admin INTEGER,
             is_manager INTEGER,
             notification INTEGER,
@@ -39,6 +40,10 @@ class User:
     async def _update(self, field: str, value: Any) -> None:
         await database.fetch(f"UPDATE users SET {field} = ? WHERE id = ?", value, self.id)
     
+    @property
+    async def username(self) -> str:
+        return await self._query("username")
+
     @property
     async def is_admin(self) -> bool:
         return bool(await self._query("is_admin"))
@@ -148,16 +153,18 @@ async def get_users() -> list[User]:
 async def does_exist(user_id: int) -> bool:
     return bool(await database.fetch("SELECT id FROM users WHERE id = ?", user_id))
 
-async def create(user_id: int) -> None:
+async def create(user_id: int, username: str) -> None:
     await database.fetch("""INSERT INTO users (
         id,
+        username,
         is_admin,
         is_manager,
         notification,
         date_created,
         cart
-        ) VALUES (?, 0, 0, 1, ?, ?)""",
+        ) VALUES (?, ?, 0, 0, 1, ?, ?)""",
         user_id,
+        username,
         datetime.datetime.now().strftime(constants.TIME_FORMAT),
         json.dumps({
             "items": {},
@@ -166,8 +173,8 @@ async def create(user_id: int) -> None:
         })
     )
 
-async def create_if_not_exist(user_id: int) -> None:
+async def create_if_not_exist(user_id: int, username: str) -> None:
     if not await does_exist(user_id):
-        await create(user_id)
+        await create(user_id, username)
 
 

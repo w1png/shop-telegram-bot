@@ -41,7 +41,7 @@ dp = Dispatcher(bot, storage=storage)
 
 @dp.message_handler(commands=["start"])
 async def welcome(message: types.Message) -> None:
-    await users.create_if_not_exist(message.chat.id)
+    await users.create_if_not_exist(message.chat.id, message.from_user.username)
     user = users.User(message.chat.id)
 
     markup = markups.main
@@ -63,7 +63,7 @@ async def welcome(message: types.Message) -> None:
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
     await users.create_if_not_exist(message.chat.id)
-    user = users.User(message.chat.id)
+    user = users.User(message.chat.id, message.from_user.username)
     destination = ""
     role = "user"
 
