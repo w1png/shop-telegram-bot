@@ -1,4 +1,5 @@
 # Misc buttons
+try_again = "Попробуйте ещё раз."
 skip = "⏭ Пропустить"
 back = "🔙 Назад"
 skip = "⏭ Пропустить"
@@ -120,6 +121,16 @@ def format_confirm_item(name: str, description: str, category_id: int, price: fl
 item_added = "Товар успешно добавлен."
 
 # User management
+user_does_not_exist = "Пользователь не найден. {try_again}"
+def format_user_profile(id: int, username: str, registration_date: str, is_admin: bool, is_manager: bool) -> str:
+    role = "Пользователь"
+    if is_admin:
+        role = "Администратор"
+    elif is_manager:
+        role = "Менеджер"
+    return f"ID: {id}\nИмя: {username}\nДата регистрации: {registration_date}\nРоль: {role}"
+invalid_user_id = "Неверный ID пользователя. {try_again}"
+
 user_profile = "📁Профиль пользователя"
 input_user_id = f"Введите ID пользователя {or_press_back}"
 notify_everyone = "🔔Оповещение всем пользователям"

@@ -27,3 +27,7 @@ class Greeting(StatesGroup):
 class Notification(StatesGroup):
     notification = State()
     confirmation = State()
+
+
+class UserProfile(StatesGroup):
+    id = State()
