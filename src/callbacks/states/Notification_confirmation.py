@@ -3,6 +3,8 @@ from aiogram.dispatcher import FSMContext
 import models
 import constants
 from markups import markups
+import asyncio
+
 
 async def execute(callback_query: types.CallbackQuery, user: models.users.User, data: dict, state: FSMContext, message: types.Message=None) -> None:
     call = callback_query.data[callback_query.data.index("}")+1:]
@@ -14,12 +16,12 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             ])
         )
 
-    state_data = await state.get_data()
-
     done_users = 0
-    users = await models.users.get_users()
+    users, state_data = await asyncio.gather(
+        models.users.get_users(),
+        state.get_data()
+    )
     for user in users:
-        print(user.id)
         if await user.notification:
             try:
                 await constants.bot.send_message(
