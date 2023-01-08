@@ -1,8 +1,12 @@
 from aiogram import types
 from constants import language
 
+
 class Markups:
     def create(self, values: list[tuple[str, str] | tuple[tuple[str, str]]]) -> types.InlineKeyboardMarkup:
+        if not isinstance(values[0], tuple) or not isinstance(values[0][0], str) and not isinstance(values[0][0], tuple):
+            raise TypeError("values must be a list of tuples")
+
         markup = types.InlineKeyboardMarkup()
         for item in values:
             if isinstance(item[0], tuple):
