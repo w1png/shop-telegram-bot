@@ -1,7 +1,5 @@
 from aiogram import types
-from typing import Any, NewType
-
-from constants import language, JSON_ADMIN, JSON_MANAGER, JSON_USER
+from constants import language
 
 class Markups:
     def create(self, values: list[tuple[str, str] | tuple[tuple[str, str]]]) -> types.InlineKeyboardMarkup:
