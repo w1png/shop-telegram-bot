@@ -62,8 +62,8 @@ async def welcome(message: types.Message) -> None:
 
 @dp.message_handler()
 async def handle_text(message: types.Message) -> None:
-    await users.create_if_not_exist(message.chat.id)
-    user = users.User(message.chat.id, message.from_user.username)
+    await users.create_if_not_exist(message.chat.id, message.from_user.username)
+    user = users.User(message.chat.id)
     destination = ""
     role = "user"
 
