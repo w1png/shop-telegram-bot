@@ -4,14 +4,17 @@ import constants
 from markups import markups
 import models
 import asyncio
+import time
 
 
 async def execute(callback_query: types.CallbackQuery, user: models.users.User, data: dict, message=None) -> None:
     text = constants.language.catalogue
 
+    categories = await models.categories.get_main_categories()
+    names = await asyncio.gather(*[category.name for category in categories])
     markup = markups.create([
-        (await category.name, f'{{"r":"user","cid":{category.id}}}category')
-        for category in await models.categories.get_main_categories()
+        (name, f'{{"r":"user","cid":{category.id}}}category')
+        for name, category in zip(names, categories)
     ])
 
     if message:
