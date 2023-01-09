@@ -20,6 +20,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     markup = markups.create([
         (constants.language.edit_name, f'{{"r":"admin","cid":{category.id}}}editCategoryName'),
         (constants.language.edit_parent_category, f'{{"r":"admin","cid":{category.id}}}editCategoryPC'),
+        (constants.language.delete, f'{{"r":"admin","cid":{category.id}}}deleteCategory'),
         (constants.language.back, f'{{"r":"admin","d":"editCategories"}}cancel')
     ])
 

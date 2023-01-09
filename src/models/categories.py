@@ -49,6 +49,8 @@ class Category:
     async def items(self) -> list["Item"]:
         return [items.Item(*id) for id in await database.fetch("SELECT id FROM items WHERE category_id = ?", self.id)]
     
+    async def delete(self) -> None:
+        await database.fetch("DELETE FROM categories WHERE id = ?", self.id)
 
 async def get_categories() -> list[Category]:
     return [Category(*id) for id in await database.fetch("SELECT id FROM categories")]

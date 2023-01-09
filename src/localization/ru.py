@@ -101,6 +101,8 @@ def format_category(category_id, category_name, category_parent_id, category_par
     return f"Категория: [{category_id}]{category_name}\nРодительская категория: {f'[{category_parent_id}]{category_parent_name}' if category_parent_id else 'Нет'}"
 edit_parent_category = "📁 Изменить родительскую категорию"
 choose_a_category_to_edit = "Выберите категорию для редактирования:"
+confirm_delete_category = "Вы уверены, что хотите удалить категорию?"
+category_deleted = "Категория успешно удалена."
 
 # Item management
 add_item = "🗃️ Добавить товар"

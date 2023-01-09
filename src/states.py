@@ -9,6 +9,7 @@ class EditCategory(StatesGroup):
     main = State()
     name = State()
     parent_category = State()
+    delete = State()
 
 class AddItem(StatesGroup):
     name = State()

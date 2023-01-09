@@ -27,7 +27,16 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             for category in filter(lambda category: category.id != state_data["category_id"], await models.categories.get_categories())
         ]
         markup.append((constants.language.skip, f'{{"r":"admin","pid":0}}setCategoryPC'))
-    markup.append((constants.language.back, f'{{"r":"admin","d":"editCategory","cid":{category.id}}}cancel'))
+    elif call == "deleteCategory":
+        await states.EditCategory.delete.set()
+        text = constants.language.confirm_delete_category
+        markup = [(
+            (constants.language.yes, f'{{"r":"admin"}}deleteCategory'),
+            (constants.language.no, f'{{"r":"admin","d":"editCategory","cid":{category.id}}}cancel')
+        )]
+    if call != "deleteCategory":
+        markup.append((constants.language.back, f'{{"r":"admin","d":"editCategory","cid":{category.id}}}cancel'))
+
 
     await callback_query.message.edit_text(
         text=text,
