@@ -43,6 +43,7 @@ def cart_total_price(price: float, currency_sym: str) -> str:
 
 # Admin panel tabs
 item_management = "📦 Управление товаром"
+no_categories = "Создайте хотя бы одну категорию перед созданием товара!"
 user_management = "🧍 Управление пользователями"
 category_management = "📁 Категории"
 stats = "📈 Статистика"
