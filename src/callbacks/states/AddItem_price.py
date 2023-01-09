@@ -18,5 +18,6 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         ])
     )
 
-    await states.AddItem.images.set()
+    await states.AddItem.image_id.set()
+
 

@@ -15,7 +15,7 @@ class AddItem(StatesGroup):
     description = State()
     category = State()
     price = State()
-    images = State()
+    image_id = State()
     confirmation = State()
 
 class Language(StatesGroup):

@@ -13,3 +13,4 @@ logs/
 .env
 Dockerfile
 .dockerignore
+payment-methods.json

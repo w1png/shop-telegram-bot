@@ -178,7 +178,7 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
         traceback.print_exc()
 
 
-@dp.message_handler(state="*")
+@dp.message_handler(state="*", content_types=types.ContentTypes.ANY)
 async def process_message_state(message: types.Message, state: FSMContext) -> None:
     state_path = f"callbacks.states.{(await state.get_state()).replace(':', '_')}"
     await importlib.import_module(state_path).execute(callback_query=None, user=users.User(message.chat.id), data=None, message=message, state=state)

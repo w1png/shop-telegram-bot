@@ -22,7 +22,7 @@ class Item:
             description TEXT NOT NULL,
             category_id INTEGER NOT NULL,
             price REAL NOT NULL,
-            images TEXT NOT NULL,
+            image_id TEXT NOT NULL,
             FOREIGN KEY (category_id) REFERENCES categories (id)
         )"""
 
@@ -57,29 +57,35 @@ class Item:
         await self.__update("price", value)
 
     @property
-    async def images(self) -> "__Images":
-        return self.__Images(self)
+    async def image_id(self) -> str:
+        return await self.__query("image_id")
 
-    class __Images:
-        def __init__(self, item: "Item") -> None:
-            self.item = item
-
-        async def __query(self) -> str:
-            return (await database.fetch(f"SELECT images FROM items WHERE id = ?", self.item.id))[0][0]
-
-        async def __update(self, value: str) -> None:
-            await database.fetch(f"UPDATE items SET images = ? WHERE id = ?", value, self.item.id)
-
-        @property
-        async def list(self) -> list[str]:
-            return json.loads(await self.__query())
-
-        async def add(self, value: str) -> None:
-            await self.__update(json.dumps(await self.list + [value]))
-
-        async def remove(self, value: str) -> None:
-            await self.__update(json.dumps((await self.list).remove(value)))
-        
+    # only have 1 image
+    # @property
+    # async def images(self) -> "__Images":
+    #     return self.__Images(self)
+    #
+    # 
+    # class __Images:
+    #     def __init__(self, item: "Item") -> None:
+    #         self.item = item
+    #
+    #     async def __query(self) -> str:
+    #         return (await database.fetch(f"SELECT images FROM items WHERE id = ?", self.item.id))[0][0]
+    #
+    #     async def __update(self, value: str) -> None:
+    #         await database.fetch(f"UPDATE items SET images = ? WHERE id = ?", value, self.item.id)
+    #
+    #     @property
+    #     async def list(self) -> list[str]:
+    #         return json.loads(await self.__query())
+    #
+    #     async def add(self, value: str) -> None:
+    #         await self.__update(json.dumps(await self.list + [value]))
+    #
+    #     async def remove(self, value: str) -> None:
+    #         await self.__update(json.dumps((await self.list).remove(value)))
+    #     
     async def format_text(self, template: str, currency: str) -> str:
         name, description, price, category_name = await asyncio.gather(
             self.name,
@@ -94,8 +100,8 @@ async def create(
     description: str,
     category_id: int,
     price: float,
-    images: list[str]
+    image_id: str
 ) -> Item:
-    await database.fetch("INSERT INTO items VALUES (NULL, ?, ?, ?, ?, ?)", name, description, category_id, price, json.dumps(images))
+    await database.fetch("INSERT INTO items VALUES (NULL, ?, ?, ?, ?, ?)", name, description, category_id, price, image_id)
     return Item((await database.fetch("SELECT id FROM items ORDER BY id DESC LIMIT 1"))[0][0])
 
