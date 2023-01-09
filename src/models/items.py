@@ -22,7 +22,7 @@ class Item:
             description TEXT NOT NULL,
             category_id INTEGER NOT NULL,
             price REAL NOT NULL,
-            image_id TEXT NOT NULL,
+            image_id TEXT,
             FOREIGN KEY (category_id) REFERENCES categories (id)
         )"""
 
