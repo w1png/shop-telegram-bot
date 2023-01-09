@@ -57,6 +57,9 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         (constants.language.cart_total_price(total_price, currency), "None")
     )
     markup.append(
+        (constants.language.clear_cart, f"{constants.JSON_USER}clearCart")
+    )
+    markup.append(
         (constants.language.cart_checkout, f"{constants.JSON_USER}checkout")
     )
 

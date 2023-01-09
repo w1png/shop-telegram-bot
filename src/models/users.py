@@ -116,7 +116,7 @@ class User:
                 await self.__cart._set_data(data)
             
             async def clear(self) -> None:
-                data = self.__cart._get_data()
+                data = await self.__cart._get_data()
                 data["items"] = {}
                 await self.__cart._set_data(data)
 
