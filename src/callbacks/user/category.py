@@ -25,6 +25,12 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     if not children and not items:
         text = f"{name}\n\n{constants.language.category_is_empty}"
 
+    if "del" in data:
+        await callback_query.message.delete()
+        return await callback_query.message.answer(
+            text=text,
+            reply_markup=markups.create(markup)
+        )
     await callback_query.message.edit_text(
         text=text,
         reply_markup=markups.create(markup)
