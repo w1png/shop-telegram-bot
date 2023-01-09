@@ -12,10 +12,10 @@ language = importlib.import_module(f"localization.{config['settings']['language'
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 STATUS_DICT = {
-    0: language.processing,
-    1: language.delivery,
-    2: language.done,
-    -1: language.cancelled
+    0: language.status_processing,
+    1: language.status_delivery,
+    2: language.status_done,
+    -1: language.status_cancelled,
 }
 
 JSON_USER = '{"r": "user"}'
