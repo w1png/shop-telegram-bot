@@ -37,6 +37,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         return f'{{"r":"admin","nr":"{role}","s":{str(state).lower()},"uid":"{user_id}"}}change_role'
 
     markup = [
+        (constants.language.orders, f'{{"r":"admin","uid":"{user_id}"}}orders'),
         (admin_text, change_user_role_callback("a", not is_admin)),
         (manager_text, change_user_role_callback("m", not is_manager)),
         (constants.language.back, f'{constants.JSON_ADMIN}users')
