@@ -33,6 +33,8 @@ support_menu = "☎ Меню тех. поддержки"
 # Cart
 payment_method = "💳 Способ оплаты"
 choose_payment_method = "Выберите способ оплаты:"
+def format_delivery(delivery_price: int) -> str:
+    return f"🚚 Доставка: {delivery_price} руб."
 delivery = "🚚 Доставка"
 self_pickup = "🖐️ Самовывоз"
 cart_empty = "Ваша корзина пуста!"

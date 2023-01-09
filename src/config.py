@@ -50,6 +50,10 @@ class Config:
                     "currency_symbol": "₽",
                     "debug": True,
                 },
+                "delivery": {
+                    "price": 0,
+                    "enabled": False,
+                },
                 "info": {
                     "greeting": "Приветствуем в нашем магазине!",
                     "contacts": "Телефон: +7 (999) 999-99-99\nАдрес: г. Москва, ул. Ленина, д. 1",

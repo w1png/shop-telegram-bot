@@ -146,6 +146,10 @@ class User:
             data["payment"] = payment_id
             await self._set_data(data)
 
+        @property
+        async def total_price(self) -> float:
+            return await self.items.total_price + (constants.config["delivery"]["price"] if constants.config["delivery"]["enabled"] and await self.delivery_id == 1 else 0)
+
 
 async def get_users() -> list[User]:
     return [User(*user_id) for user_id in await database.fetch("SELECT id FROM users")]

@@ -28,7 +28,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         item_name, item_price, total_price = await asyncio.gather(
             item.name,
             item.price,
-            user.cart.items.total_price
+            user.cart.total_price
         )
         markup.append((f"[{item_price}{currency}] {item_name}", f"None"))
         markup += [(
@@ -47,10 +47,12 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         if not payment_method.id else
         (payment_method["title"], changePaymentMethod_callback)
     )
-    markup.append((
-        constants.language.delivery if delivery_id else constants.language.self_pickup,
-        f"{constants.JSON_USER}cycleDelivery"
-    ))
+
+    if constants.config["delivery"]["enabled"]:
+        markup.append((
+            constants.language.format_delivery(constants.config["delivery"]["price"]) if delivery_id else constants.language.self_pickup,
+            f"{constants.JSON_USER}cycleDelivery"
+        ))
     markup.append(
         (constants.language.cart_total_price(total_price, currency), "None")
     )
