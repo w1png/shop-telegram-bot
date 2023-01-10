@@ -17,6 +17,9 @@ class PaymentMethod:
     def __getitem__(self, key: str) -> str:
         return self.__get_data()[key]
 
+    def set_enabled(self, enabled: bool) -> None:
+        constants.config.set(("payment_methods", self.id), {"title": self["title"], "enabled": enabled})
+
 
 def get_enabled_payment_methods() -> list:
     return [PaymentMethod(id) for id, data in constants.config["payment_methods"].items() if data["enabled"]]
