@@ -54,6 +54,20 @@ class Config:
                     "price": 0,
                     "enabled": False,
                 },
+                "payment_methods": {
+                    "cash": {
+                        "title": "Наличными",
+                        "enabled": True,
+                    },
+                    "manager": {
+                        "title": "Оплата после связи с менеджером",
+                        "enabled": True,
+                    },
+                    "telegram_api": {
+                        "title": "Оплата через Telegram",
+                        "enabled": False,
+                    },
+                  },
                 "info": {
                     "greeting": "Приветствуем в нашем магазине!",
                     "contacts": "Телефон: +7 (999) 999-99-99\nАдрес: г. Москва, ул. Ленина, д. 1",
