@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Any
 
 filename = "config.json"
 class Config:
@@ -24,7 +25,7 @@ class Config:
     def __data(self):
        return json.loads(self.__raw) 
 
-    def set(self, param: str | tuple[str, str], value: str | int) -> None:
+    def set(self, param: str | tuple[str, str], value: Any) -> None:
         modified_data = self.__data
 
         if isinstance(param, tuple):
