@@ -1,3 +1,4 @@
+import importlib
 from aiogram import types
 import models
 import constants
@@ -30,9 +31,13 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         cart_buttons = (constants.language.add_to_cart, cart_callback(1))
 
     del_data = ',"del":"1"'
+    back_button = (constants.language.back, f'{{"r":"user","cid":"{category.id}"{del_data if image_id else ""}}}category'),
+
+    if "rd" in data:
+        back_button = (constants.language.back, f"{constants.JSON_USER}{data['rd']}")
     markup = markups.create([
         cart_buttons,
-        (constants.language.back, f'{{"r":"user","cid":"{category.id}"{del_data if image_id else ""}}}category'),
+        back_button
     ])
 
     if image_id:

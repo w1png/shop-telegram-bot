@@ -30,7 +30,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             item.price,
             user.cart.total_price
         )
-        markup.append((f"[{item_price}{currency}] {item_name}", f"None"))
+        markup.append((f"[{item_price}{currency}] {item_name}", f'{{"r":"user","rd":"cart","iid":{item.id}}}item'))
         markup += [(
             (constants.language.minus, changeCart_callback(item_id, 0)),
             (f"[{amount}] {amount*item_price}{currency}", "None"),
