@@ -6,6 +6,7 @@ from aiogram import Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State
+import dotenv
 
 import constants
 from config import config
@@ -15,7 +16,7 @@ import models.items as items
 import models.categories as categories
 import utils
 import database
-import dotenv
+import schedules
 
 # First startup
 if not os.path.exists("database.db"):
@@ -185,5 +186,5 @@ async def process_message_state(message: types.Message, state: FSMContext) -> No
 
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True, loop=constants.loop)
+    executor.start_polling(dp, skip_updates=True, loop=constants.loop, on_startup=schedules.on_startup)
 
