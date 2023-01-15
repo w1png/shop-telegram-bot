@@ -25,7 +25,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         (constants.language.edit_category, f'{{"r":"admin","iid":{item.id}}}editItemCategory'),
         (constants.language.edit_image, f'{{"r":"admin","iid":{item.id}}}editItemImage'),
         (constants.language.delete, f'{{"r":"admin","iid":{item.id}}}deleteItem'),
-        (constants.language.back, f'{{"r":"admin","cid":{item_category_id}}}editItemsCategory')
+        (constants.language.back, f'{{"r":"admin","cid":{item_category_id},"d":"editItemsCategory"}}cancel')
     ])
 
     await states.EditItem.main.set()
