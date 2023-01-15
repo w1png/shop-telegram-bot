@@ -3,6 +3,7 @@ import asyncio
 import models
 import constants
 from markups import markups
+import states
 
 
 async def execute(callback_query: types.CallbackQuery, user: models.users.User, data: dict, message=None) -> None:
@@ -26,6 +27,8 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
         (constants.language.delete, f'{{"r":"admin","iid":{item.id}}}deleteItem'),
         (constants.language.back, f'{{"r":"admin","cid":{item_category_id}}}editItemsCategory')
     ])
+
+    await states.EditItem.main.set()
 
     if message:
         if item_image:

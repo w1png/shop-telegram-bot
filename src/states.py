@@ -19,6 +19,16 @@ class AddItem(StatesGroup):
     image_id = State()
     confirmation = State()
 
+class EditItem(StatesGroup):
+    item_id = State()
+    main = State()
+    name = State()
+    description = State()
+    category = State()
+    price = State()
+    image_id = State()
+    delete = State()
+
 class Language(StatesGroup):
     language = State()
 
