@@ -166,14 +166,10 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
 
     
     state_path = f"callbacks.states.{(await state.get_state()).replace(':', '_')}"
-    print(state_path)
     try:
         await importlib.import_module(state_path).execute(callback_query=callback_query, user=user, data=data, state=state)
     except ModuleNotFoundError:
-        await callback_query.message.answer(
-            text=constants.language.unknown_call_stop_state,
-            reply_markup=markups.create([(constants.language.back, f"{constants.JSON_ADMIN}cancel")])
-        )
+        await utils.sendStateNotFound(callback_query.message)
     except:
         import traceback
         traceback.print_exc()
@@ -182,7 +178,14 @@ async def process_callback_state(callback_query: types.CallbackQuery, state: FSM
 @dp.message_handler(state="*", content_types=types.ContentTypes.ANY)
 async def process_message_state(message: types.Message, state: FSMContext) -> None:
     state_path = f"callbacks.states.{(await state.get_state()).replace(':', '_')}"
-    await importlib.import_module(state_path).execute(callback_query=None, user=users.User(message.chat.id), data=None, message=message, state=state)
+
+    try:
+        await importlib.import_module(state_path).execute(callback_query=None, user=users.User(message.chat.id), data=None, message=message, state=state)
+    except ModuleNotFoundError:
+        await utils.sendStateNotFound(message)
+    except:
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
