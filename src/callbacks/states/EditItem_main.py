@@ -49,18 +49,16 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
 
     markup = markups.create(markup)
 
-    if item_image_id:
-        await callback_query.message.delete()
-        await callback_query.message.answer_photo(
-            caption=text,
-            photo=item_image_id,
+    try:
+        await callback_query.message.edit_text(
+            text=text,
             reply_markup=markup
         )
-        return
-
-    await callback_query.message.edit_text(
-        text=text,
-        reply_markup=markup
-    )
+    except:
+        await callback_query.message.delete()
+        await callback_query.message.answer(
+            text=text,
+            reply_markup=markup
+        )
 
 
