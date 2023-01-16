@@ -59,6 +59,8 @@ class Item:
     @property
     async def image_id(self) -> str:
         return await self.__query("image_id")
+    async def set_image_id(self, value: str) -> None:
+        await self.__update("image_id", value)
 
     # only have 1 image
     # @property

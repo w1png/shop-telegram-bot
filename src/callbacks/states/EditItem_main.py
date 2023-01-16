@@ -35,8 +35,10 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             await states.EditItem.price.set()
             text = constants.language.input_item_price
         case "editItemImage":
-            await states.EditItem.image.set()
-            text = constants.language.send_item_images
+            await states.EditItem.image_id.set()
+            if item_image_id:
+                markup.append((constants.language.delete_image, f"{constants.JSON_ADMIN}deleteItemImage"))
+            text = constants.language.send_item_changed_images
         case "deleteItem":
             await states.EditItem.delete.set()
             text = constants.language.confirm_delete_item
