@@ -43,7 +43,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             await states.EditItem.delete.set()
             text = constants.language.confirm_delete_item
             markup = [(
-                (constants.language.yes, f'{{"r":"admin","iid":{item.id}}}deleteItem'),
+                (constants.language.yes, f"{constants.JSON_ADMIN}deleteItem"),
                 (constants.language.no, f'{{"r":"admin","iid":{item.id},"d":"editItem"}}cancel')
             )]
     if call != "deleteItem":
