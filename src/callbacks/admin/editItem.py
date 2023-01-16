@@ -39,7 +39,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
                 reply_markup=markup
             )
         else:
-            await message.edit_text(
+            await message.answer(
                 text=text,
                 reply_markup=markup
             )
