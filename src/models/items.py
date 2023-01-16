@@ -95,6 +95,9 @@ class Item:
         )
         return template.replace("%n", name).replace("%d", description).replace("%p", f"{price} {currency}").replace("%c", category_name)
 
+    async def delete(self) -> None:
+        await database.fetch("DELETE FROM items WHERE id = ?", self.id)
+
 async def create(
     name: str,
     description: str,
