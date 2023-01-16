@@ -28,15 +28,15 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             await states.EditItem.category.set()
             text = constants.language.select_item_category
             markup = [
-                (category.name, f'{{"r":"admin","cid":{category.id}}}setItemCategory')
-                for category in models.categories.get_categories()
+                (await category.name, f'{{"r":"admin","cid":{category.id}}}setItemCategory')
+                for category in await models.categories.get_categories()
             ]
         case "editItemPrice":
             await states.EditItem.price.set()
             text = constants.language.input_item_price
         case "editItemImage":
-            # TODO: add image
-            pass
+            await states.EditItem.image.set()
+            text = constants.language.send_item_images
         case "deleteItem":
             await states.EditItem.delete.set()
             text = constants.language.confirm_delete_item
