@@ -35,6 +35,9 @@ class Language(StatesGroup):
 class Greeting(StatesGroup):
     greeting = State()
 
+class DeliveryPrice(StatesGroup):
+    delivery_price = State()
+
 class Notification(StatesGroup):
     notification = State()
     confirmation = State()
