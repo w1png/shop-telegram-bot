@@ -9,6 +9,9 @@ import states
 
 
 async def execute(callback_query: types.CallbackQuery, user: models.users.User, data: dict, state: FSMContext, message: types.Message=None) -> None:
+    if message:
+        raise ModuleNotFoundError
+
     call = callback_query.data[callback_query.data.index("}")+1:]
     item = models.items.Item(data["iid"])
     await state.update_data(item_id=item.id)
