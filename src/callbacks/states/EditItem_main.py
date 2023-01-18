@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 import models
@@ -39,6 +40,10 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             if item_image_id:
                 markup.append((constants.language.delete_image, f"{constants.JSON_ADMIN}deleteItemImage"))
             text = constants.language.send_item_changed_images
+        case "toggleIsHidden":
+            await item.set_is_hidden(not await item.is_hidden)
+            await importlib.import_module("callbacks.admin.editItem").execute(callback_query, user, data, message)
+            return
         case "deleteItem":
             await states.EditItem.delete.set()
             text = constants.language.confirm_delete_item

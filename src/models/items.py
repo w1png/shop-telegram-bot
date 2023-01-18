@@ -23,6 +23,7 @@ class Item:
             category_id INTEGER NOT NULL,
             price REAL NOT NULL,
             image_id TEXT,
+            is_hidden INTEGER,
             FOREIGN KEY (category_id) REFERENCES categories (id)
         )"""
 
@@ -61,6 +62,12 @@ class Item:
         return await self.__query("image_id")
     async def set_image_id(self, value: str) -> None:
         await self.__update("image_id", value)
+
+    @property
+    async def is_hidden(self) -> bool:
+        return bool(await self.__query("is_hidden"))
+    async def set_is_hidden(self, value: bool) -> None:
+        await self.__update("is_hidden", int(value))
 
     # only have 1 image
     # @property
@@ -107,6 +114,6 @@ async def create(
     price: float,
     image_id: str
 ) -> Item:
-    await database.fetch("INSERT INTO items VALUES (NULL, ?, ?, ?, ?, ?)", name, description, category_id, price, image_id)
+    await database.fetch("INSERT INTO items VALUES (NULL, ?, ?, ?, ?, ?, ?)", name, description, category_id, price, image_id, 0)
     return Item((await database.fetch("SELECT id FROM items ORDER BY id DESC LIMIT 1"))[0][0])
 

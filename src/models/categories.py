@@ -47,6 +47,10 @@ class Category:
     
     @property
     async def items(self) -> list["Item"]:
+        return [items.Item(*id) for id in await database.fetch("SELECT id FROM items WHERE category_id = ? AND is_hidden = 0", self.id)]
+
+    @property
+    async def all_items(self) -> list["Item"]:
         return [items.Item(*id) for id in await database.fetch("SELECT id FROM items WHERE category_id = ?", self.id)]
     
     async def delete(self) -> None:

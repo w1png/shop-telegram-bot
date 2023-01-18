@@ -11,7 +11,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     markup = markups.create([
         *[
             (f"[{item.id}] {await item.name}", f'{{"r":"admin","iid":{item.id}}}editItem')
-            for item in await category.items
+            for item in await category.all_items
         ],
         (constants.language.back, f"{constants.JSON_ADMIN}editItemsCategories")
     ])
