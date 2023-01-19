@@ -13,5 +13,5 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     await category.set_parent_id(data["pid"])
 
     data["cid"] = state_data["category_id"]
-    await importlib.import_module("callbacks.admin.editCategory").execute(callback_query, user, data, state)
+    await importlib.import_module("callbacks.admin.editCategory").execute(callback_query, user, data)
 
