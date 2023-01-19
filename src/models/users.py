@@ -4,7 +4,7 @@ import json
 
 import database
 import constants
-from models import payment_methods, items
+from models import payment_methods, items, orders
 
 
 class User:
@@ -65,6 +65,10 @@ class User:
     @property
     async def date_created(self) -> datetime.datetime:
         return datetime.datetime.strptime(await self._query("date_created"), constants.TIME_FORMAT)
+
+    @property
+    async def orders(self) -> list[orders.Order]:
+        return [orders.Order(order_id) for order_id in await database.fetch(f"SELECT id FROM orders WHERE user_id = ?", self.id)]
 
     @property
     def cart(self) -> "Cart":
