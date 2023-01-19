@@ -14,6 +14,7 @@ from markups import markups
 import models.users as users
 import models.items as items
 import models.categories as categories
+import models.orders as orders
 import utils
 import database
 import schedules
@@ -22,7 +23,7 @@ import schedules
 if not os.path.exists("database.db"):
     tasks = [
         database.fetch(object.database_table)
-        for object in [users.User(0), items.Item(0), categories.Category(0)]
+        for object in [users.User(0), items.Item(0), categories.Category(0), orders.Order(0)]
     ]
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*tasks))
 
