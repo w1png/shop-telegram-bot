@@ -1,7 +1,7 @@
 import json
 from typing import Any
 import database
-from .import categories
+from . import categories
 import asyncio
 
 class Item:
