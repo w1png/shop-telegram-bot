@@ -19,6 +19,7 @@ class Category:
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             parent_id INTEGER,
+            is_hidden INTEGER,
             FOREIGN KEY (parent_id) REFERENCES categories (id)
         )"""
 
@@ -42,6 +43,12 @@ class Category:
         await self.__update("parent_id", value.id)
 
     @property
+    async def is_hidden(self) -> bool:
+        return bool(await self.__query("is_hidden"))
+    async def set_is_hidden(self, value: bool) -> None:
+        await self.__update("is_hidden", int(value))
+
+    @property
     async def children(self) -> list["Category"]:
         return [Category(*id) for id in await database.fetch("SELECT id FROM categories WHERE parent_id = ?", self.id)]
     
@@ -60,12 +67,12 @@ async def get_categories() -> list[Category]:
     return [Category(*id) for id in await database.fetch("SELECT id FROM categories")]
 
 async def get_main_categories() -> list[Category]:
-    return [Category(*id) for id in await database.fetch("SELECT id FROM categories WHERE parent_id=0")]
+    return [Category(*id) for id in await database.fetch("SELECT id FROM categories WHERE parent_id=0 AND is_hidden=0")]
 
 async def does_category_exist(id: int) -> bool:
     return (await database.fetch("SELECT id FROM categories WHERE id = ?", id))[0][0] == id
 
 async def create(name: str, parent_id: int = 0) -> Category:
-    await database.fetch("INSERT INTO categories (name, parent_id) VALUES (?, ?)", name, parent_id)
+    await database.fetch("INSERT INTO categories (name, parent_id, is_hidden) VALUES (?, ?, 0)", name, parent_id)
     return Category((await database.fetch("SELECT id FROM categories ORDER BY id DESC LIMIT 1"))[0][0])
 

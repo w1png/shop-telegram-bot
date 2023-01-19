@@ -7,6 +7,9 @@ import states
 from markups import markups
 
 async def execute(callback_query: types.CallbackQuery, user: models.users.User, data: dict, state: FSMContext, message: types.Message=None) -> None:
+    if message:
+        raise ModuleNotFoundError
+
     call = callback_query.data[callback_query.data.index("}")+1:]
     category = models.categories.Category(data["cid"])
 
@@ -34,6 +37,10 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             (constants.language.yes, f'{{"r":"admin"}}deleteCategory'),
             (constants.language.no, f'{{"r":"admin","d":"editCategory","cid":{category.id}}}cancel')
         )]
+    elif call == "toggleHideCategory":
+        await category.set_is_hidden(not await category.is_hidden)
+        await importlib.import_module("callbacks.admin.editCategory").execute(callback_query, user, data)
+        return
     if call != "deleteCategory":
         markup.append((constants.language.back, f'{{"r":"admin","d":"editCategory","cid":{category.id}}}cancel'))
 
