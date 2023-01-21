@@ -55,6 +55,12 @@ class Config:
                     "price": 0,
                     "enabled": False,
                 },
+                "checkout": {
+                    "adress": True,
+                    "phone": True,
+                    "email": True,
+                    "captcha": True,
+                },
                 "payment_methods": {
                     "cash": {
                         "title": "Наличными",

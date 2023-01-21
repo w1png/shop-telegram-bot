@@ -13,8 +13,7 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
             )
             for payment_method in models.payment_methods.get_all_payment_methods()
         ],
-        (constants.language.change_delivery_price, f"{constants.JSON_ADMIN}deliveryPrice"),
-        (constants.language.back, f"{constants.JSON_ADMIN}settings")
+        (constants.language.back, f"{constants.JSON_ADMIN}checkout_settings"),
     ])
 
     if message:

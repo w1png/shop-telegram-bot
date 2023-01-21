@@ -13,5 +13,5 @@ async def execute(callback_query: types.CallbackQuery, user: models.users.User, 
     constants.config.set(("delivery", "price"), int(message.text))
 
     await state.finish()
-    await importlib.import_module("callbacks.admin.payment_settings").execute(callback_query, user, data, message)
+    await importlib.import_module("callbacks.admin.checkout_settings").execute(callback_query, user, data, message)
 
