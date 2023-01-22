@@ -42,6 +42,13 @@ class Notification(StatesGroup):
     notification = State()
     confirmation = State()
 
-
 class UserProfile(StatesGroup):
     id = State()
+
+class Order(StatesGroup):
+    phone_number = State()
+    email = State()
+    adress = State()
+    comment = State()
+    captcha = State()
+    confirmation = State()
