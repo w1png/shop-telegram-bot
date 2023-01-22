@@ -31,12 +31,74 @@ class Order:
     async def user_id(self) -> int:
         return await self.__query("user_id")
     
+    
+
+    # items is a json string
+        # items: [
+        #   {
+        #       "id": 1,
+        #       "amount": 2
+        #       "title": "title",
+        #       "price": 100 # price per item
+        #   }
+        # ]
+        # payment_method_id: 1
+        # delivery_id: 1
+        # delivery_price: 100
+
     @property
-    async def items_json(self) -> list:
-        return json.loads(await self.__query("items"))
+    async def __items_raw(self) -> str:
+        return await self.__query("items")
+
     @property
-    async def items(self) -> list[items.Item]:
-        return [items.Item(item_id) for item_id in await self.items_json]
+    async def __items_json(self) -> dict:
+        return json.loads(await self.__items_raw)
+
+    @property
+    async def items(self) -> list["__Item"]:
+        return [self.__Item(item) for item in await self.__items_json]
+
+    class __Item:
+        def __init__(self, item_raw: str) -> None:
+            self.__item_raw = item_raw
+        
+        def __repr__(self) -> str:
+            return self.__item_raw
+
+        def __str__(self) -> str:
+            return self.__item_raw
+
+        @property
+        def dict(self) -> dict:
+            return json.loads(self.__item_raw)
+
+        @property
+        def id(self) -> int:
+            return int(self.dict["id"])
+
+        @property
+        def amount(self) -> int:
+            return int(self.dict["amount"])
+
+        @property
+        def title(self) -> str:
+            return self.dict["title"]
+
+        @property
+        def price(self) -> int:
+            return int(self.dict["price"])
+
+    @property
+    async def payment_method_id(self) -> int:
+        return int((await self.__items_json)["payment_method_id"])
+
+    @property
+    async def delivery_id(self) -> int:
+        return int((await self.__items_json)["delivery_id"])
+
+    @property
+    async def delivery_price(self) -> int:
+        return int((await self.__items_json)["delivery_price"])
 
     @property
     async def adress(self) -> str | None:
@@ -66,13 +128,13 @@ async def get_orders_by_status(status: int) -> list[Order]:
 
 async def create(
     user_id: int,
-    items: list,
+    items_json: str,
     adress: str | None = None,
     phone_number: str | None = None,
     email: str | None = None,
     comment: str | None = None,
 ) -> Order:
-    await database.fetch("INSERT INTO orders (user_id, items, adress, phone_number, email, comment) VALUES (?, ?, ?, ?, ?, ?)", user_id, json.dumps(items), adress, phone_number, email, comment)
+    await database.fetch("INSERT INTO orders (user_id, items, adress, phone_number, email, comment) VALUES (?, ?, ?, ?, ?, ?)", user_id, items_json, adress, phone_number, email, comment)
     return Order((await database.fetch("SELECT id FROM orders ORDER BY id DESC LIMIT 1"))[0][0])
 
 
