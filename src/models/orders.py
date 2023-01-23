@@ -1,7 +1,9 @@
 import json
 import database
 from typing import Any
-from . import items
+
+import constants
+import datetime
 
 class Order:
     def __init__(self, id: int) -> None:
@@ -24,6 +26,7 @@ class Order:
             email TEXT,
             comment TEXT,
             status INTEGER NOT NULL DEFAULT 0,
+            date_created TEXT NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )"""
 
@@ -122,6 +125,14 @@ class Order:
     async def set_status(self, status: int) -> None:
         await self.__update("status", status)
 
+    @property
+    async def date_created_raw(self) -> str:
+        return await self.__query("date_created")
+    @property
+    async def date_created(self) -> datetime.datetime:
+        return datetime.datetime.strptime(await self.date_created_raw, constants.TIME_FORMAT)
+
+
 
 async def get_orders_by_status(status: int) -> list[Order]:
     return [Order(order_id) for order_id in (await database.fetch("SELECT id FROM orders WHERE status = ?", status))]
@@ -129,12 +140,13 @@ async def get_orders_by_status(status: int) -> list[Order]:
 async def create(
     user_id: int,
     items_json: str,
+    date_created: datetime.datetime | None,
     adress: str | None = None,
     phone_number: str | None = None,
     email: str | None = None,
     comment: str | None = None,
 ) -> Order:
-    await database.fetch("INSERT INTO orders (user_id, items, adress, phone_number, email, comment) VALUES (?, ?, ?, ?, ?, ?)", user_id, items_json, adress, phone_number, email, comment)
+    await database.fetch("INSERT INTO orders (user_id, items, adress, phone_number, email, comment, date_created) VALUES (?, ?, ?, ?, ?, ?)", user_id, items_json, adress, phone_number, email, comment, date_created)
     return Order((await database.fetch("SELECT id FROM orders ORDER BY id DESC LIMIT 1"))[0][0])
 
 
