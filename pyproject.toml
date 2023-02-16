@@ -16,6 +16,7 @@ matplotlib = "^3.6.2"
 python-dotenv = "^0.21.0"
 aioschedule = "^0.5.2"
 setuptools = "^65.6.3"
+captcha = "^0.4"
 
 
 [build-system]
