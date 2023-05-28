@@ -1,5 +1,6 @@
-from os import system, name, remove, mkdir, rmdir, listdir
+from os import system, name, remove, mkdir, rmdir, listdir, environ
 from os.path import exists
+from sys import argv
 
 import sqlite3
 
@@ -101,8 +102,21 @@ def create_db():
     conn.commit()
     conn.close()    
 
-
 if __name__ == "__main__":
+    if "--nointeract" in argv:
+        token = environ.get("TELEGRAM_TOKEN")
+        main_admin_id = environ.get("MAIN_ADMIN_ID")
+        if token is None or main_admin_id is None:
+            print("Не указаны переменные окружения TELEGRAM_TOKEN или MAIN_ADMIN_ID")
+            exit(1)
+        create_config(token, main_admin_id)
+
+        create_db()
+        [mkdir(name) for name in ["backups", "images"]]
+
+        exit(0)
+
+
     clearConsole()
     if any(list(map(exists, ["config.ini", "images", "data.db"]))):
         while True:
