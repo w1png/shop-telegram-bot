@@ -37,7 +37,7 @@
 docker run -d \
   -e MAIN_ADMIN_ID='Ваш Telegram ID' \
   -e TELEGRAM_TOKEN='token' \
-  shop-telegram-bot
+  w1png/shop-telegram-bot
 ```
 
 ## Python
