@@ -102,8 +102,14 @@ def create_db():
     conn.commit()
     conn.close()    
 
+def do_files_exist():
+    return any(list(map(exists, ["config.ini", "images", "data.db"])))
+
 if __name__ == "__main__":
     if "--nointeract" in argv:
+        if do_files_exist():
+            exit(0)
+
         token = environ.get("TELEGRAM_TOKEN")
         main_admin_id = environ.get("MAIN_ADMIN_ID")
         if token is None or main_admin_id is None:
@@ -118,7 +124,7 @@ if __name__ == "__main__":
 
 
     clearConsole()
-    if any(list(map(exists, ["config.ini", "images", "data.db"]))):
+    if do_files_exist():
         while True:
             confirmation = input("Вы уверены, что хотите повторно запустить процесс установки? Все данные будут утеряны! (y/N) ")
             if confirmation.lower() in ["y", "yes", "n", "no", ""]:
